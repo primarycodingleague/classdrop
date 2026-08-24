@@ -1283,7 +1283,22 @@ function pendingBanner(o, onApprove, onReject) {
 
 /* ---------- view state ---------- */
 let view = { page: 'dash', classId: null, tab: 'tasks', assignmentId: null, studentId: null, discussionId: null };
-function go(patch) { view = Object.assign({}, view, patch); render(); }
+function go(patch) {
+  const next = Object.assign({}, view, patch);
+  const changed = JSON.stringify(next) !== JSON.stringify(view);
+  view = next; render();
+  if (changed) history.pushState({ view }, '');
+}
+
+/* browser back/forward: close any open layer first, otherwise restore that entry's view */
+window.addEventListener('popstate', e => {
+  const drawerScrim = document.querySelector('.scrim');
+  if (drawerScrim) { drawerScrim.click(); history.pushState({ view }, ''); return; }
+  const layer = document.querySelector('.modal-scrim, .zoom-scrim');
+  if (layer) { layer.remove(); history.pushState({ view }, ''); return; }
+  if (document.querySelector('.cv-wrap')) { history.pushState({ view }, ''); return; } // canvas editor may hold unsaved work — leave via its own controls
+  if (e.state && e.state.view) { view = Object.assign({}, e.state.view); render(); }
+});
 
 /* ---------- brand mark (original ClassDrop artwork) ---------- */
 const MARK = `
@@ -1333,6 +1348,7 @@ function renderAuth() {
     db.session = b.dataset.login; saveDB();
     view = { page: 'dash', classId: null, tab: 'tasks', assignmentId: null, studentId: null, discussionId: null };
     render();
+    history.replaceState({ view }, '');
   });
   $('#pj-go').onclick = () => {
     const code = $('#pj-code').value.trim().toUpperCase();
@@ -1341,7 +1357,7 @@ function renderAuth() {
     openPrompt('Welcome!', `You'll follow ${user(sid).name}'s work. What's your name?`, 'e.g. Jo Brooks', name => {
       const p = { id: uid(), name, role: 'parent', childId: sid, schoolId: user(sid).schoolId };
       db.users.push(p); db.session = p.id; saveDB();
-      view = { page: 'dash' }; render();
+      view = { page: 'dash' }; render(); history.replaceState({ view }, '');
       toast(`Following ${user(sid).name} 👀`);
     });
   };
@@ -5346,6 +5362,7 @@ async function openDocOnCanvas(data, name, type, opts) {
 /* ---------- boot ---------- */
 loadDB();
 render();
+history.replaceState({ view }, '');
 </script>
 </body>
 </html>
