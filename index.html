@@ -1057,8 +1057,8 @@ function migrateDB() {
   if (changed) saveDB();
 }
 function saveDB() {
-  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-  catch (e) { toast("Couldn't save — this device's storage is full.", true); }
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); saveDB.failed = false; return true; }
+  catch (e) { saveDB.failed = true; toast("Couldn't save — this device's storage is full.", true); return false; }
 }
 
 /* Safari won't play <video>/<audio> from a data: URL, so serve each stored item's
@@ -1100,6 +1100,7 @@ function nudgeStalledMedia() {
       setTimeout(() => {
         if (!document.contains(el) || el.readyState > 0) return;
         if (document.querySelector('.modal-scrim, .cv-wrap')) return; // never mid-dialog or mid-edit
+        if (saveDB.failed) return; // something is unsaved — a reload would lose it
         const last = +sessionStorage.getItem('cd-media-reload') || 0;
         if (Date.now() - last < 15000) return; // one shot — no reload loops
         sessionStorage.setItem('cd-media-reload', String(Date.now()));
@@ -3460,6 +3461,14 @@ function renderFolder(main) {
     const mod = shared ? modStamp(c, extra.text || '') : {};
     const item = Object.assign({ id: uid(), assignmentId: a.id, studentId: sid, authorId: db.session, ts: Date.now(), comments: [], star: false }, extra, mod);
     db.items.push(item);
+    // if it won't fit in this device's storage, drop it now and say so — never
+    // show work that would silently vanish on the next reload
+    if (!saveDB()) {
+      db.items.pop();
+      render();
+      toast("That was too big to keep on this device — try a shorter recording or a smaller file.", true);
+      return;
+    }
     if (teacherView && !shared) notify([sid, ...parentsOf(sid)], `${me().name} added ${extra.kind === 'audio' ? 'a voice note' : extra.kind === 'note' ? 'a note' : 'something'} to ${user(sid).name.split(' ')[0]}'s “${a.title}” folder`, { page: 'folder', classId: c.id, assignmentId: a.id, studentId: sid });
     if (item.pending) notify(classTeachers(c), `A shared-folder post from ${me().name} needs approval (${a.title})`, { page: 'folder', classId: c.id, assignmentId: a.id, studentId: SHARED });
     saveDB(); render();
@@ -5128,7 +5137,7 @@ function openCameraModal(onCapture) {
           clearInterval(timer);
           const blob = new Blob(chunks, { type: rec.mimeType || 'video/webm' });
           rec = null;
-          if (blob.size > 12 * 1024 * 1024) { toast('That video is too big for the demo \u2014 keep it under ~1 minute.', true); m.remove(); return; }
+          if (blob.size > 3.5 * 1024 * 1024) { toast('That video is too big to keep on this device \u2014 keep it under ~25 seconds.', true); m.remove(); return; }
           const r = new FileReader();
           r.onload = () => { m.remove(); onCapture({ kind: 'video', data: r.result }); };
           r.readAsDataURL(blob);
@@ -5138,7 +5147,7 @@ function openCameraModal(onCapture) {
         goBtn.innerHTML = `${ic('i-tick')} Stop & add`;
         timer = setInterval(() => {
           m.querySelector('#cam-note').textContent = 'Recording\u2026 ' + Math.round((Date.now() - t0) / 1000) + 's';
-          if (Date.now() - t0 > 90000 && rec) rec.stop(); // 90s cap
+          if (Date.now() - t0 > 25000 && rec) rec.stop(); // ~25s cap: longer can't fit in localStorage
         }, 500);
         return;
       }
