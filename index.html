@@ -948,7 +948,34 @@ function publishSweep() {
 /* ---------- data ---------- */
 let db = null;
 
-function loadDB() {
+/* ---------- persistent storage ----------
+   IndexedDB first: media (video / voice notes / files) as base64 easily
+   outgrows localStorage's quota — Safari file:// pages get only ~2–3MB.
+   localStorage remains the fallback and the migration source for old demos. */
+let _idb = null;
+const idbReq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+function idbOpen() {
+  const q = indexedDB.open('classdrop', 1);
+  q.onupgradeneeded = () => q.result.createObjectStore('kv');
+  return idbReq(q);
+}
+const idbGet = k => idbReq(_idb.transaction('kv').objectStore('kv').get(k));
+const idbPut = (k, v) => idbReq(_idb.transaction('kv', 'readwrite').objectStore('kv').put(v, k));
+const idbDel = k => idbReq(_idb.transaction('kv', 'readwrite').objectStore('kv').delete(k));
+
+async function bootDB() {
+  try { _idb = await idbOpen(); } catch (e) { _idb = null; }
+  let stored = null;
+  if (_idb) { try { stored = await idbGet(DB_KEY); } catch (e) {} }
+  if (!stored) {
+    try { stored = JSON.parse(localStorage.getItem(DB_KEY)); } catch (e) {}
+    if (stored && _idb) { try { await idbPut(DB_KEY, stored); localStorage.removeItem(DB_KEY); } catch (e) {} }
+  }
+  db = stored && stored.users ? stored : seedDemo();
+  migrateDB();
+}
+
+function loadDB() { // sync path, used only where IndexedDB is unavailable
   try { db = JSON.parse(localStorage.getItem(DB_KEY)); } catch (e) { db = null; }
   if (!db || !db.users) db = seedDemo();
   migrateDB();
@@ -1057,7 +1084,12 @@ function migrateDB() {
   if (changed) saveDB();
 }
 function saveDB() {
-  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); saveDB.failed = false; return true; }
+  saveDB.failed = false;
+  if (_idb) {
+    idbPut(DB_KEY, db).catch(() => { saveDB.failed = true; toast("Couldn't save — this device's storage is full.", true); });
+    return true;
+  }
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
   catch (e) { saveDB.failed = true; toast("Couldn't save — this device's storage is full.", true); return false; }
 }
 
@@ -1412,7 +1444,11 @@ function renderAuth() {
       toast(`Following ${user(sid).name} 👀`);
     });
   };
-  $('#btn-reset').onclick = () => { localStorage.removeItem(DB_KEY); loadDB(); render(); toast('Demo data reset'); };
+  $('#btn-reset').onclick = async () => {
+    localStorage.removeItem(DB_KEY);
+    if (_idb) { try { await idbDel(DB_KEY); } catch (e) {} }
+    db = seedDemo(); migrateDB(); render(); toast('Demo data reset');
+  };
 }
 
 /* ---------- shell + nav ---------- */
@@ -5137,7 +5173,7 @@ function openCameraModal(onCapture) {
           clearInterval(timer);
           const blob = new Blob(chunks, { type: rec.mimeType || 'video/webm' });
           rec = null;
-          if (blob.size > 3.5 * 1024 * 1024) { toast('That video is too big to keep on this device \u2014 keep it under ~25 seconds.', true); m.remove(); return; }
+          if (blob.size > 8 * 1024 * 1024) { toast('That video is too big for the demo \u2014 keep it under ~1 minute.', true); m.remove(); return; }
           const r = new FileReader();
           r.onload = () => { m.remove(); onCapture({ kind: 'video', data: r.result }); };
           r.readAsDataURL(blob);
@@ -5147,7 +5183,7 @@ function openCameraModal(onCapture) {
         goBtn.innerHTML = `${ic('i-tick')} Stop & add`;
         timer = setInterval(() => {
           m.querySelector('#cam-note').textContent = 'Recording\u2026 ' + Math.round((Date.now() - t0) / 1000) + 's';
-          if (Date.now() - t0 > 25000 && rec) rec.stop(); // ~25s cap: longer can't fit in localStorage
+          if (Date.now() - t0 > 60000 && rec) rec.stop(); // ~60s cap
         }, 500);
         return;
       }
@@ -5419,11 +5455,13 @@ async function openDocOnCanvas(data, name, type, opts) {
   }
 }
 /* ---------- boot ---------- */
-loadDB();
-/* restore the screen you were on across a reload (state survives in history) */
-if (history.state && history.state.view && me()) view = Object.assign({}, view, history.state.view);
-render();
-history.replaceState({ view }, '');
+(async () => {
+  await bootDB();
+  /* restore the screen you were on across a reload (state survives in history) */
+  if (history.state && history.state.view && me()) view = Object.assign({}, view, history.state.view);
+  render();
+  history.replaceState({ view }, '');
+})();
 </script>
 </body>
 </html>
