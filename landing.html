@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ClassDrop — hand out work, hand it in, give feedback | Primary Coding League</title>
+<meta name="description" content="ClassDrop is a classroom workspace for primary schools: set tasks, collect photos, videos, voice notes and drawings, and give feedback children actually read. By Primary Coding League.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+
+:root{
+  --gold:#ae853e; --gold-hi:#c99a4a; --gold-dk:#8a6a2f; --gold-soft:#f4ecdc; --gold-line:#e6d7b8;
+  --ink:#33302b; --muted:#7a746a;
+  --paper:#f6f2ea; --card:#ffffff; --line:#e7e0d3;
+  --shell:#242220; --shell-2:#2e2b27; --shell-line:#3c3833; --shell-ink:#f3ede1; --shell-muted:#a89f90;
+  --green:#1d8a5f; --green-soft:#e2f2ea; --red:#c0392b; --red-soft:#f8e7e4;
+  --amber:#c98a1e; --amber-soft:#f8eed9; --blue:#3573a8; --blue-soft:#e7f0f8;
+  --font:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --radius:14px; --shadow:0 2px 12px rgba(58,48,30,.07);
+  font-size:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0; font-family:var(--font); background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased; line-height:1.6}
+img,svg{max-width:100%}
+a{color:var(--gold-dk)}
+h1,h2,h3{line-height:1.15; letter-spacing:-.01em}
+.wrap{max-width:1060px; margin:0 auto; padding:0 22px}
+
+.btn{display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#fff; font-weight:800; font-family:var(--font);
+  border:none; border-radius:99px; padding:13px 26px; font-size:1rem; text-decoration:none; cursor:pointer; transition:background .15s, transform .1s}
+.btn:hover{background:var(--gold-hi); transform:translateY(-1px)}
+.btn.ghost{background:transparent; color:var(--shell-ink); border:1.5px solid var(--shell-line)}
+.btn.ghost:hover{border-color:var(--gold); color:#fff; background:transparent}
+.btn.light{background:#fff; color:var(--gold-dk)}
+.btn.light:hover{background:var(--gold-soft)}
+
+/* ---------- nav ---------- */
+.nav{position:sticky; top:0; z-index:50; background:var(--shell); color:var(--shell-ink); border-bottom:1px solid var(--shell-line)}
+.nav .wrap{display:flex; align-items:center; gap:22px; padding-top:12px; padding-bottom:12px}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; margin-right:auto}
+.brand .mark{width:38px; height:38px; background:#fff; border-radius:10px; padding:5px; display:flex}
+.brand b{font-size:1.15rem; font-weight:800}
+.brand small{display:block; color:var(--gold-hi); font-size:.6rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase}
+.nav a.link{color:var(--shell-muted); text-decoration:none; font-weight:700; font-size:.92rem}
+.nav a.link:hover{color:#fff}
+.nav .btn{padding:9px 18px; font-size:.92rem; white-space:nowrap}
+
+/* ---------- hero ---------- */
+.hero{background:linear-gradient(180deg, var(--shell), #2a2723 70%, var(--shell-2)); color:var(--shell-ink); overflow:hidden}
+.hero .wrap{display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center; padding-top:76px; padding-bottom:84px}
+.hero h1{font-size:2.9rem; font-weight:800; margin:0 0 18px; color:#fff}
+.hero h1 em{font-style:normal; color:var(--gold-hi)}
+.hero p.lead{font-size:1.16rem; color:var(--shell-muted); margin:0 0 30px; max-width:34em}
+.hero .ctas{display:flex; gap:14px; flex-wrap:wrap; align-items:center}
+.hero .by{margin-top:26px; color:var(--shell-muted); font-size:.85rem}
+.hero .by b{color:var(--gold-hi)}
+
+/* hero mock — a task folder card drawn in CSS */
+.mock{background:var(--paper); color:var(--ink); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.45); padding:20px; transform:rotate(1.5deg)}
+.mock .mtitle{font-weight:800; font-size:1.02rem; margin-bottom:2px}
+.mock .msub{color:var(--muted); font-size:.78rem; margin-bottom:12px}
+.mock .chip{display:inline-block; border-radius:99px; padding:2px 10px; font-size:.7rem; font-weight:800}
+.mock .chip.amber{background:var(--amber-soft); color:var(--amber)}
+.mock .chip.green{background:var(--green-soft); color:var(--green)}
+.mock .witem{background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-top:10px; box-shadow:var(--shadow)}
+.mock .whead{display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--muted); margin-bottom:8px}
+.mock .avatar{width:26px; height:26px; border-radius:50%; background:var(--gold-soft); color:var(--gold-dk); font-weight:800; font-size:.66rem; display:inline-flex; align-items:center; justify-content:center; flex:none}
+.mock .whead b{color:var(--ink)}
+.mock .thumb{height:74px; border-radius:9px; background:
+  linear-gradient(135deg, #1b2a4a 0 60%, transparent 60%),
+  linear-gradient(315deg, #35507f 0 45%, transparent 45%), #24365c;
+  position:relative}
+.mock .thumb::after{content:'▶'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.mock .note{font-size:.84rem}
+.mock .stick{display:inline-flex; align-items:center; gap:5px; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-dk); border-radius:99px; padding:3px 11px; font-size:.74rem; font-weight:800; margin-top:8px}
+.mock .voice{display:flex; align-items:center; gap:9px; margin-top:2px}
+.mock .voice .play{width:30px; height:30px; border-radius:50%; background:var(--gold); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.7rem; flex:none}
+.mock .voice .bars{display:flex; align-items:center; gap:2.5px; height:22px}
+.mock .voice .bars i{width:3px; border-radius:2px; background:var(--gold-line)}
+.mock .voice .bars i:nth-child(-n+9){background:var(--gold)}
+
+/* ---------- sections ---------- */
+section{padding:72px 0}
+.kicker{color:var(--gold-dk); font-weight:800; text-transform:uppercase; letter-spacing:.12em; font-size:.76rem; margin:0 0 10px}
+h2{font-size:2rem; font-weight:800; margin:0 0 14px}
+p.sub{color:var(--muted); font-size:1.05rem; max-width:40em; margin:0 0 40px}
+
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+.feature{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:24px 22px; box-shadow:var(--shadow); border-top:3px solid var(--gold)}
+.feature .fic{width:44px; height:44px; border-radius:12px; background:var(--gold-soft); color:var(--gold-dk); display:flex; align-items:center; justify-content:center; margin-bottom:14px}
+.feature .fic svg{width:22px; height:22px; fill:currentColor}
+.feature h3{font-size:1.05rem; font-weight:800; margin:0 0 8px}
+.feature p{margin:0; color:var(--muted); font-size:.92rem}
+
+/* ---------- roles band ---------- */
+.roles{background:var(--shell-2); color:var(--shell-ink)}
+.roles h2{color:#fff}
+.roles .grid{grid-template-columns:repeat(4,1fr)}
+.role{background:var(--shell); border:1px solid var(--shell-line); border-radius:var(--radius); padding:22px 20px}
+.role .tag{display:inline-block; background:rgba(174,133,62,.18); color:var(--gold-hi); border-radius:99px; padding:3px 12px; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px}
+.role h3{font-size:1rem; margin:0 0 8px; color:#fff}
+.role p{margin:0; color:var(--shell-muted); font-size:.88rem}
+
+/* ---------- safeguarding ---------- */
+.safe{background:var(--gold-soft); border:1.5px dashed var(--gold-line); border-radius:18px; padding:34px 36px; display:flex; gap:28px; align-items:flex-start}
+.safe .shield{flex:none; width:58px; height:58px; border-radius:16px; background:var(--gold); color:#fff; display:flex; align-items:center; justify-content:center}
+.safe .shield svg{width:30px; height:30px; fill:currentColor}
+.safe h2{font-size:1.5rem; margin-bottom:8px}
+.safe p{margin:0; color:var(--muted)}
+.safe ul{margin:12px 0 0; padding-left:20px; color:var(--ink); font-size:.95rem}
+.safe li{margin-bottom:6px}
+
+/* ---------- how it works ---------- */
+.steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; counter-reset:step}
+.step{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:26px 22px; box-shadow:var(--shadow); position:relative; counter-increment:step}
+.step::before{content:counter(step); position:absolute; top:-16px; left:20px; width:34px; height:34px; border-radius:50%;
+  background:var(--gold); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(58,48,30,.25)}
+.step h3{font-size:1rem; font-weight:800; margin:8px 0 8px}
+.step p{margin:0; color:var(--muted); font-size:.9rem}
+.step .code{display:inline-block; background:var(--gold-soft); border:1px solid var(--gold-line); border-radius:8px; padding:2px 10px; font-weight:800; letter-spacing:.12em; color:var(--gold-dk)}
+
+/* ---------- final CTA ---------- */
+.cta{background:linear-gradient(180deg, var(--shell-2), var(--shell)); color:var(--shell-ink); text-align:center}
+.cta h2{color:#fff; font-size:2.1rem}
+.cta p{color:var(--shell-muted); max-width:36em; margin:0 auto 30px}
+.cta .demo-note{display:inline-block; margin-top:22px; background:rgba(174,133,62,.14); border:1.5px dashed rgba(174,133,62,.5);
+  border-radius:12px; padding:9px 16px; font-size:.83rem; color:var(--gold-hi); font-weight:700}
+
+/* ---------- footer ---------- */
+footer{background:var(--shell); color:var(--shell-muted); border-top:1px solid var(--shell-line); padding:26px 0; font-size:.85rem}
+footer .wrap{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+footer b{color:var(--gold-hi)}
+footer .sp{margin-left:auto}
+
+/* ---------- responsive ---------- */
+@media (max-width:880px){
+  .hero .wrap{grid-template-columns:1fr; gap:40px; padding-top:56px; padding-bottom:60px}
+  .hero h1{font-size:2.2rem}
+  .mock{transform:none; max-width:420px}
+  .grid{grid-template-columns:1fr 1fr}
+  .roles .grid{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr; gap:26px}
+  .safe{flex-direction:column; padding:26px 22px}
+  .nav a.link{display:none}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .roles .grid{grid-template-columns:1fr}
+  .hero h1{font-size:1.9rem}
+  section{padding:54px 0}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64">
+    <path d="M8 20a5 5 0 015-5h13l5 6h20a5 5 0 015 5v25a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#8a6a2f"/>
+    <path d="M8 27h48v24a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#ae853e"/>
+    <path d="M32 4v20" stroke="#33302b" stroke-width="6" stroke-linecap="round"/>
+    <path d="M22 16l10 11 10-11" fill="none" stroke="#33302b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M32 6v18" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M24 17l8 9 8-9" fill="none" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><path d="M8 3h8a2 2 0 012 2v15a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2zm1-1h6v3H9zM9 11l2 2 4-4 1.4 1.4L11 15.8 7.6 12.4z"/></symbol>
+  <symbol id="i-handin" viewBox="0 0 24 24"><path d="M4 8a2 2 0 012-2h4l2 2.4h6A2 2 0 0120 10.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2zm8-6v5m-3-2l3 3 3-3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-feedback" viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 011 1v11a1 1 0 01-1 1H9l-5 4V5a1 1 0 011-1zm4 5h8v2H8z"/></symbol>
+  <symbol id="i-shared" viewBox="0 0 24 24"><path d="M9 11a3.2 3.2 0 100-6.4A3.2 3.2 0 009 11zm7 .6a2.7 2.7 0 100-5.4 2.7 2.7 0 000 5.4zM2.5 19c0-3 3-5.4 6.5-5.4s6.5 2.4 6.5 5.4v.6h-13zm14.6.6v-.6c0-1.6-.7-3-1.8-4.1.6-.2 1.2-.3 1.9-.3 2.7 0 4.8 1.8 4.8 4.1v.9z"/></symbol>
+  <symbol id="i-grade" viewBox="0 0 24 24"><path d="M4 4h16v3H4zm0 5h7v11H4zm9 0h7v5h-7zm0 7h7v4h-7z"/></symbol>
+  <symbol id="i-reading" viewBox="0 0 24 24"><path d="M12 5.5C10.6 4 8.4 3 5.8 3c-1 0-2 .15-2.8.4v15.1c.8-.25 1.8-.4 2.8-.4 2.6 0 4.8 1 6.2 2.4 1.4-1.4 3.6-2.4 6.2-2.4 1 0 2 .15 2.8.4V3.4c-.8-.25-1.8-.4-2.8-.4-2.6 0-4.8 1-6.2 2.5zm0 0v15"/></symbol>
+  <symbol id="i-points" viewBox="0 0 24 24"><path d="M12 2l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 15.5 6.6 18.5l1.2-6L3.3 8.3l6.1-.7z"/></symbol>
+  <symbol id="i-discuss" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h9a2 2 0 012 2v6a2 2 0 01-2 2H8l-5 4zm14 2h2a2 2 0 012 2v11l-4-3h-6a2 2 0 01-2-2v-1h6a4 4 0 004-4z"/></symbol>
+  <symbol id="i-portfolio" viewBox="0 0 24 24"><path d="M12 2l2.4 5.2 5.6.6-4.2 3.9 1.1 5.6L12 14.5l-4.9 2.8 1.1-5.6L4 7.8l5.6-.6zM5 20h14v2H5z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3.5v5.3c0 5-3.4 9.6-8 11.2-4.6-1.6-8-6.2-8-11.2V5.5zm-1.2 13.4l6-6-1.4-1.5-4.6 4.6-2.2-2.2-1.4 1.4z"/></symbol>
+</svg>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="mark"><svg viewBox="0 0 64 64"><use href="#mark"/></svg></span>
+      <span><b>ClassDrop</b><small>Primary Coding League</small></span>
+    </a>
+    <a class="link" href="#features">Features</a>
+    <a class="link" href="#safeguarding">Safeguarding</a>
+    <a class="link" href="#how">How it works</a>
+    <a class="btn" href="index.html">Open the demo</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1>Hand out work.<br>Hand it in.<br><em>Give feedback.</em></h1>
+      <p class="lead">ClassDrop is a classroom workspace built for primary schools. Set a task in seconds, let children hand in photos, videos, voice notes and drawings, and give feedback they'll actually read — all in one warm, simple place.</p>
+      <div class="ctas">
+        <a class="btn" href="index.html">Try the demo</a>
+        <a class="btn ghost" href="#features">See what it does</a>
+      </div>
+      <p class="by">by <b>Primary Coding League</b> — built by teachers who run coding clubs every week</p>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mtitle">Design a game character</div>
+      <div class="msub">Year 5 Computing · due 27 Aug · <span class="chip amber">1 to review</span></div>
+      <div class="witem">
+        <div class="whead"><span class="avatar">MP</span><span><b>Maya Patel</b> · just now</span><span class="chip green" style="margin-left:auto">Handed in</span></div>
+        <div class="thumb"></div>
+        <div class="stick">⭐ Gold star</div>
+      </div>
+      <div class="witem">
+        <div class="whead"><span class="avatar" style="background:var(--green-soft); color:var(--green)">MT</span><span><b>Miss Taylor</b> · feedback</span></div>
+        <div class="voice">
+          <span class="play">▶</span>
+          <span class="bars"><i style="height:8px"></i><i style="height:14px"></i><i style="height:19px"></i><i style="height:11px"></i><i style="height:16px"></i><i style="height:9px"></i><i style="height:18px"></i><i style="height:13px"></i><i style="height:7px"></i><i style="height:12px"></i><i style="height:17px"></i><i style="height:10px"></i><i style="height:15px"></i><i style="height:8px"></i></span>
+          <span style="font-size:.74rem; color:var(--muted)">0:23</span>
+        </div>
+        <div class="note" style="margin-top:8px">Brilliant power choice, Maya! Tell me how she'll jump 🎮</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <p class="kicker">What it does</p>
+    <h2>Everything a classroom needs, nothing it doesn't</h2>
+    <p class="sub">One page per task, one folder per child, one place for the whole story of their work.</p>
+    <div class="grid">
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-task"/></svg></div>
+        <h3>Set tasks in seconds</h3>
+        <p>Title, instructions, due date — done. Add points to switch on grading, attach a resource or a starter canvas, publish now or schedule for later, and lock hand-ins automatically when the deadline passes.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-handin"/></svg></div>
+        <h3>Hand in anything</h3>
+        <p>Children add photos straight from the camera, video clips, voice notes, drawings made in the built-in canvas, files or links — then press one big friendly “Hand in” button.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-feedback"/></svg></div>
+        <h3>Feedback that lands</h3>
+        <p>Reply with a comment, a voice note, a sticker, or draw directly on a child's work. Every folder keeps the conversation next to the work it's about — and parents can see it too.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-shared"/></svg></div>
+        <h3>Shared class folder</h3>
+        <p>Every task gets a whole-class space where children can post for their peers — perfect for galleries, show-and-tell and celebrating finished projects.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-grade"/></svg></div>
+        <h3>Gradebook &amp; Markbook</h3>
+        <p>A live grid of who's handed in, who's been graded and how the class is doing — plus a markbook with primary-friendly, colour-coded scales like WTS / EXS / GDS, or your school's own.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-reading"/></svg></div>
+        <h3>Reading log</h3>
+        <p>A simple reading record teachers and parents both write in — books, pages, and a note about how it went, all in one running log per child.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-points"/></svg></div>
+        <h3>Behaviour points</h3>
+        <p>Award house-style points for effort, kindness and great work, with class totals and per-child views. Behaviours are customisable per class.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-discuss"/></svg></div>
+        <h3>Class discussions</h3>
+        <p>Teacher-led discussion threads for questions and ideas — with every pupil post held for approval in moderated classes.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-portfolio"/></svg></div>
+        <h3>Portfolios</h3>
+        <p>Star a child's best pieces and they join a portfolio that follows them through the year — a ready-made evidence trail for parents' evening.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="roles">
+  <div class="wrap">
+    <p class="kicker" style="color:var(--gold-hi)">Who it's for</p>
+    <h2>Four views, one classroom</h2>
+    <p class="sub" style="color:var(--shell-muted)">Everyone sees exactly what they need — and nothing they shouldn't.</p>
+    <div class="grid">
+      <div class="role">
+        <span class="tag">Teachers</span>
+        <h3>Run the room</h3>
+        <p>Set work, review hand-ins, grade, moderate the shared folder and keep the markbook — from one dashboard that shows what needs you next.</p>
+      </div>
+      <div class="role">
+        <span class="tag">Pupils</span>
+        <h3>Big friendly buttons</h3>
+        <p>Join a class with a 5-letter code. See “my tasks”, add work with the camera or canvas, and collect stickers and feedback.</p>
+      </div>
+      <div class="role">
+        <span class="tag">Parents</span>
+        <h3>Follow along</h3>
+        <p>A simple parent code links you to your child. See their work, the teacher's feedback, and add to the reading log at home.</p>
+      </div>
+      <div class="role">
+        <span class="tag">School office</span>
+        <h3>The whole school</h3>
+        <p>Manage staff, pupils and classes, set school-wide grading scales and branding, and build report templates for the end of term.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="safeguarding">
+  <div class="wrap">
+    <div class="safe">
+      <div class="shield"><svg><use href="#i-shield"/></svg></div>
+      <div>
+        <h2>Safeguarding first, always</h2>
+        <p>ClassDrop is built for children, so the guard rails are on by default:</p>
+        <ul>
+          <li><b>Moderation on by default</b> — pupil posts to peer-visible spaces wait for teacher approval before anyone else sees them.</li>
+          <li><b>Language screening</b> — flagged wording is automatically held for the teacher, whatever the class settings.</li>
+          <li><b>Teachers hold the keys</b> — join codes, parent codes, locking tasks and removing content are all teacher-controlled.</li>
+          <li><b>No pupil accounts to leak</b> — the demo keeps everything on the device it runs on.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <p class="kicker">How it works</p>
+    <h2>From nothing to first hand-in in five minutes</h2>
+    <p class="sub">No installs, no setup meetings, no training day.</p>
+    <div class="steps">
+      <div class="step">
+        <h3>Create your class</h3>
+        <p>Name it, pick a schedule, and ClassDrop makes a join code like <span class="code">JX4P7</span>. Pupils enter it once and they're in.</p>
+      </div>
+      <div class="step">
+        <h3>Set your first task</h3>
+        <p>Write the instructions, set a due date, attach a starter if you like. Every child gets a private folder; the class gets a shared one.</p>
+      </div>
+      <div class="step">
+        <h3>Review and reply</h3>
+        <p>Hand-ins queue up on your dashboard. Open a folder, leave a voice note or a sticker, set a grade — and share the parent code so home can follow along.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>See it with a class already inside</h2>
+    <p>The demo comes pre-loaded with a school, two classes, tasks and hand-ins — pick any account and explore every view.</p>
+    <a class="btn light" href="index.html">Open the ClassDrop demo</a>
+    <div><span class="demo-note">Demo prototype — everything saves on this device only.</span></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="mark" style="width:26px; display:inline-flex"><svg viewBox="0 0 64 64"><use href="#mark"/></svg></span>
+    <span><b>ClassDrop</b> · a Primary Coding League project</span>
+    <span class="sp">Hand out work. Hand it in. Give feedback.</span>
+  </div>
+</footer>
+
+</body>
+</html>
