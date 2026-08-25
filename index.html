@@ -227,6 +227,20 @@ h1,h2,h3,h4{letter-spacing:.005em}
 .fcard b{display:block; font-size:.93rem; margin-bottom:7px}
 .fcard.shared{border:1.5px solid var(--gold-line); background:var(--gold-soft)}
 .fcard.shared .avatar{background:var(--gold); color:#2b2211}
+/* teacher library cards */
+.lib-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:14px}
+.lib-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  display:flex; flex-direction:column; transition:border-color .12s}
+.lib-card:hover{border-color:var(--gold)}
+.lib-prev{display:block; width:100%; height:128px; background:#fbf9f4; border:none; border-bottom:1px solid var(--line);
+  cursor:pointer; padding:0; position:relative}
+.lib-prev img{width:100%; height:100%; object-fit:cover; display:block}
+.lib-prev .ic.big{position:absolute; inset:0; margin:auto; opacity:.35}
+video.lib-prev{object-fit:cover; cursor:default}
+.lib-body{padding:10px 12px 2px}
+.lib-body b{display:block; font-size:.92rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lib-body small{color:var(--muted); font-size:.75rem; display:flex; align-items:center; gap:4px; flex-wrap:wrap}
+.lib-actions{display:flex; gap:6px; flex-wrap:wrap; padding:8px 10px 10px; margin-top:auto}
 
 /* ---------- work items (folders) ---------- */
 .work-list{display:flex; flex-direction:column; gap:12px}
@@ -1081,6 +1095,16 @@ function migrateDB() {
     }
     db.mbSeeded = true; changed = true;
   }
+  // teacher library: standalone canvases + tasks shared with staff
+  if (!db.canvases) { db.canvases = []; changed = true; }
+  if (!db.taskLibrary) { db.taskLibrary = []; changed = true; }
+  if (!db.librarySeeded) {
+    if (db.users.some(u => u.id === 'u-ose') && !db.taskLibrary.length)
+      db.taskLibrary.push({ id: 'tl-demo', ownerId: 'u-ose', schoolId: 'sch1', ts: Date.now() - 3 * DAY,
+        title: 'Debugging detectives', instructions: 'Find and fix the three bugs hidden in the maze program. Screenshot each fix and record a voice note explaining what was wrong.',
+        outOf: 10, autoLock: false, sharedPosting: true, attachments: [] });
+    db.librarySeeded = true; changed = true;
+  }
   if (changed) saveDB();
 }
 function saveDB() {
@@ -1494,6 +1518,9 @@ function renderShell() {
       <button class="nav-item ${view.page === 'aclasses' ? 'active' : ''}" data-nav="aclasses"><span class="nico">${ic('i-class')}</span>Classes</button>
       <button class="nav-item ${view.page === 'ascales' ? 'active' : ''}" data-nav="ascales"><span class="nico">${ic('i-markbook')}</span>Grades &amp; levels</button>
       <button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>` : `
+      ${isTeacher() ? `<button class="nav-item ${view.page === 'library' ? 'active' : ''}" data-nav="library">
+        <span class="nico">${ic('i-book')}</span>Library
+      </button>` : ''}
       <button class="nav-item ${view.page === 'portfolio' ? 'active' : ''}" data-nav="portfolio">
         <span class="nico">${ic('i-star')}</span>${isTeacher() ? 'Portfolios' : isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s portfolio" : 'My portfolio'}
       </button>
@@ -1524,6 +1551,7 @@ function renderShell() {
     const n = b.dataset.nav;
     if (n === 'dash') go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'activity') go({ page: 'activity' });
+    if (n === 'library') go({ page: 'library', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
     if (n === 'staff') go({ page: 'staff' });
@@ -1551,6 +1579,7 @@ function renderShell() {
   else if (view.page === 'discussion') renderDiscussionThread(main);
   else if (view.page === 'class') renderClass(main);
   else if (view.page === 'activity') renderActivity(main);
+  else if (view.page === 'library' && isTeacher()) renderLibrary(main);
   else if (view.page === 'portfolio') renderPortfolioPage(main);
   else if (view.page === 'reading') renderReadingPage(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
@@ -3276,7 +3305,8 @@ function renderAssignment(main) {
     <button class="crumb" id="crumb">${ic('i-back')} ${esc(c.name)}</button>
     <div class="page-head"><h2>${esc(a.title)}</h2><span class="spacer"></span>
       <button class="btn ghost small" id="btn-edit">${ic('i-pencil')} Edit</button>
-      <button class="btn ghost small" id="btn-copy">${ic('i-copy')} Copy to…</button>
+      <button class="btn ghost small" id="btn-copy">${ic('i-copy')} Reuse…</button>
+      <button class="btn ghost small" id="btn-share" title="Put a copy in the staff library so colleagues can use it">${ic('i-teacher')} ${db.taskLibrary.some(t => t.sourceId === a.id) ? 'Shared with staff' : 'Share with staff'}</button>
       <button class="btn ghost small" id="btn-arch">${ic('i-archive')} ${a.archived ? 'Restore' : 'Archive'}</button>
       <button class="btn sec small" id="btn-lock">${a.locked ? ic('i-unlock') + ' Unlock' : ic('i-lock') + ' Lock'}</button>
       <button class="btn danger small" id="btn-del">${ic('i-trash')}</button></div>
@@ -3296,7 +3326,8 @@ function renderAssignment(main) {
       : `<div class="card empty">${ic('i-people', 'big')}No students in this class yet — share the join code <b>${c.code}</b> and their folders will appear here.</div>`}`;
   $('#crumb').onclick = () => go({ page: 'class', classId: c.id, tab: 'tasks', assignmentId: null });
   $('#btn-edit').onclick = () => openTaskModal(c.id, a);
-  $('#btn-copy').onclick = () => openCopyTask(a);
+  $('#btn-copy').onclick = () => openReuseTask(a);
+  $('#btn-share').onclick = () => shareTaskWithStaff(a);
   $('#btn-arch').onclick = () => { a.archived = !a.archived; saveDB(); render(); toast(a.archived ? 'Task archived' : 'Task restored'); };
   $('#btn-lock').onclick = () => { a.locked = !a.locked; saveDB(); render(); toast(a.locked ? 'Task locked' : 'Task unlocked'); };
   $('#btn-del').onclick = () => openConfirm('Delete this task?', 'The task and all student work in it will be removed. This cannot be undone.', () => {
@@ -3936,13 +3967,16 @@ function openJoinClass() {
 }
 
 /* new task AND edit task */
-function openTaskModal(classId, existing) {
-  let attachments = existing ? existing.attachments.slice() : [];
+/* template: prefill a NEW task from a snapshot (reuse / staff library / canvas) — saves as a fresh copy */
+function openTaskModal(classId, existing, template) {
+  const src = existing || template;
+  let attachments = existing ? existing.attachments.slice() : template ? template.attachments : [];
   const m = openModal(`
-    <h3>${ic('i-task')} ${existing ? 'Edit task' : 'New task'}</h3>
-    <p class="m-sub">Every student gets their own private folder, plus there's a shared folder the whole class can see.</p>
-    <label>Title</label><input id="nt-title" maxlength="80" placeholder="e.g. Design a game character" value="${existing ? esc(existing.title) : ''}">
-    <label>Instructions</label><textarea id="nt-inst" placeholder="What should students do?">${existing ? esc(existing.instructions) : ''}</textarea>
+    <h3>${ic('i-task')} ${existing ? 'Edit task' : template ? 'Reuse as a new task' : 'New task'}</h3>
+    <p class="m-sub">${template ? `This copy is yours to change for ${esc(klass(classId).name)} — the original is untouched.`
+      : `Every student gets their own private folder, plus there's a shared folder the whole class can see.`}</p>
+    <label>Title</label><input id="nt-title" maxlength="80" placeholder="e.g. Design a game character" value="${src ? esc(src.title) : ''}">
+    <label>Instructions</label><textarea id="nt-inst" placeholder="What should students do?">${src ? esc(src.instructions) : ''}</textarea>
     <div class="form-2col">
       <div><label>Publish</label>
         <select id="nt-pub">
@@ -3955,9 +3989,9 @@ function openTaskModal(classId, existing) {
           <input id="nt-pub-date" type="date" value="${existing && existing.publishAt ? new Date(existing.publishAt).toISOString().slice(0, 10) : ''}">
           <input id="nt-pub-time" type="time" style="max-width:120px" value="${existing && existing.publishAt ? ('0' + new Date(existing.publishAt).getHours()).slice(-2) + ':' + ('0' + new Date(existing.publishAt).getMinutes()).slice(-2) : '09:00'}">
         </span></div>
-      <div><label>Due date (optional)</label><input id="nt-due" type="date" value="${existing && existing.due ? existing.due : ''}"></div>
-      <div><label>Due time (optional)</label><input id="nt-time" type="time" value="${existing ? existing.dueTime || '' : ''}"></div>
-      <div><label>Points (optional — turns on grading)</label><input id="nt-outof" type="number" min="1" max="1000" placeholder="e.g. 10" value="${existing && existing.outOf ? existing.outOf : ''}"></div>
+      <div><label>Due date (optional)</label><input id="nt-due" type="date" value="${src && src.due ? src.due : ''}"></div>
+      <div><label>Due time (optional)</label><input id="nt-time" type="time" value="${src ? src.dueTime || '' : ''}"></div>
+      <div><label>Points (optional — turns on grading)</label><input id="nt-outof" type="number" min="1" max="1000" placeholder="e.g. 10" value="${src && src.outOf ? src.outOf : ''}"></div>
       <div><label>Attach a resource (optional)</label>
         <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px">
           <button class="btn sec small" id="nt-att">${ic('i-clip')} Add file</button>
@@ -3966,8 +4000,8 @@ function openTaskModal(classId, existing) {
         <input type="file" id="nt-file" class="sr-only"></div>
     </div>
     <div id="nt-atts"></div>
-    <label class="check-row" style="margin-top:12px"><input type="checkbox" id="nt-autolock" ${existing && existing.autoLock ? 'checked' : ''}> Lock automatically when the due date passes</label>
-    <label class="check-row"><input type="checkbox" id="nt-shpost" ${existing ? (existing.sharedPosting ? 'checked' : '') : 'checked'}> Students can post in the shared folder</label>
+    <label class="check-row" style="margin-top:12px"><input type="checkbox" id="nt-autolock" ${src && src.autoLock ? 'checked' : ''}> Lock automatically when the due date passes</label>
+    <label class="check-row"><input type="checkbox" id="nt-shpost" ${src ? (src.sharedPosting ? 'checked' : '') : 'checked'}> Students can post in the shared folder</label>
     <div class="m-actions">
       <button class="btn ghost" data-x>Cancel</button>
       <button class="btn" data-go>${ic('i-send')} ${existing ? 'Save changes' : 'Set task'}</button>
@@ -4071,30 +4105,146 @@ function openTaskModal(classId, existing) {
   m.querySelector('#nt-title').focus();
 }
 
-function openCopyTask(a) {
-  const targets = db.classes.filter(c => classTeachers(c).includes(db.session) && c.id !== a.classId && !c.archived);
-  if (!targets.length) { toast('No other class to copy to yet.', true); return; }
+/* ---------- reuse & staff sharing ----------
+   a "template" is a plain snapshot of a task's settings (never its student work).
+   Attachment objects are copied so later edits can't leak back into the source;
+   the canvas data inside is safely shared because the editor deep-copies on open. */
+function taskTemplate(a) {
+  return { title: a.title, instructions: a.instructions, due: a.due || null, dueTime: a.dueTime || '',
+    outOf: a.outOf || null, autoLock: !!a.autoLock, sharedPosting: a.sharedPosting !== false,
+    attachments: (a.attachments || []).map(at => Object.assign({}, at)) };
+}
+
+function pickClass(title, sub, onPick) {
+  const targets = db.classes.filter(c => classTeachers(c).includes(db.session) && !c.archived);
+  if (!targets.length) { toast('You need a class first — create one from the sidebar.', true); return; }
+  if (targets.length === 1) { onPick(targets[0].id); return; }
   const m = openModal(`
-    <h3>${ic('i-copy')} Copy task to another class</h3>
-    <p class="m-sub">Copies the title, instructions, settings and attachments — not student work.</p>
-    <label>Copy “${esc(a.title)}” to</label>
-    <select id="ct-sel">${targets.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+    <h3>${ic('i-class')} ${title}</h3>
+    <p class="m-sub">${sub}</p>
+    <label>Which class?</label>
+    <select id="pc-sel">${targets.map(c => `<option value="${c.id}" ${c.id === view.classId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
     <div class="m-actions">
       <button class="btn ghost" data-x>Cancel</button>
-      <button class="btn" data-go>${ic('i-copy')} Copy task</button>
+      <button class="btn" data-go>${ic('i-tick')} Choose class</button>
     </div>`);
   m.querySelector('[data-x]').onclick = () => m.remove();
-  m.querySelector('[data-go]').onclick = () => {
-    const cid = m.querySelector('#ct-sel').value;
-    const copy = Object.assign({}, a, { id: uid(), classId: cid, createdAt: Date.now(), locked: false, archived: false,
-      attachments: a.attachments.slice(), publishNotified: isLive(a) });
-    db.assignments.push(copy);
-    const c = klass(cid);
-    if (isLive(copy)) notify(c.students, `New task in ${c.name}: “${copy.title}”`, { page: 'folder', classId: cid, assignmentId: copy.id });
-    saveDB(); m.remove();
-    go({ page: 'assignment', classId: cid, assignmentId: copy.id });
-    toast(`Copied to ${c.name}`);
-  };
+  m.querySelector('[data-go]').onclick = () => { const cid = m.querySelector('#pc-sel').value; m.remove(); onPick(cid); };
+}
+
+function openReuseTask(a) {
+  pickClass('Reuse this task', 'Makes a fresh copy you can edit before it goes out — student work is not copied.',
+    cid => openTaskModal(cid, null, taskTemplate(a)));
+}
+
+function shareTaskWithStaff(a) {
+  if (db.taskLibrary.some(t => t.sourceId === a.id)) { toast('Already in the staff library — colleagues can see it.'); return; }
+  db.taskLibrary.push(Object.assign({ id: uid(), sourceId: a.id, ownerId: db.session, schoolId: me().schoolId, ts: Date.now() }, taskTemplate(a)));
+  notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a task with staff: “${a.title}”`, { page: 'library' });
+  saveDB(); render(); toast('Shared with staff — colleagues will find it in their Library');
+}
+
+/* ---------- teacher library: canvases that live outside any task ---------- */
+function openLibraryCanvas(entry) { // entry from db.canvases, or null to start a new one
+  openCanvasEditor(entry, {
+    onSave: (canvas, preview, title) => {
+      if (entry) Object.assign(entry, { canvas, data: preview, name: title, updated: Date.now() });
+      else db.canvases.push({ id: uid(), ownerId: db.session, schoolId: me().schoolId, kind: 'canvas',
+        name: title, canvas, data: preview, shared: false, ts: Date.now(), updated: Date.now() });
+      saveDB(); render(); toast('Saved to your Library');
+    },
+    onRecording: data => { // presentations recorded here become library items too
+      db.canvases.push({ id: uid(), ownerId: db.session, schoolId: me().schoolId, kind: 'file',
+        name: (entry && entry.name ? entry.name + ' — ' : '') + 'Presentation', type: 'video/webm', data,
+        shared: false, ts: Date.now(), updated: Date.now() });
+      saveDB(); render(); // the library page sits behind the editor — keep it current
+    },
+  });
+}
+
+function useCanvasInTask(cv) {
+  pickClass('Use this in a task', 'Starts a new task with it attached — you can edit everything before it goes out.', cid =>
+    openTaskModal(cid, null, { title: cv.name, instructions: '', due: null, dueTime: '', outOf: null,
+      autoLock: false, sharedPosting: true,
+      attachments: [cv.kind === 'file' ? { name: cv.name, type: cv.type, data: cv.data }
+                                       : { kind: 'canvas', name: cv.name, canvas: cv.canvas, data: cv.data }] }));
+}
+
+function renderLibrary(main) {
+  const sortRecent = (a, b) => (b.updated || b.ts) - (a.updated || a.ts);
+  const mine = db.canvases.filter(cv => cv.ownerId === db.session).sort(sortRecent);
+  const shared = db.canvases.filter(cv => cv.shared && cv.ownerId !== db.session && cv.schoolId === me().schoolId).sort(sortRecent);
+  const templates = db.taskLibrary.filter(t => t.schoolId === me().schoolId).sort((a, b) => b.ts - a.ts);
+  const cvCard = (cv, own) => `
+    <div class="lib-card">
+      ${cv.kind === 'file'
+        ? `<video class="lib-prev" src="${mediaURL(cv)}" controls preload="metadata" playsinline></video>`
+        : `<button class="lib-prev" data-open="${cv.id}" title="${own ? 'Open and edit' : 'Open'}">${cv.data ? `<img src="${cv.data}" alt="">` : ic('i-canvas', 'big')}</button>`}
+      <div class="lib-body"><b>${esc(cv.name)}</b>
+        <small>${own ? (cv.shared ? `${ic('i-teacher')} shared with staff · ` : '') : `${ic('i-teacher')} ${esc(user(cv.ownerId).name)} · `}${fmtWhen(cv.updated || cv.ts)}</small></div>
+      <div class="lib-actions">
+        ${cv.kind === 'file' ? '' : `<button class="btn ghost small" data-open="${cv.id}">${own ? ic('i-pencil') + ' Edit' : ic('i-eye') + ' Open'}</button>`}
+        <button class="btn ghost small" data-use="${cv.id}">${ic('i-task')} Use in a task</button>
+        ${own ? `<button class="btn ghost small" data-share="${cv.id}">${cv.shared ? ic('i-x') + ' Unshare' : ic('i-teacher') + ' Share'}</button>
+                 <button class="btn ghost small" data-del="${cv.id}" aria-label="Delete">${ic('i-trash')}</button>`
+              : `<button class="btn ghost small" data-copy="${cv.id}">${ic('i-copy')} Save a copy</button>`}
+      </div>
+    </div>`;
+  const tplRow = t => `
+    <div class="assign-row" style="cursor:default;transform:none">
+      <span class="assign-ico">${ic('i-task')}</span>
+      <span class="assign-body"><b>${esc(t.title)}</b>
+        <small>${esc(user(t.ownerId).name)} · shared ${fmtWhen(t.ts)}${t.outOf ? ' · graded /' + t.outOf : ''}${t.attachments.length ? ` · ${t.attachments.length} attachment${t.attachments.length === 1 ? '' : 's'}` : ''}</small></span>
+      <span class="assign-side">
+        <button class="btn small" data-tpl-use="${t.id}">${ic('i-copy')} Use in my class</button>
+        ${t.ownerId === db.session ? `<button class="btn ghost small" data-tpl-rm="${t.id}" aria-label="Remove">${ic('i-trash')}</button>` : ''}
+      </span>
+    </div>`;
+  main.innerHTML = `
+    <div class="page-head"><h2>Library</h2><span class="spacer"></span>
+      <button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button></div>
+    <p class="page-sub">Canvases and tasks to use again and again — and share with other staff at ${esc(mySchool().name)}.</p>
+    <h3 style="margin:0 0 12px">My canvases</h3>
+    ${mine.length ? `<div class="lib-grid">${mine.map(cv => cvCard(cv, true)).join('')}</div>`
+      : `<div class="card empty">${ic('i-canvas', 'big')}Nothing here yet — press “New canvas” to make one without setting a task, then use it in as many tasks as you like.</div>`}
+    <h3 style="margin:22px 0 12px">Shared by colleagues</h3>
+    ${shared.length ? `<div class="lib-grid">${shared.map(cv => cvCard(cv, false)).join('')}</div>`
+      : `<div class="card empty">${ic('i-teacher', 'big')}When a colleague shares a canvas, it appears here.</div>`}
+    <h3 style="margin:22px 0 12px">Shared tasks</h3>
+    ${templates.length ? templates.map(tplRow).join('')
+      : `<div class="card empty">${ic('i-task', 'big')}No shared tasks yet — open any task and press “Share with staff”.</div>`}`;
+  $('#lib-new').onclick = () => openLibraryCanvas(null);
+  const find = id => db.canvases.find(x => x.id === id);
+  main.querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
+    const cv = find(b.dataset.open);
+    if (cv.ownerId === db.session) openLibraryCanvas(cv);
+    else openCanvasEditor(cv, { readOnly: true });
+  });
+  main.querySelectorAll('[data-use]').forEach(b => b.onclick = () => useCanvasInTask(find(b.dataset.use)));
+  main.querySelectorAll('[data-share]').forEach(b => b.onclick = () => {
+    const cv = find(b.dataset.share);
+    cv.shared = !cv.shared;
+    if (cv.shared) notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a canvas with staff: “${cv.name}”`, { page: 'library' });
+    saveDB(); render(); toast(cv.shared ? 'Shared — colleagues will see it in their Library' : 'No longer shared');
+  });
+  main.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
+    db.canvases.push(Object.assign({}, find(b.dataset.copy), { id: uid(), ownerId: db.session, shared: false, ts: Date.now(), updated: Date.now() }));
+    saveDB(); render(); toast('Copied into your Library');
+  });
+  main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const cv = find(b.dataset.del);
+    openConfirm(`Delete “${esc(cv.name)}”?`, (cv.shared ? 'Colleagues will lose it too. ' : '') + 'Tasks that already use it keep their own copy.', () => {
+      db.canvases = db.canvases.filter(x => x.id !== cv.id); saveDB(); render(); toast('Deleted');
+    });
+  });
+  main.querySelectorAll('[data-tpl-use]').forEach(b => b.onclick = () => {
+    const t = db.taskLibrary.find(x => x.id === b.dataset.tplUse);
+    pickClass('Use this task', 'Makes your own copy to edit before it goes out.', cid => openTaskModal(cid, null, taskTemplate(t)));
+  });
+  main.querySelectorAll('[data-tpl-rm]').forEach(b => b.onclick = () =>
+    openConfirm('Remove this shared task?', 'It disappears from the staff library. Tasks already set from it are not affected.', () => {
+      db.taskLibrary = db.taskLibrary.filter(x => x.id !== b.dataset.tplRm); saveDB(); render(); toast('Removed');
+    }));
 }
 
 function openLinkModal(onGo) {
