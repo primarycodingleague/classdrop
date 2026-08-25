@@ -97,6 +97,12 @@ p.sub{color:var(--muted); font-size:1.05rem; max-width:40em; margin:0 0 40px}
 .feature .fic svg{width:22px; height:22px; fill:currentColor}
 .feature h3{font-size:1.05rem; font-weight:800; margin:0 0 8px}
 .feature p{margin:0; color:var(--muted); font-size:.92rem}
+.feature.wide{grid-column:1/-1; display:flex; gap:22px; align-items:flex-start;
+  background:linear-gradient(120deg, #fff 40%, var(--gold-soft)); border:1.5px solid var(--gold-line)}
+.feature.wide .fic{margin-bottom:0; flex:none; width:52px; height:52px}
+.feature.wide h3{font-size:1.2rem}
+.feature.wide p{max-width:62em}
+@media (max-width:560px){ .feature.wide{flex-direction:column; gap:12px} }
 
 /* ---------- roles band ---------- */
 .roles{background:var(--shell-2); color:var(--shell-ink)}
@@ -178,6 +184,7 @@ footer .sp{margin-left:auto}
   <symbol id="i-discuss" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h9a2 2 0 012 2v6a2 2 0 01-2 2H8l-5 4zm14 2h2a2 2 0 012 2v11l-4-3h-6a2 2 0 01-2-2v-1h6a4 4 0 004-4z"/></symbol>
   <symbol id="i-portfolio" viewBox="0 0 24 24"><path d="M12 2l2.4 5.2 5.6.6-4.2 3.9 1.1 5.6L12 14.5l-4.9 2.8 1.1-5.6L4 7.8l5.6-.6zM5 20h14v2H5z"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3.5v5.3c0 5-3.4 9.6-8 11.2-4.6-1.6-8-6.2-8-11.2V5.5zm-1.2 13.4l6-6-1.4-1.5-4.6 4.6-2.2-2.2-1.4 1.4z"/></symbol>
+  <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
 </svg>
 
 <nav class="nav">
@@ -275,6 +282,13 @@ footer .sp{margin-left:auto}
         <div class="fic"><svg><use href="#i-portfolio"/></svg></div>
         <h3>Portfolios</h3>
         <p>Star a child's best pieces and they join a portfolio that follows them through the year — a ready-made evidence trail for parents' evening.</p>
+      </div>
+      <div class="feature wide">
+        <div class="fic"><svg><use href="#i-report"/></svg></div>
+        <div>
+          <h3>End-of-year reports, generated</h3>
+          <p>Design your school's report template once — logo, colours, grade tables, subject comments and attendance, laid out drag-and-drop. Teachers fill in the Markbook through the year, then the office generates a whole class's print-ready reports in seconds. The write-up stays; the mail-merge goes.</p>
+        </div>
       </div>
     </div>
   </div>
