@@ -1061,6 +1061,25 @@ function saveDB() {
   catch (e) { toast("Couldn't save — this device's storage is full.", true); }
 }
 
+/* Safari won't play <video>/<audio> from a data: URL, so serve each stored item's
+   bytes through a blob: URL instead (also enables seeking); cached per object */
+const _mediaURL = new WeakMap();
+function mediaURL(o) {
+  let u = _mediaURL.get(o);
+  if (!u) {
+    try {
+      const [head, b64] = o.data.split(',');
+      const mime = (head.match(/^data:([^;]*)/) || [])[1] || '';
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+      u = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    } catch (e) { u = o.data; }
+    _mediaURL.set(o, u);
+  }
+  return u;
+}
+
 function classCode() {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   let c = '';
@@ -2420,8 +2439,8 @@ function portfolioGrid(items) {
     const a = assignment(i.assignmentId);
     let preview = '';
     if ((i.kind === 'file' && i.type && i.type.startsWith('image/')) || i.kind === 'drawing' || i.kind === 'canvas') preview = `<img class="w-img" src="${i.data}" alt="">`;
-    else if (i.kind === 'file' && i.type && i.type.startsWith('video/')) preview = `<video class="w-vid" controls src="${i.data}"></video>`;
-    else if (i.kind === 'audio') preview = `<audio controls src="${i.data}"></audio>`;
+    else if (i.kind === 'file' && i.type && i.type.startsWith('video/')) preview = `<video class="w-vid" controls playsinline src="${mediaURL(i)}"></video>`;
+    else if (i.kind === 'audio') preview = `<audio controls src="${mediaURL(i)}"></audio>`;
     else if (i.kind === 'note') preview = `<div class="w-body">${esc(i.text.slice(0, 120))}${i.text.length > 120 ? '…' : ''}</div>`;
     else if (i.kind === 'link') preview = `<span class="w-file">${ic('i-link')}<span>${esc(i.text || i.url)}</span></span>`;
     else preview = `<span class="w-file">${ic('i-clip')}<span>${esc(i.name || 'file')}</span></span>`;
@@ -3229,7 +3248,7 @@ function renderAttachments(a, actions) {
     if (at.kind === 'canvas') body = `<span class="w-canvas"><img class="w-img" src="${at.data}" alt="${esc(at.name)}">
       <span class="cv-badge">${ic('i-canvas')} ${esc(at.name)}${at.canvas && at.canvas.pages && at.canvas.pages.length > 1 ? ' · ' + at.canvas.pages.length + ' pages' : ''}</span></span>`;
     else if (at.type && at.type.startsWith('image/')) body = `<img class="w-img" src="${at.data}" alt="${esc(at.name)}">`;
-    else if (at.type && at.type.startsWith('video/')) body = `<video class="w-vid" controls src="${at.data}"></video>`;
+    else if (at.type && at.type.startsWith('video/')) body = `<video class="w-vid" controls playsinline src="${mediaURL(at)}"></video>`;
     else body = `<a class="w-file" download="${esc(at.name)}" href="${at.data}">${ic('i-clip')}<span>${esc(at.name)}</span></a>`;
     const acts = actions ? actions(at, idx) : '';
     return `<div class="att-card">${body}${acts ? `<div class="att-actions">${acts}</div>` : ''}</div>`;
@@ -3456,7 +3475,7 @@ function renderWorkItem(i, a, opts) {
   if (i.kind === 'file') body = i.type && i.type.startsWith('image/')
     ? `<img class="w-img" data-zoom src="${i.data}" alt="${esc(i.name)}">`
     : i.type && i.type.startsWith('video/')
-      ? `<video class="w-vid" controls src="${i.data}"></video>`
+      ? `<video class="w-vid" controls playsinline src="${mediaURL(i)}"></video>`
       : `<a class="w-file" download="${esc(i.name)}" href="${i.data}">${ic('i-clip')}<span>${esc(i.name)}</span></a>`;
   if (i.kind === 'drawing') body = `<img class="w-img" data-zoom src="${i.data}" alt="drawing">`;
   if (i.kind === 'canvas') {
@@ -3467,7 +3486,7 @@ function renderWorkItem(i, a, opts) {
       <span class="cv-badge">${ic('i-canvas')} ${esc(i.name || 'Canvas')}${np > 1 ? ' · ' + np + ' pages' : ''} — tap to open</span>
     </span>`;
   }
-  if (i.kind === 'audio') body = `<audio controls src="${i.data}"></audio>`;
+  if (i.kind === 'audio') body = `<audio controls src="${mediaURL(i)}"></audio>`;
   if (i.kind === 'link') body = `<a class="w-file" href="${esc(i.url)}" target="_blank" rel="noopener noreferrer">${ic('i-link')}<span>${esc(i.text || i.url)}</span></a>`;
   const isImage = (i.kind === 'drawing') || (i.kind === 'file' && i.type && i.type.startsWith('image/'));
   const isDoc = i.kind === 'file' && !!docKind(i.name, i.type);
