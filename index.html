@@ -1064,6 +1064,7 @@ function saveDB() {
 /* Safari won't play <video>/<audio> from a data: URL, so serve each stored item's
    bytes through a blob: URL instead (also enables seeking); cached per object */
 const _mediaURL = new WeakMap();
+const _mediaBlobs = new Map(); // blob URL -> Blob, for stall recovery below
 function mediaURL(o) {
   let u = _mediaURL.get(o);
   if (!u) {
@@ -1073,11 +1074,40 @@ function mediaURL(o) {
       const bin = atob(b64);
       const bytes = new Uint8Array(bin.length);
       for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
-      u = URL.createObjectURL(new Blob([bytes], { type: mime }));
+      const blob = new Blob([bytes], { type: mime });
+      u = URL.createObjectURL(blob);
+      _mediaBlobs.set(u, blob);
     } catch (e) { u = o.data; }
     _mediaURL.set(o, u);
   }
   return u;
+}
+
+/* WebKit's media loader can wedge for the rest of the page's life after
+   MediaRecorder has been used (players sit at readyState 0 with a crossed-out
+   play button, even though the recording itself is fine, and no amount of
+   load() retries recovers them). A fresh page load always plays, so: watch
+   just-rendered players, try one gentle retry, and if a player is still stuck
+   reload the page once — boot restores the current screen from history.state. */
+function nudgeStalledMedia() {
+  document.querySelectorAll('video[src^="blob:"],audio[src^="blob:"]').forEach(el => {
+    if (el.dataset.nudge) return;
+    el.dataset.nudge = '1';
+    setTimeout(() => {
+      if (!document.contains(el) || el.readyState > 0) return;
+      const blob = _mediaBlobs.get(el.src);
+      if (blob) { el.src = URL.createObjectURL(blob); _mediaBlobs.set(el.src, blob); el.load(); }
+      setTimeout(() => {
+        if (!document.contains(el) || el.readyState > 0) return;
+        if (document.querySelector('.modal-scrim, .cv-wrap')) return; // never mid-dialog or mid-edit
+        const last = +sessionStorage.getItem('cd-media-reload') || 0;
+        if (Date.now() - last < 15000) return; // one shot — no reload loops
+        sessionStorage.setItem('cd-media-reload', String(Date.now()));
+        history.replaceState({ view }, '');
+        location.reload();
+      }, 2000);
+    }, 2500);
+  });
 }
 
 function classCode() {
@@ -1335,6 +1365,7 @@ function render() {
   publishSweep();
   if (!me()) { renderAuth(); return; }
   renderShell();
+  setTimeout(nudgeStalledMedia, 0);
 }
 
 /* ---------- auth ---------- */
@@ -5380,6 +5411,8 @@ async function openDocOnCanvas(data, name, type, opts) {
 }
 /* ---------- boot ---------- */
 loadDB();
+/* restore the screen you were on across a reload (state survives in history) */
+if (history.state && history.state.view && me()) view = Object.assign({}, view, history.state.view);
 render();
 history.replaceState({ view }, '');
 </script>
