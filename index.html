@@ -1101,7 +1101,13 @@ function mediaURL(o) {
   let u = _mediaURL.get(o);
   if (!u) {
     try {
-      const [head, b64] = o.data.split(',');
+      // split at ';base64,' — recorder mime types can contain commas
+      // (e.g. video/mp4; codecs=avc1.42000a,mp4a.40.2), so splitting on the
+      // first comma would grab codec soup instead of the payload
+      const cut = o.data.indexOf(';base64,');
+      if (cut < 0) throw new Error('not base64');
+      const head = o.data.slice(0, cut);
+      const b64 = o.data.slice(cut + 8);
       const mime = (head.match(/^data:([^;]*)/) || [])[1] || '';
       const bin = atob(b64);
       const bytes = new Uint8Array(bin.length);
@@ -3709,7 +3715,7 @@ async function startVoiceNote(addItem) {
     const keep = recState && recState.keep;
     recState = null;
     if (!keep) { render(); return; }
-    const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+    const blob = new Blob(chunks, { type: (rec.mimeType || 'audio/webm').split(';')[0] });
     if (blob.size > MAX_FILE) { toast('Recording too long for the demo.', true); render(); return; }
     const r = new FileReader();
     r.onload = () => addItem({ kind: 'audio', data: r.result });
@@ -4778,7 +4784,7 @@ function openCanvasEditor(existing, opts) {
         const holder = q('#cv-rec-holder'); if (holder) holder.innerHTML = '';
         renderCV();
         if (!keep) return;
-        const blob = new Blob(chunks, { type: rec.mimeType || 'video/webm' });
+        const blob = new Blob(chunks, { type: (rec.mimeType || 'video/webm').split(';')[0] });
         if (blob.size > 12 * 1024 * 1024) { toast('That recording is too big for the demo — keep it under ~2 minutes.', true); return; }
         const r = new FileReader();
         r.onload = () => {
@@ -4822,7 +4828,7 @@ function openCanvasEditor(existing, opts) {
         stream.getTracks().forEach(t => t.stop());
         q('#cv-rec-holder').innerHTML = '';
         if (!keep) return;
-        const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+        const blob = new Blob(chunks, { type: (rec.mimeType || 'audio/webm').split(';')[0] });
         if (blob.size > MAX_FILE) { toast('Recording too long for the demo.', true); return; }
         const r = new FileReader();
         r.onload = () => {
@@ -5171,7 +5177,7 @@ function openCameraModal(onCapture) {
         rec.ondataavailable = ev => chunks.push(ev.data);
         rec.onstop = () => {
           clearInterval(timer);
-          const blob = new Blob(chunks, { type: rec.mimeType || 'video/webm' });
+          const blob = new Blob(chunks, { type: (rec.mimeType || 'video/webm').split(';')[0] });
           rec = null;
           if (blob.size > 8 * 1024 * 1024) { toast('That video is too big for the demo \u2014 keep it under ~1 minute.', true); m.remove(); return; }
           const r = new FileReader();
