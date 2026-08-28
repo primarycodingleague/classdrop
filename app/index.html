@@ -241,6 +241,43 @@ video.lib-prev{object-fit:cover; cursor:default}
 .lib-body b{display:block; font-size:.92rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .lib-body small{color:var(--muted); font-size:.75rem; display:flex; align-items:center; gap:4px; flex-wrap:wrap}
 .lib-actions{display:flex; gap:6px; flex-wrap:wrap; padding:8px 10px 10px; margin-top:auto}
+/* visual timetable */
+.tt-row{display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:10px 14px; margin-bottom:8px}
+.tt-row .tt-emoji{font-size:1.7rem; flex:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  background:var(--gold-soft); border-radius:12px}
+.tt-row b{font-size:1rem}
+.tt-row .tt-time{color:var(--muted); font-weight:700; font-size:.85rem}
+.tt-row .tt-acts{margin-left:auto; display:flex; gap:4px; flex:none}
+.tt-preset-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:7px; margin:6px 0 4px}
+.tt-preset-grid button{border:1.5px solid var(--line); background:#fff; border-radius:12px; padding:8px 6px; cursor:pointer;
+  font-family:var(--font); font-weight:700; font-size:.78rem; color:var(--ink); display:flex; flex-direction:column; align-items:center; gap:3px}
+.tt-preset-grid button span{font-size:1.5rem}
+.tt-preset-grid button:hover{border-color:var(--gold); background:var(--gold-soft)}
+/* today strip on student / parent dashboards */
+.tt-strip{display:flex; gap:10px; overflow-x:auto; padding:4px 2px 10px; -webkit-overflow-scrolling:touch}
+.tt-card{flex:none; width:108px; background:#fff; border:1.5px solid var(--gold-line); border-radius:14px; padding:12px 8px;
+  text-align:center; box-shadow:var(--shadow)}
+.tt-card .e{font-size:2rem; line-height:1.2}
+.tt-card b{display:block; font-size:.8rem; margin-top:4px}
+.tt-card small{color:var(--muted); font-weight:700; font-size:.72rem}
+.tt-card.now{border-color:var(--gold); background:var(--gold-soft); box-shadow:0 0 0 2px var(--gold-line)}
+/* full-screen display mode (classroom screen) + print */
+.tt-wrap{position:fixed; inset:0; z-index:150; background:var(--paper); display:flex; flex-direction:column}
+.tt-bar{background:linear-gradient(180deg,var(--shell) 0%,#1f1d1b 100%); color:#fff; display:flex; align-items:center; gap:12px; padding:12px 16px; flex-wrap:wrap}
+.tt-bar .mark{width:30px; height:30px}
+.tt-scroll{flex:1; overflow-y:auto; padding:26px}
+.tt-big{max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px}
+.tt-big .tt-bigcard{background:#fff; border:2px solid var(--line); border-radius:18px; padding:22px 14px; text-align:center; position:relative}
+.tt-big .tt-bigcard .e{font-size:3.4rem; line-height:1.2}
+.tt-big .tt-bigcard b{display:block; font-size:1.15rem; margin-top:8px}
+.tt-big .tt-bigcard small{color:var(--muted); font-weight:800; font-size:.9rem}
+.tt-big .tt-bigcard .n{position:absolute; top:8px; left:12px; font-weight:800; color:var(--gold-dk); opacity:.55}
+.tt-big .tt-bigcard.now{border-color:var(--gold); background:var(--gold-soft); box-shadow:0 0 0 3px var(--gold-line)}
+.tt-big .tt-bigcard.done{opacity:.45}
+.tt-title-input{font-family:var(--font); font-weight:800; font-size:1.4rem; color:var(--ink); border:none; background:none;
+  border-bottom:2px dashed var(--gold-line); padding:2px 4px; min-width:0; flex:1}
+.tt-title-input:focus{outline:none; border-bottom-color:var(--gold)}
 
 /* ---------- work items (folders) ---------- */
 .work-list{display:flex; flex-direction:column; gap:12px}
@@ -519,6 +556,13 @@ table.mb th, table.mb td{border-bottom:1px solid var(--line); border-right:1px s
 .rpb-side .muted.small{display:block; line-height:1.5}
 @media print {
   #app, #toast-holder, #modal-holder, .modal-scrim { display:none !important; }
+  .tt-wrap{position:static}
+  .tt-bar{display:none !important}
+  .tt-scroll{padding:0; overflow:visible}
+  .tt-print-head{display:block !important; font-size:1.4rem; font-weight:800; margin:0 0 14px}
+  .tt-big .tt-bigcard{break-inside:avoid; box-shadow:none}
+  .tt-big .tt-bigcard.now{border-color:var(--line); background:#fff; box-shadow:none}
+  .tt-big .tt-bigcard.done{opacity:1}
   .rp-wrap{position:static}
   .rp-bar{display:none !important}
   .rp-scroll{padding:0; display:block; overflow:visible}
@@ -689,6 +733,8 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
   <symbol id="i-grade" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" opacity=".4"/><path d="M7 14.5l3-6 3 6M8 12.5h4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 15.5l2 2 3.5-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-markbook" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" opacity=".4"/><path d="M3 9.5h18M9 9.5V20M3 14.75h18" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.2 6.6l1.1 1.1 2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-tools" viewBox="0 0 24 24"><path d="M21.6 6.1a5.4 5.4 0 01-7 6.9L7.4 20.2a2.2 2.2 0 11-3.1-3.1l7.2-7.2a5.4 5.4 0 016.9-7l-3 3 .5 2.7 2.7.5z"/></symbol>
+  <symbol id="i-timetable" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2.5" opacity=".35"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6"/><path d="M12 11h7v2h-7z"/><circle cx="8.5" cy="17" r="1.6"/><path d="M12 16h7v2h-7z"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="5" rx="1"/><rect x="3.5" y="8" width="17" height="8.5" rx="2" opacity=".4"/><circle cx="17" cy="11" r="1.1"/><rect x="6.5" y="13.5" width="11" height="7.5" rx="1.5"/></symbol>
@@ -1098,6 +1144,29 @@ function migrateDB() {
   // teacher library: standalone canvases + tasks shared with staff
   if (!db.canvases) { db.canvases = []; changed = true; }
   if (!db.taskLibrary) { db.taskLibrary = []; changed = true; }
+  // visual timetables (Tools section)
+  if (!db.timetables) { db.timetables = []; changed = true; }
+  if (!db.ttSeeded) {
+    if (db.users.some(u => u.id === 'u-tay') && !db.timetables.length) {
+      const day = [
+        { id: 'tt1', emoji: '🙏', label: 'Assembly', time: '08:50' },
+        { id: 'tt2', emoji: '🔢', label: 'Maths', time: '09:20' },
+        { id: 'tt3', emoji: '🛝', label: 'Break', time: '10:30' },
+        { id: 'tt4', emoji: '✏️', label: 'Writing', time: '10:50' },
+        { id: 'tt5', emoji: '🍽️', label: 'Lunch', time: '12:00' },
+        { id: 'tt6', emoji: '📚', label: 'Reading', time: '13:00' },
+        { id: 'tt7', emoji: '💻', label: 'Computing', time: '13:30' },
+        { id: 'tt8', emoji: '📓', label: 'Story time', time: '14:45' },
+        { id: 'tt9', emoji: '🎒', label: 'Home time', time: '15:15' },
+      ];
+      const days = {};
+      ['mon', 'tue', 'wed', 'thu', 'fri'].forEach((d, di) =>
+        days[d] = day.map((x, i) => Object.assign({}, x, { id: 'tt' + di + '_' + i })));
+      db.timetables.push({ id: 'vt-demo', ownerId: 'u-tay', schoolId: 'sch1', name: 'Class 5 — our day',
+        classIds: ['c1'], days, ts: Date.now() - 2 * DAY, updated: Date.now() - 2 * DAY });
+    }
+    db.ttSeeded = true; changed = true;
+  }
   if (!db.librarySeeded) {
     if (db.users.some(u => u.id === 'u-ose') && !db.taskLibrary.length)
       db.taskLibrary.push({ id: 'tl-demo', ownerId: 'u-ose', schoolId: 'sch1', ts: Date.now() - 3 * DAY,
@@ -1406,7 +1475,7 @@ function go(patch) {
 window.addEventListener('popstate', e => {
   const drawerScrim = document.querySelector('.scrim');
   if (drawerScrim) { drawerScrim.click(); history.pushState({ view }, ''); return; }
-  const layer = document.querySelector('.modal-scrim, .zoom-scrim');
+  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap');
   if (layer) { layer.remove(); history.pushState({ view }, ''); return; }
   if (document.querySelector('.cv-wrap')) { history.pushState({ view }, ''); return; } // canvas editor may hold unsaved work — leave via its own controls
   if (e.state && e.state.view) { view = Object.assign({}, e.state.view); render(); }
@@ -1518,8 +1587,8 @@ function renderShell() {
       <button class="nav-item ${view.page === 'aclasses' ? 'active' : ''}" data-nav="aclasses"><span class="nico">${ic('i-class')}</span>Classes</button>
       <button class="nav-item ${view.page === 'ascales' ? 'active' : ''}" data-nav="ascales"><span class="nico">${ic('i-markbook')}</span>Grades &amp; levels</button>
       <button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>` : `
-      ${isTeacher() ? `<button class="nav-item ${view.page === 'library' ? 'active' : ''}" data-nav="library">
-        <span class="nico">${ic('i-book')}</span>Library
+      ${isTeacher() ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
+        <span class="nico">${ic('i-tools')}</span>Tools
       </button>` : ''}
       <button class="nav-item ${view.page === 'portfolio' ? 'active' : ''}" data-nav="portfolio">
         <span class="nico">${ic('i-star')}</span>${isTeacher() ? 'Portfolios' : isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s portfolio" : 'My portfolio'}
@@ -1551,7 +1620,7 @@ function renderShell() {
     const n = b.dataset.nav;
     if (n === 'dash') go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'activity') go({ page: 'activity' });
-    if (n === 'library') go({ page: 'library', classId: null, assignmentId: null, studentId: null, discussionId: null });
+    if (n === 'tools') go({ page: 'tools', tab: 'canvases', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
     if (n === 'staff') go({ page: 'staff' });
@@ -1564,6 +1633,8 @@ function renderShell() {
   });
   $('#btn-out').onclick = () => { db.session = null; saveDB(); render(); };
   const bs = $('#btn-search'); if (bs) bs.onclick = openSearch;
+  // navigating re-renders the shell — clear any drawer scrim left behind on mobile
+  document.querySelectorAll('.scrim').forEach(s => s.remove());
   const mb = $('#btn-menu');
   if (mb) mb.onclick = () => {
     $('#sidebar').classList.add('open');
@@ -1579,7 +1650,8 @@ function renderShell() {
   else if (view.page === 'discussion') renderDiscussionThread(main);
   else if (view.page === 'class') renderClass(main);
   else if (view.page === 'activity') renderActivity(main);
-  else if (view.page === 'library' && isTeacher()) renderLibrary(main);
+  else if ((view.page === 'tools' || view.page === 'library') && isTeacher()) renderTools(main);
+  else if (view.page === 'timetable' && isTeacher()) renderTimetableEditor(main);
   else if (view.page === 'portfolio') renderPortfolioPage(main);
   else if (view.page === 'reading') renderReadingPage(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
@@ -1641,12 +1713,14 @@ function renderDash(main) {
         <div class="stat ${open.length ? 'amber' : 'green'}"><div class="n">${open.length}</div><div class="l">Tasks to do</div></div>
         <div class="stat green"><div class="n">${tasks.filter(t => t.h.status !== 'none').length}</div><div class="l">Handed in</div></div>
       </div>
+      ${(tt => tt ? ttStripHTML(tt) : '')(ttForStudent(u.id))}
       <h3 style="margin:6px 0 12px">My tasks</h3>
       ${rows || `<div class="card empty">${ic('i-task', 'big')}No tasks yet — join a class to get started.</div>`}
       <h3 style="margin:20px 0 12px">My classes</h3>
       ${renderClassGrid(classes)}`;
     $('#btn-join2').onclick = openJoinClass;
     wireTaskRows(u.id);
+    wireTTStrip();
   }
   document.querySelectorAll('[data-open-assign]').forEach(b => b.onclick = () => {
     const a = assignment(b.dataset.openAssign);
@@ -2335,12 +2409,14 @@ function renderParentDash(main) {
       <div class="stat green"><div class="n">${tasks.filter(a => handin(a.id, child.id).status !== 'none').length}</div><div class="l">Handed in</div></div>
       <div class="stat amber"><div class="n">${starred.length}</div><div class="l">Portfolio pieces</div></div>
     </div>
+    ${(tt => tt ? ttStripHTML(tt) : '')(ttForStudent(child.id))}
     <h3 style="margin:6px 0 12px">${esc(child.name.split(' ')[0])}'s tasks</h3>
     ${tasks.map(a => taskRowHTML(a, child.id)).join('') || `<div class="card empty">${ic('i-task', 'big')}No tasks yet.</div>`}
     <h3 style="margin:20px 0 12px">${ic('i-star')} Portfolio</h3>
     ${portfolioGrid(starred)}`;
   wireTaskRows();
   wirePortfolioGrid();
+  wireTTStrip();
 }
 
 /* ---------- class grid ---------- */
@@ -4140,7 +4216,7 @@ function openReuseTask(a) {
 function shareTaskWithStaff(a) {
   if (db.taskLibrary.some(t => t.sourceId === a.id)) { toast('Already in the staff library — colleagues can see it.'); return; }
   db.taskLibrary.push(Object.assign({ id: uid(), sourceId: a.id, ownerId: db.session, schoolId: me().schoolId, ts: Date.now() }, taskTemplate(a)));
-  notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a task with staff: “${a.title}”`, { page: 'library' });
+  notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a task with staff: “${a.title}”`, { page: 'tools' });
   saveDB(); render(); toast('Shared with staff — colleagues will find it in their Library');
 }
 
@@ -4170,7 +4246,9 @@ function useCanvasInTask(cv) {
                                        : { kind: 'canvas', name: cv.name, canvas: cv.canvas, data: cv.data }] }));
 }
 
-function renderLibrary(main) {
+/* ---------- Tools: canvases, visual timetables, and the staff library ---------- */
+function renderTools(main) {
+  const tab = ['canvases', 'timetables', 'sharedtasks'].includes(view.tab) ? view.tab : 'canvases';
   const sortRecent = (a, b) => (b.updated || b.ts) - (a.updated || a.ts);
   const mine = db.canvases.filter(cv => cv.ownerId === db.session).sort(sortRecent);
   const shared = db.canvases.filter(cv => cv.shared && cv.ownerId !== db.session && cv.schoolId === me().schoolId).sort(sortRecent);
@@ -4200,20 +4278,60 @@ function renderLibrary(main) {
         ${t.ownerId === db.session ? `<button class="btn ghost small" data-tpl-rm="${t.id}" aria-label="Remove">${ic('i-trash')}</button>` : ''}
       </span>
     </div>`;
+  const myTTs = db.timetables.filter(t => t.ownerId === db.session).sort(sortRecent);
+  const ttRow = t => {
+    const cls = (t.classIds || []).map(id => klass(id)).filter(Boolean);
+    const n = TT_DAYS.reduce((s, [k]) => s + ((t.days[k] || []).length), 0);
+    return `
+    <div class="assign-row" style="cursor:default;transform:none">
+      <span class="assign-ico">${ic('i-timetable')}</span>
+      <span class="assign-body"><b>${esc(t.name)}</b>
+        <small>${n} activit${n === 1 ? 'y' : 'ies'} · ${cls.length ? 'shown to ' + cls.map(c => esc(c.name)).join(', ') : 'not sent to a class yet'} · ${fmtWhen(t.updated || t.ts)}</small></span>
+      <span class="assign-side" style="flex-direction:row;gap:6px">
+        <button class="btn small" data-tt-open="${t.id}">${ic('i-pencil')} Open</button>
+        <button class="btn sec small" data-tt-display="${t.id}">${ic('i-laser')} Display</button>
+        <button class="btn ghost small" data-tt-del="${t.id}" aria-label="Delete">${ic('i-trash')}</button>
+      </span>
+    </div>`;
+  };
+  const bodies = {
+    canvases: `
+      <h3 style="margin:0 0 12px">My canvases</h3>
+      ${mine.length ? `<div class="lib-grid">${mine.map(cv => cvCard(cv, true)).join('')}</div>`
+        : `<div class="card empty">${ic('i-canvas', 'big')}Nothing here yet — press “New canvas” to make one without setting a task, then use it in as many tasks as you like.</div>`}
+      <h3 style="margin:22px 0 12px">Shared by colleagues</h3>
+      ${shared.length ? `<div class="lib-grid">${shared.map(cv => cvCard(cv, false)).join('')}</div>`
+        : `<div class="card empty">${ic('i-teacher', 'big')}When a colleague shares a canvas, it appears here.</div>`}`,
+    timetables: myTTs.length ? myTTs.map(ttRow).join('')
+      : `<div class="card empty">${ic('i-timetable', 'big')}Build a visual timetable of the school day — big friendly cards your class can follow. Display it on the board, print it, or send it straight to your students.</div>`,
+    sharedtasks: templates.length ? templates.map(tplRow).join('')
+      : `<div class="card empty">${ic('i-task', 'big')}No shared tasks yet — open any task and press “Share with staff”.</div>`,
+  };
   main.innerHTML = `
-    <div class="page-head"><h2>Library</h2><span class="spacer"></span>
-      <button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button></div>
-    <p class="page-sub">Canvases and tasks to use again and again — and share with other staff at ${esc(mySchool().name)}.</p>
-    <h3 style="margin:0 0 12px">My canvases</h3>
-    ${mine.length ? `<div class="lib-grid">${mine.map(cv => cvCard(cv, true)).join('')}</div>`
-      : `<div class="card empty">${ic('i-canvas', 'big')}Nothing here yet — press “New canvas” to make one without setting a task, then use it in as many tasks as you like.</div>`}
-    <h3 style="margin:22px 0 12px">Shared by colleagues</h3>
-    ${shared.length ? `<div class="lib-grid">${shared.map(cv => cvCard(cv, false)).join('')}</div>`
-      : `<div class="card empty">${ic('i-teacher', 'big')}When a colleague shares a canvas, it appears here.</div>`}
-    <h3 style="margin:22px 0 12px">Shared tasks</h3>
-    ${templates.length ? templates.map(tplRow).join('')
-      : `<div class="card empty">${ic('i-task', 'big')}No shared tasks yet — open any task and press “Share with staff”.</div>`}`;
-  $('#lib-new').onclick = () => openLibraryCanvas(null);
+    <div class="page-head"><h2>${ic('i-tools')} Tools</h2><span class="spacer"></span>
+      ${tab === 'timetables'
+        ? `<button class="btn" id="tt-new">${ic('i-plus')} New timetable</button>`
+        : `<button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button>`}</div>
+    <p class="page-sub">Canvases, visual timetables and shared tasks — yours to reuse, and to share with other staff at ${esc(mySchool().name)}.</p>
+    <div class="tabbar">
+      <button data-tab="canvases" class="${tab === 'canvases' ? 'on' : ''}">${ic('i-canvas')} Canvases</button>
+      <button data-tab="timetables" class="${tab === 'timetables' ? 'on' : ''}">${ic('i-timetable')} Visual timetables</button>
+      <button data-tab="sharedtasks" class="${tab === 'sharedtasks' ? 'on' : ''}">${ic('i-task')} Shared tasks</button>
+    </div>
+    ${bodies[tab]}`;
+  main.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go({ page: 'tools', tab: b.dataset.tab }));
+  const ln = $('#lib-new'); if (ln) ln.onclick = () => openLibraryCanvas(null);
+  const tn = $('#tt-new'); if (tn) tn.onclick = newTimetable;
+  main.querySelectorAll('[data-tt-open]').forEach(b => b.onclick = () =>
+    go({ page: 'timetable', timetableId: b.dataset.ttOpen, day: todayKey() }));
+  main.querySelectorAll('[data-tt-display]').forEach(b => b.onclick = () =>
+    openTTDisplay(db.timetables.find(x => x.id === b.dataset.ttDisplay), todayKey()));
+  main.querySelectorAll('[data-tt-del]').forEach(b => b.onclick = () => {
+    const t = db.timetables.find(x => x.id === b.dataset.ttDel);
+    openConfirm(`Delete “${t.name}”?`, t.classIds && t.classIds.length ? 'Your students will no longer see it.' : 'This cannot be undone.', () => {
+      db.timetables = db.timetables.filter(x => x.id !== t.id); saveDB(); render(); toast('Deleted');
+    });
+  });
   const find = id => db.canvases.find(x => x.id === id);
   main.querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
     const cv = find(b.dataset.open);
@@ -4224,7 +4342,7 @@ function renderLibrary(main) {
   main.querySelectorAll('[data-share]').forEach(b => b.onclick = () => {
     const cv = find(b.dataset.share);
     cv.shared = !cv.shared;
-    if (cv.shared) notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a canvas with staff: “${cv.name}”`, { page: 'library' });
+    if (cv.shared) notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a canvas with staff: “${cv.name}”`, { page: 'tools' });
     saveDB(); render(); toast(cv.shared ? 'Shared — colleagues will see it in their Library' : 'No longer shared');
   });
   main.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
@@ -4233,7 +4351,7 @@ function renderLibrary(main) {
   });
   main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const cv = find(b.dataset.del);
-    openConfirm(`Delete “${esc(cv.name)}”?`, (cv.shared ? 'Colleagues will lose it too. ' : '') + 'Tasks that already use it keep their own copy.', () => {
+    openConfirm(`Delete “${cv.name}”?`, (cv.shared ? 'Colleagues will lose it too. ' : '') + 'Tasks that already use it keep their own copy.', () => {
       db.canvases = db.canvases.filter(x => x.id !== cv.id); saveDB(); render(); toast('Deleted');
     });
   });
@@ -4245,6 +4363,214 @@ function renderLibrary(main) {
     openConfirm('Remove this shared task?', 'It disappears from the staff library. Tasks already set from it are not affected.', () => {
       db.taskLibrary = db.taskLibrary.filter(x => x.id !== b.dataset.tplRm); saveDB(); render(); toast('Removed');
     }));
+}
+
+/* ---------- visual timetable ---------- */
+const TT_DAYS = [['mon', 'Monday'], ['tue', 'Tuesday'], ['wed', 'Wednesday'], ['thu', 'Thursday'], ['fri', 'Friday']];
+const TT_PRESETS = [
+  ['🙏', 'Assembly'], ['📖', 'Phonics'], ['✏️', 'Writing'], ['🔢', 'Maths'], ['📚', 'Reading'],
+  ['🥪', 'Snack'], ['🛝', 'Break'], ['🍽️', 'Lunch'], ['⚽', 'PE'], ['🎨', 'Art'],
+  ['💻', 'Computing'], ['🧪', 'Science'], ['🌍', 'Geography'], ['🏛️', 'History'], ['🎵', 'Music'],
+  ['🗣️', 'Languages'], ['❤️', 'PSHE'], ['⛪', 'RE'], ['🎭', 'Drama'], ['🌳', 'Forest school'],
+  ['🧘', 'Quiet time'], ['📓', 'Story time'], ['🤸', 'Wake and shake'], ['🎒', 'Home time'],
+];
+const todayKey = () => ['mon', 'mon', 'tue', 'wed', 'thu', 'fri', 'mon'][new Date().getDay()];
+const ttDayName = k => (TT_DAYS.find(d => d[0] === k) || ['', ''])[1];
+
+function newTimetable() {
+  const days = {}; TT_DAYS.forEach(([k]) => days[k] = []);
+  const t = { id: uid(), ownerId: db.session, schoolId: me().schoolId, name: 'Our day',
+    classIds: [], days, ts: Date.now(), updated: Date.now() };
+  db.timetables.push(t);
+  saveDB();
+  go({ page: 'timetable', timetableId: t.id, day: todayKey() });
+}
+
+function renderTimetableEditor(main) {
+  const t = db.timetables.find(x => x.id === view.timetableId && x.ownerId === db.session);
+  if (!t) { go({ page: 'tools', tab: 'timetables' }); return; }
+  const day = TT_DAYS.some(([k]) => k === view.day) ? view.day : todayKey();
+  const items = t.days[day] = t.days[day] || [];
+  const touch = () => { t.updated = Date.now(); saveDB(); render(); };
+  const myCls = db.classes.filter(c => classTeachers(c).includes(db.session) && !c.archived);
+  main.innerHTML = `
+    <button class="crumb" id="crumb">${ic('i-back')} Tools</button>
+    <div class="page-head" style="gap:12px">
+      <input class="tt-title-input" id="tt-name" maxlength="60" value="${esc(t.name)}">
+      <button class="btn sec small" id="tt-disp">${ic('i-laser')} Display</button>
+      <button class="btn ghost small" id="tt-print">${ic('i-print')} Print</button>
+    </div>
+    <div class="tabbar">${TT_DAYS.map(([k, label]) =>
+      `<button data-day="${k}" class="${k === day ? 'on' : ''}">${label}</button>`).join('')}</div>
+    ${items.map((it, i) => `
+      <div class="tt-row">
+        <span class="tt-emoji">${it.emoji}</span>
+        <span><b>${esc(it.label)}</b>${it.time ? `<div class="tt-time">${it.time}</div>` : ''}</span>
+        <span class="tt-acts">
+          <button class="iconbtn" data-up="${i}" title="Move up" ${i === 0 ? 'disabled' : ''}>${ic('i-up')}</button>
+          <button class="iconbtn" data-down="${i}" title="Move down" ${i === items.length - 1 ? 'disabled' : ''}>${ic('i-down')}</button>
+          <button class="iconbtn" data-edit="${i}" title="Edit">${ic('i-pencil')}</button>
+          <button class="iconbtn" data-rm="${i}" title="Remove">${ic('i-x')}</button>
+        </span>
+      </div>`).join('') || `<div class="card empty">${ic('i-timetable', 'big')}Nothing on ${ttDayName(day)} yet — add the first activity below.</div>`}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn" id="tt-add">${ic('i-plus')} Add activity</button>
+      ${items.length ? `<button class="btn sec" id="tt-copyday">${ic('i-copy')} Copy ${ttDayName(day)} to…</button>` : ''}
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>${ic('i-people')} Send to your students</h3>
+      <p class="m-sub" style="margin-top:0">Ticked classes see this timetable on their dashboard — today's day, ready for the morning. Untick to take it back.</p>
+      ${myCls.length ? myCls.map(c => `
+        <label class="check-row"><input type="checkbox" data-cls="${c.id}" ${(t.classIds || []).includes(c.id) ? 'checked' : ''}> ${esc(c.name)} (${c.students.length} student${c.students.length === 1 ? '' : 's'})</label>`).join('')
+        : '<p class="m-sub">You need a class first.</p>'}
+    </div>`;
+  $('#crumb').onclick = () => go({ page: 'tools', tab: 'timetables', timetableId: null });
+  $('#tt-name').onchange = e => { t.name = e.target.value.trim() || 'Our day'; t.updated = Date.now(); saveDB(); };
+  $('#tt-disp').onclick = () => openTTDisplay(t, day);
+  $('#tt-print').onclick = () => openTTDisplay(t, day, { print: true });
+  main.querySelectorAll('[data-day]').forEach(b => b.onclick = () => go({ page: 'timetable', day: b.dataset.day }));
+  main.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const i = +b.dataset.up; [items[i - 1], items[i]] = [items[i], items[i - 1]]; touch(); });
+  main.querySelectorAll('[data-down]').forEach(b => b.onclick = () => { const i = +b.dataset.down; [items[i], items[i + 1]] = [items[i + 1], items[i]]; touch(); });
+  main.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { items.splice(+b.dataset.rm, 1); touch(); });
+  main.querySelectorAll('[data-edit]').forEach(b => b.onclick = () =>
+    openTTActivity(items[+b.dataset.edit], vals => { Object.assign(items[+b.dataset.edit], vals); touch(); }));
+  $('#tt-add').onclick = () => openTTActivity(null, vals => { items.push(Object.assign({ id: uid() }, vals)); touch(); });
+  const cd = $('#tt-copyday');
+  if (cd) cd.onclick = () => {
+    const m = openModal(`
+      <h3>${ic('i-copy')} Copy ${ttDayName(day)} to…</h3>
+      <p class="m-sub">Replaces those days with a copy of ${ttDayName(day)}'s activities.</p>
+      ${TT_DAYS.filter(([k]) => k !== day).map(([k, label]) =>
+        `<label class="check-row"><input type="checkbox" data-day-to="${k}"> ${label}</label>`).join('')}
+      <div class="m-actions">
+        <button class="btn ghost" data-x>Cancel</button>
+        <button class="btn" data-go>${ic('i-copy')} Copy</button>
+      </div>`);
+    m.querySelector('[data-x]').onclick = () => m.remove();
+    m.querySelector('[data-go]').onclick = () => {
+      const targets = [...m.querySelectorAll('[data-day-to]:checked')].map(x => x.dataset.dayTo);
+      if (!targets.length) { toast('Tick at least one day', true); return; }
+      targets.forEach(k => t.days[k] = items.map(it => Object.assign({}, it, { id: uid() })));
+      m.remove(); touch(); toast('Copied to ' + targets.map(ttDayName).join(', '));
+    };
+  };
+  main.querySelectorAll('[data-cls]').forEach(box => box.onchange = () => {
+    const cid = box.dataset.cls;
+    t.classIds = t.classIds || [];
+    if (box.checked) {
+      if (!t.classIds.includes(cid)) {
+        t.classIds.push(cid);
+        const c = klass(cid);
+        notify(c.students, `${me().name} shared a visual timetable with ${c.name}: “${t.name}” — it's on your dashboard`, { page: 'dash' });
+        toast(`Sent to ${c.name} — it's on their dashboards`);
+      }
+    } else {
+      t.classIds = t.classIds.filter(x => x !== cid);
+      toast('No longer shown to that class');
+    }
+    t.updated = Date.now(); saveDB();
+  });
+}
+
+function openTTActivity(existing, onSave) {
+  const m = openModal(`
+    <h3>${ic('i-timetable')} ${existing ? 'Edit activity' : 'Add an activity'}</h3>
+    ${existing ? '' : `<p class="m-sub">Tap one to add it straight away, or make your own below.</p>
+    <div class="tt-preset-grid">${TT_PRESETS.map(([e, l], i) => `<button data-pre="${i}"><span>${e}</span>${l}</button>`).join('')}</div>
+    <div class="nav-sep" style="margin:14px 0"></div>`}
+    <div class="form-2col">
+      <div><label>Emoji</label><input id="ta-emoji" maxlength="8" style="font-size:1.4rem" value="${existing ? esc(existing.emoji) : '⭐'}"></div>
+      <div><label>Start time (optional)</label><input id="ta-time" type="time" value="${existing && existing.time ? existing.time : ''}"></div>
+    </div>
+    <label>Activity</label><input id="ta-label" maxlength="40" placeholder="e.g. Guided reading" value="${existing ? esc(existing.label) : ''}">
+    <div class="m-actions">
+      <button class="btn ghost" data-x>Cancel</button>
+      <button class="btn" data-go>${ic('i-tick')} ${existing ? 'Save' : 'Add activity'}</button>
+    </div>`);
+  m.querySelector('[data-x]').onclick = () => m.remove();
+  m.querySelectorAll('[data-pre]').forEach(b => b.onclick = () => {
+    const [emoji, label] = TT_PRESETS[+b.dataset.pre];
+    m.remove(); onSave({ emoji, label, time: '' });
+  });
+  m.querySelector('[data-go]').onclick = () => {
+    const label = m.querySelector('#ta-label').value.trim();
+    if (!label) { toast('Give the activity a name', true); return; }
+    const emoji = m.querySelector('#ta-emoji').value.trim() || '⭐';
+    m.remove(); onSave({ emoji, label, time: m.querySelector('#ta-time').value || '' });
+  };
+  if (existing) m.querySelector('#ta-label').focus();
+}
+
+/* full-screen display for the classroom board; also the print view */
+function openTTDisplay(t, dayKey, opts) {
+  opts = opts || {};
+  let day = TT_DAYS.some(([k]) => k === dayKey) ? dayKey : todayKey();
+  const wrap = document.createElement('div');
+  wrap.className = 'tt-wrap';
+  let timer = null;
+  const paint = () => {
+    if (!document.contains(wrap) && timer) { clearInterval(timer); return; } // closed by the back button
+    const items = t.days[day] || [];
+    const now = new Date();
+    const hhmm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    const timed = items.map((it, i) => ({ it, i })).filter(x => x.it.time);
+    let nowIdx = -1;
+    if (day === todayKey()) timed.forEach(x => { if (x.it.time <= hhmm) nowIdx = x.i; });
+    wrap.innerHTML = `
+      <div class="tt-bar">
+        <span class="mark">${MARK}</span>
+        <b>${esc(t.name)}</b>
+        <select class="cv-size" id="ttd-day" style="width:auto">${TT_DAYS.map(([k, label]) =>
+          `<option value="${k}" ${k === day ? 'selected' : ''}>${label}</option>`).join('')}</select>
+        <span class="spacer"></span>
+        <button class="btn small" id="ttd-print">${ic('i-print')} Print</button>
+        <button class="btn ghost small" id="ttd-close">${ic('i-x')} Close</button>
+      </div>
+      <div class="tt-scroll">
+        <h2 class="tt-print-head" style="display:none">${esc(t.name)} — ${ttDayName(day)}</h2>
+        ${items.length ? `<div class="tt-big">${items.map((it, i) => `
+          <div class="tt-bigcard ${i === nowIdx ? 'now' : ''} ${nowIdx >= 0 && i < nowIdx ? 'done' : ''}">
+            <span class="n">${i + 1}</span>
+            <div class="e">${it.emoji}</div>
+            <b>${esc(it.label)}</b>
+            ${it.time ? `<small>${it.time}</small>` : ''}
+          </div>`).join('')}</div>`
+          : `<div class="card empty" style="max-width:520px;margin:40px auto">${ic('i-timetable', 'big')}Nothing on ${ttDayName(day)} yet.</div>`}
+      </div>`;
+    wrap.querySelector('#ttd-day').onchange = e => { day = e.target.value; paint(); };
+    wrap.querySelector('#ttd-print').onclick = () => window.print();
+    wrap.querySelector('#ttd-close').onclick = close;
+  };
+  const close = () => { clearInterval(timer); wrap.remove(); };
+  paint();
+  document.body.appendChild(wrap);
+  timer = setInterval(paint, 30000); // keep the "now" highlight moving with the clock
+  if (opts.print) setTimeout(() => window.print(), 150);
+}
+
+/* the timetable a student's classes point at (first match wins) */
+function ttForStudent(sid) {
+  const cids = db.classes.filter(c => c.students.includes(sid) && !c.archived).map(c => c.id);
+  return db.timetables.find(t => (t.classIds || []).some(id => cids.includes(id)));
+}
+function ttStripHTML(tt) {
+  const items = tt.days[todayKey()] || [];
+  if (!items.length) return '';
+  const now = new Date();
+  const hhmm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+  let nowIdx = -1;
+  items.forEach((it, i) => { if (it.time && it.time <= hhmm) nowIdx = i; });
+  return `
+    <h3 style="margin:6px 0 8px">${ic('i-timetable')} Today (${ttDayName(todayKey())})</h3>
+    <div class="tt-strip" data-tt-strip="${tt.id}" title="Tap to see it big">${items.map((it, i) => `
+      <div class="tt-card ${i === nowIdx ? 'now' : ''}"><div class="e">${it.emoji}</div><b>${esc(it.label)}</b>${it.time ? `<small>${it.time}</small>` : ''}</div>`).join('')}
+    </div>`;
+}
+function wireTTStrip() {
+  document.querySelectorAll('[data-tt-strip]').forEach(el => el.onclick = () => {
+    const t = db.timetables.find(x => x.id === el.dataset.ttStrip);
+    if (t) openTTDisplay(t, todayKey());
+  });
 }
 
 function openLinkModal(onGo) {
