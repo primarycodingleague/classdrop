@@ -7,5 +7,6 @@ Primary Coding League web product, published at https://classdrop.co.uk via GitH
 - `index.html` — the public landing page; its CTAs link to `/app/`.
 - Local preview: any static server (on the original Mac: launch config "classdrop", port 8641).
 - Follow the PCL house style (gold #ae853e on charcoal, Montserrat) for any UI work.
+- Landing-page parity: whenever a user-facing feature is added or changed in the app, updating the landing page (`index.html` — features grid / copy) is part of the same task and the same PR. The work is not done until the landing page tells the story.
 - Verify changes in a browser before calling them done.
 - Standing instruction: always commit + push as part of the task.
