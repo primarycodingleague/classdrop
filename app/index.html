@@ -278,6 +278,27 @@ video.lib-prev{object-fit:cover; cursor:default}
 .tt-title-input{font-family:var(--font); font-weight:800; font-size:1.4rem; color:var(--ink); border:none; background:none;
   border-bottom:2px dashed var(--gold-line); padding:2px 4px; min-width:0; flex:1}
 .tt-title-input:focus{outline:none; border-bottom-color:var(--gold)}
+/* safeguarding: body map + record views */
+.bm-wrap{display:flex; gap:18px; justify-content:flex-start; margin:6px 0 4px}
+.bm-fig{text-align:center}
+.bm-svg{width:128px; height:auto; background:#fbf9f4; border:1.5px solid var(--line); border-radius:12px; display:block}
+.bm-svg.edit{cursor:crosshair}
+.bm-svg.edit:hover{border-color:var(--gold)}
+.bm-lab{font-size:.75rem; font-weight:800; color:var(--muted); margin-top:4px}
+.bm-row{display:flex; align-items:center; gap:8px; margin-top:8px}
+.bm-row .bm-note{flex:1}
+.bm-num{width:24px; height:24px; border-radius:50%; background:var(--red); color:#fff; font-size:.78rem; font-weight:800;
+  display:inline-flex; align-items:center; justify-content:center; flex:none}
+.bm-notes{font-size:.88rem; margin:8px 0 0; padding-left:20px}
+.sg-note{background:var(--paper); border-radius:10px; padding:12px; white-space:pre-wrap; font-size:.92rem}
+.sg-conf{background:var(--gold-soft); border:1.5px dashed var(--gold-line); border-radius:12px; padding:10px 14px;
+  font-size:.85rem; color:var(--gold-dk); font-weight:700; display:flex; gap:8px; align-items:center; margin-bottom:14px}
+.sgp-wrap{position:fixed; inset:0; z-index:150; background:var(--paper); display:flex; flex-direction:column}
+.sgp-bar{background:linear-gradient(180deg,var(--shell) 0%,#1f1d1b 100%); color:#fff; display:flex; align-items:center; gap:12px; padding:12px 16px}
+.sgp-scroll{flex:1; overflow-y:auto; padding:26px}
+.sgp-page{max-width:820px; margin:0 auto 22px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 32px}
+.sgp-page h4{margin:14px 0 4px}
+.sgp-page .meta{color:var(--muted); font-size:.85rem; font-weight:700}
 
 /* ---------- work items (folders) ---------- */
 .work-list{display:flex; flex-direction:column; gap:12px}
@@ -563,6 +584,10 @@ table.mb th, table.mb td{border-bottom:1px solid var(--line); border-right:1px s
   .tt-big .tt-bigcard{break-inside:avoid; box-shadow:none}
   .tt-big .tt-bigcard.now{border-color:var(--line); background:#fff; box-shadow:none}
   .tt-big .tt-bigcard.done{opacity:1}
+  .sgp-wrap{position:static}
+  .sgp-bar{display:none !important}
+  .sgp-scroll{padding:0; overflow:visible}
+  .sgp-page{border:none; border-radius:0; max-width:100%; padding:12px 4px; page-break-after:always}
   .rp-wrap{position:static}
   .rp-bar{display:none !important}
   .rp-scroll{padding:0; display:block; overflow:visible}
@@ -1174,6 +1199,31 @@ function migrateDB() {
         outOf: 10, autoLock: false, sharedPosting: true, attachments: [] });
     db.librarySeeded = true; changed = true;
   }
+  // safeguarding: KCSIE-structured concern recording, restricted to the DSL + reporter
+  if (!db.safeguarding) { db.safeguarding = []; changed = true; }
+  if (!db.sgUpdates) { db.sgUpdates = []; changed = true; }
+  if (!db.sgAudit) { db.sgAudit = []; changed = true; }
+  db.schools.forEach(s => { if (!s.dslId) { s.dslId = s.adminId || 'u-hug'; changed = true; } });
+  if (!db.sgSeeded) {
+    if (db.users.some(u => u.id === 'u-leo') && db.users.some(u => u.id === 'u-ose') && !db.safeguarding.length) {
+      const t0 = Date.now() - 5 * DAY;
+      db.safeguarding.push({ id: 'sg-demo', studentId: 'u-leo', schoolId: 'sch1', classId: 'c1',
+        incidentDate: new Date(t0).toISOString().slice(0, 10), category: 'Welfare concern',
+        description: 'Leo said he had not had breakfast again today ("we ran out"). Third time this fortnight. He was quiet in first session and asked to stay in at break.',
+        bodyMap: [], attachments: [],
+        actionTaken: 'Gave Leo a snack from the breakfast-club tray. Checked in with him at break — chatty and settled after eating.',
+        reportedTo: 'DSL',
+        decisions: 'Monitor for two weeks; no external referral at this stage. Offer a free breakfast-club place.',
+        rationale: 'Single category of concern with a plausible short-term explanation and no other indicators. Threshold for referral not met; support offered instead.',
+        outcome: '', status: 'monitoring', reporterId: 'u-ose', createdAt: t0, updatedAt: t0 + 2 * DAY });
+      db.sgUpdates.push({ id: 'sgu-demo', incidentId: 'sg-demo',
+        note: 'Called home — money is tight until payday. Signposted the free breakfast-club place; mum happy for Leo to start Monday.',
+        authorId: 'u-hug', ts: t0 + 2 * DAY });
+      db.sgAudit.push({ id: 'sga-demo2', by: 'u-hug', action: 'case note added', detail: 'sg-demo', ts: t0 + 2 * DAY },
+        { id: 'sga-demo1', by: 'u-ose', action: 'record created', detail: 'sg-demo', ts: t0 });
+    }
+    db.sgSeeded = true; changed = true;
+  }
   if (changed) saveDB();
 }
 function saveDB() {
@@ -1475,7 +1525,7 @@ function go(patch) {
 window.addEventListener('popstate', e => {
   const drawerScrim = document.querySelector('.scrim');
   if (drawerScrim) { drawerScrim.click(); history.pushState({ view }, ''); return; }
-  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap');
+  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap, .sgp-wrap');
   if (layer) { layer.remove(); history.pushState({ view }, ''); return; }
   if (document.querySelector('.cv-wrap')) { history.pushState({ view }, ''); return; } // canvas editor may hold unsaved work — leave via its own controls
   if (e.state && e.state.view) { view = Object.assign({}, e.state.view); render(); }
@@ -1586,9 +1636,13 @@ function renderShell() {
       <button class="nav-item ${view.page === 'pupils' ? 'active' : ''}" data-nav="pupils"><span class="nico">${ic('i-people')}</span>Students</button>
       <button class="nav-item ${view.page === 'aclasses' ? 'active' : ''}" data-nav="aclasses"><span class="nico">${ic('i-class')}</span>Classes</button>
       <button class="nav-item ${view.page === 'ascales' ? 'active' : ''}" data-nav="ascales"><span class="nico">${ic('i-markbook')}</span>Grades &amp; levels</button>
-      <button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>` : `
+      <button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>
+      <button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding"><span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}</button>` : `
       ${isTeacher() ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
         <span class="nico">${ic('i-tools')}</span>Tools
+      </button>
+      <button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding">
+        <span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}
       </button>` : ''}
       <button class="nav-item ${view.page === 'portfolio' ? 'active' : ''}" data-nav="portfolio">
         <span class="nico">${ic('i-star')}</span>${isTeacher() ? 'Portfolios' : isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s portfolio" : 'My portfolio'}
@@ -1621,6 +1675,7 @@ function renderShell() {
     if (n === 'dash') go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'activity') go({ page: 'activity' });
     if (n === 'tools') go({ page: 'tools', tab: 'canvases', classId: null, assignmentId: null, studentId: null, discussionId: null });
+    if (n === 'safeguarding') go({ page: 'safeguarding', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
     if (n === 'staff') go({ page: 'staff' });
@@ -1652,6 +1707,7 @@ function renderShell() {
   else if (view.page === 'activity') renderActivity(main);
   else if ((view.page === 'tools' || view.page === 'library') && isTeacher()) renderTools(main);
   else if (view.page === 'timetable' && isTeacher()) renderTimetableEditor(main);
+  else if (view.page === 'safeguarding' && (isTeacher() || isAdmin())) renderSafeguarding(main);
   else if (view.page === 'portfolio') renderPortfolioPage(main);
   else if (view.page === 'reading') renderReadingPage(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
@@ -1897,7 +1953,19 @@ function renderAdminStaff(main) {
     <div class="tbl-wrap"><table>
       <thead><tr><th>Teacher</th><th>Own classes</th><th>Co-teaching</th><th></th></tr></thead>
       <tbody>${rows || `<tr><td colspan="4" class="empty">No teachers yet.</td></tr>`}</tbody>
-    </table></div>`;
+    </table></div>
+    <div class="card" style="margin-top:20px">
+      <h3>${ic('i-shield')} Designated safeguarding lead</h3>
+      <p class="m-sub" style="margin-top:0">The DSL sees every safeguarding record in the school; other staff see only records they reported themselves.</p>
+      <select id="dsl-sel" style="max-width:300px">${db.users.filter(u => (u.role === 'teacher' || u.role === 'admin') && u.schoolId === mySchool().id)
+        .map(u => `<option value="${u.id}" ${u.id === mySchool().dslId ? 'selected' : ''}>${esc(u.name)} (${u.role === 'admin' ? 'office' : 'teacher'})</option>`).join('')}</select>
+    </div>`;
+  $('#dsl-sel').onchange = e => {
+    mySchool().dslId = e.target.value;
+    sgAuditAdd('DSL changed', user(e.target.value).name);
+    notify([e.target.value], 'You are now the designated safeguarding lead — all safeguarding records are visible to you', { page: 'safeguarding' });
+    saveDB(); render(); toast(`${user(e.target.value).name} is now the DSL`);
+  };
   $('#btn-addadmin').onclick = () => openPrompt('Add an office account', 'This person gets full admin access to the school. What is their name?', 'e.g. Mr Reeves', name => {
     db.users.push({ id: uid(), name, role: 'admin', schoolId: mySchool().id });
     saveDB(); render(); toast(name + ' can now sign in as an office admin');
@@ -1994,6 +2062,8 @@ function renderAdminStudents(main) {
   });
   document.querySelectorAll('[data-rmpupil]').forEach(b => b.onclick = () => {
     const s = user(b.dataset.rmpupil);
+    const sg = db.safeguarding.filter(r => r.studentId === s.id).length;
+    if (sg) { toast(`${s.name} has ${sg} safeguarding record${sg === 1 ? '' : 's'}, which must be retained — the account can't be deleted.`, true); return; }
     openConfirm(`Remove ${s.name}?`, 'Their account and any linked parent accounts go. Work already in class folders stays.', () => {
       db.classes.forEach(c => c.students = c.students.filter(x => x !== s.id));
       db.users = db.users.filter(x => x.id !== s.id && x.childId !== s.id);
@@ -4571,6 +4641,284 @@ function wireTTStrip() {
     const t = db.timetables.find(x => x.id === el.dataset.ttStrip);
     if (t) openTTDisplay(t, todayKey());
   });
+}
+
+/* ---------- safeguarding (ported from ClubHQ; KCSIE-structured) ----------
+   Access: the school's designated safeguarding lead (DSL) sees every record;
+   everyone else sees only records they reported. Records are never deleted —
+   they must be retained — and every sensitive action lands in the audit trail. */
+const SG_CATS = ['Disclosure', 'Injury / accident', 'Medical / first aid', 'Welfare concern', 'Online safety', 'Peer-on-peer', 'Emotional / behaviour change', 'Other'];
+const isDSL = () => me() && mySchool().dslId === me().id;
+const sgVisible = () => db.safeguarding
+  .filter(r => r.schoolId === mySchool().id && (isDSL() || r.reporterId === db.session))
+  .sort((a, b) => b.updatedAt - a.updatedAt);
+const sgOpenCount = () => sgVisible().filter(r => r.status !== 'closed').length;
+function sgAuditAdd(action, detail) {
+  db.sgAudit.unshift({ id: uid(), by: db.session, action, detail, ts: Date.now() });
+  db.sgAudit = db.sgAudit.slice(0, 500);
+}
+/* students this staff member may log a concern about */
+function sgStudents() {
+  if (isDSL() || isAdmin()) return schoolUsers('student');
+  const mine = new Set(myClasses(true).flatMap(c => c.students));
+  return schoolUsers('student').filter(s => mine.has(s.id));
+}
+
+/* body map — front/back figures, tap to mark (from ClubHQ, PCL palette) */
+function bodyFigure(side, markers, editable) {
+  const pins = markers.map((m, i) => m.s !== side ? '' :
+    `<g pointer-events="none"><circle cx="${m.x}" cy="${m.y * 1.8}" r="5.2" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>
+     <text x="${m.x}" y="${m.y * 1.8 + 2.7}" text-anchor="middle" font-size="7.2" font-weight="800" fill="#fff">${i + 1}</text></g>`).join('');
+  const detail = side === 'b' ? `<line x1="50" y1="38" x2="50" y2="86" stroke="#d8d0bf" stroke-width="1.4"/>`
+    : `<circle cx="45.5" cy="13.5" r="1.2" fill="#a89f90"/><circle cx="54.5" cy="13.5" r="1.2" fill="#a89f90"/><path d="M45.5 21 q4.5 3.4 9 0" fill="none" stroke="#a89f90" stroke-width="1.3"/>`;
+  return `<div class="bm-fig"><svg class="bm-svg${editable ? ' edit' : ''}" data-side="${side}" viewBox="0 0 100 180" role="img" aria-label="Body map, ${side === 'f' ? 'front' : 'back'}">
+    <g fill="#f1ecdf" stroke="#a89f90" stroke-width="1.5">
+      <ellipse cx="50" cy="16" rx="11.5" ry="13.5"/>
+      <rect x="44.5" y="27" width="11" height="10" rx="4"/>
+      <rect x="30" y="35" width="40" height="54" rx="12"/>
+      <rect x="15.5" y="38" width="12" height="50" rx="6"/>
+      <rect x="72.5" y="38" width="12" height="50" rx="6"/>
+      <circle cx="21.5" cy="93" r="5.5"/>
+      <circle cx="78.5" cy="93" r="5.5"/>
+      <rect x="31" y="86" width="38" height="17" rx="8"/>
+      <rect x="32.5" y="100" width="15" height="64" rx="7"/>
+      <rect x="52.5" y="100" width="15" height="64" rx="7"/>
+      <ellipse cx="40" cy="167" rx="8" ry="4.5"/>
+      <ellipse cx="60" cy="167" rx="8" ry="4.5"/>
+    </g>${detail}${pins}</svg><div class="bm-lab">${side === 'f' ? 'Front' : 'Back'}</div></div>`;
+}
+function bodyMapView(markers) {
+  if (!markers || !markers.length) return '';
+  return `<label>Body map</label>
+    <div class="bm-wrap">${bodyFigure('f', markers, false)}${bodyFigure('b', markers, false)}</div>
+    <ol class="bm-notes">${markers.map(m => `<li><b>${m.s === 'b' ? 'Back' : 'Front'}</b> — ${esc(m.note || 'no note')}</li>`).join('')}</ol>`;
+}
+
+const SG_STATUS_CHIP = { open: 'red', monitoring: 'amber', closed: 'grey' };
+function renderSafeguarding(main) {
+  const rows = sgVisible();
+  const filterSid = view.studentId && rows.some(r => r.studentId === view.studentId) ? view.studentId : null;
+  const students = [...new Set(rows.map(r => r.studentId))].map(id => user(id));
+  const shown = filterSid ? rows.filter(r => r.studentId === filterSid).sort((a, b) => (a.incidentDate < b.incidentDate ? -1 : 1)) : rows;
+  const dsl = user(mySchool().dslId);
+  main.innerHTML = `
+    <div class="page-head"><h2>${ic('i-shield')} Safeguarding</h2><span class="spacer"></span>
+      ${isDSL() && filterSid ? `<button class="btn sec small" id="sg-print">${ic('i-print')} Print / transfer file</button>` : ''}
+      ${isDSL() ? `<button class="btn ghost small" id="sg-export">${ic('i-download')} Export CSV</button>` : ''}
+      <button class="btn" id="sg-new">${ic('i-plus')} New record</button></div>
+    <div class="sg-conf">${ic('i-lock')} Confidential. ${isDSL() ? 'As DSL you see every record in the school.' : `You see records you reported; the DSL (${esc(dsl.name)}) sees everything.`} Records here are kept — they cannot be deleted.</div>
+    ${students.length > 1 || filterSid ? `<div class="row" style="margin-bottom:12px"><label style="margin:0">Chronology for</label>
+      <select id="sg-filter" style="max-width:260px">
+        <option value="">All records</option>
+        ${students.map(s => `<option value="${s.id}" ${s.id === filterSid ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
+      </select></div>` : ''}
+    ${shown.map(r => `
+      <button class="assign-row" data-sg="${r.id}">
+        <span class="assign-ico">${ic('i-shield')}</span>
+        <span class="assign-body"><b>${esc(user(r.studentId).name)} — ${esc(r.category)}</b>
+          <small>incident ${fmtDate(new Date(r.incidentDate + 'T12:00').getTime())} · reported by ${esc(user(r.reporterId).name)} · updated ${fmtWhen(r.updatedAt)}</small></span>
+        <span class="assign-side"><span class="chip ${SG_STATUS_CHIP[r.status]}">${r.status}</span></span>
+      </button>`).join('') || `<div class="card empty">${ic('i-shield', 'big')}No records${isDSL() ? ' in the school yet' : ' reported by you yet'}. Anything that worries you about a child — however small — belongs here, not in your head.</div>`}
+    ${isDSL() ? `<details class="arch" style="margin-top:20px"><summary>${ic('i-eye')} Audit trail (${db.sgAudit.length})</summary>
+      ${db.sgAudit.slice(0, 60).map(a => `<div class="small" style="padding:6px 2px;border-bottom:1px solid var(--line)">
+        <b>${esc(user(a.by).name)}</b> — ${esc(a.action)} <span class="muted">${fmtWhen(a.ts)}</span></div>`).join('') || '<p class="m-sub">Nothing yet.</p>'}
+    </details>` : ''}`;
+  $('#sg-new').onclick = openSGNew;
+  const f = $('#sg-filter'); if (f) f.onchange = () => go({ page: 'safeguarding', studentId: f.value || null });
+  const ex = $('#sg-export'); if (ex) ex.onclick = sgExportCSV;
+  const pr = $('#sg-print'); if (pr) pr.onclick = () => openSGFile(filterSid);
+  main.querySelectorAll('[data-sg]').forEach(b => b.onclick = () => openSGDetail(b.dataset.sg));
+}
+
+function openSGNew() {
+  const students = sgStudents();
+  if (!students.length) { toast('No students you can report about yet.', true); return; }
+  const m = openModal(`
+    <h3>${ic('i-shield')} New safeguarding record</h3>
+    <p class="m-sub">Record facts, in the child's own words where possible — keep opinion out of the description. Only you and the DSL will see this.</p>
+    <label>Child</label><select id="sg-child">${students.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+    <div class="form-2col">
+      <div><label>Date of incident</label><input type="date" id="sg-date" value="${new Date().toISOString().slice(0, 10)}"></div>
+      <div><label>Category</label><select id="sg-cat">${SG_CATS.map(c => `<option>${c}</option>`).join('')}</select></div>
+    </div>
+    <label>What happened / what was said (facts only)</label><textarea id="sg-desc" placeholder="Who, what, when, where — and the child's own words in quotes…"></textarea>
+    <label>Body map — tap the figure where any marks or injuries are (optional)</label>
+    <div class="bm-wrap" id="sg-bm"></div>
+    <div id="sg-bm-list"></div>
+    <label>Action taken so far</label><textarea id="sg-action" placeholder="e.g. reassured the child, informed the DSL in person…"></textarea>
+    <label>Reported to</label><input id="sg-repto" placeholder="e.g. DSL, parents, external agency" maxlength="200">
+    <label>Photos (optional, max 4)</label>
+    <div id="sg-att-list"></div>
+    <button type="button" class="btn sec small" id="sg-att">${ic('i-clip')} Add photo</button>
+    <input type="file" id="sg-fileinp" accept="image/*" class="sr-only">
+    <div class="m-actions">
+      <button class="btn ghost" data-x>Cancel</button>
+      <button class="btn" data-go>${ic('i-tick')} Save record</button>
+    </div>`);
+  m.querySelector('[data-x]').onclick = () => m.remove();
+  const markers = [], atts = [];
+  const paintBM = focusLast => {
+    m.querySelector('#sg-bm').innerHTML = bodyFigure('f', markers, true) + bodyFigure('b', markers, true);
+    m.querySelector('#sg-bm-list').innerHTML = markers.map((mk, i) => `
+      <div class="bm-row"><span class="bm-num">${i + 1}</span><span class="chip grey">${mk.s === 'b' ? 'Back' : 'Front'}</span>
+        <input class="bm-note" data-i="${i}" placeholder="e.g. bruise approx 2cm, yellowing" value="${esc(mk.note)}">
+        <button class="btn ghost small bm-del" data-i="${i}" aria-label="Remove mark ${i + 1}">${ic('i-x')}</button></div>`).join('');
+    m.querySelectorAll('.bm-svg.edit').forEach(svg => svg.onclick = e => {
+      const r = svg.getBoundingClientRect();
+      markers.push({ s: svg.dataset.side, x: +(((e.clientX - r.left) / r.width) * 100).toFixed(1), y: +(((e.clientY - r.top) / r.height) * 100).toFixed(1), note: '' });
+      paintBM(true);
+    });
+    m.querySelectorAll('.bm-note').forEach(i => i.oninput = () => markers[+i.dataset.i].note = i.value);
+    m.querySelectorAll('.bm-del').forEach(b => b.onclick = () => { markers.splice(+b.dataset.i, 1); paintBM(); });
+    if (focusLast) { const ns = m.querySelectorAll('.bm-note'); if (ns.length) ns[ns.length - 1].focus(); }
+  };
+  paintBM();
+  const paintAtt = () => {
+    m.querySelector('#sg-att-list').innerHTML = atts.map((a, i) => `
+      <div class="att-row">${ic('i-clip')}<b>${esc(a.name)}</b><button class="btn ghost small" data-rm="${i}">${ic('i-x')}</button></div>`).join('');
+    m.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { atts.splice(+b.dataset.rm, 1); paintAtt(); });
+  };
+  m.querySelector('#sg-att').onclick = () => m.querySelector('#sg-fileinp').click();
+  m.querySelector('#sg-fileinp').onchange = e => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    if (atts.length >= 4) { toast('Maximum 4 photos per record', true); return; }
+    if (f.size > MAX_FILE) { toast('That file is too big for the demo (4MB max).', true); return; }
+    const r = new FileReader();
+    r.onload = () => { atts.push({ name: f.name, type: f.type, data: r.result }); paintAtt(); };
+    r.readAsDataURL(f);
+  };
+  m.querySelector('[data-go]').onclick = () => {
+    const description = m.querySelector('#sg-desc').value.trim();
+    if (!description) { toast('A factual description is required', true); return; }
+    const sid = m.querySelector('#sg-child').value, t = Date.now();
+    const rec = { id: uid(), studentId: sid, schoolId: me().schoolId,
+      classId: (db.classes.find(c => c.students.includes(sid) && !c.archived) || {}).id || '',
+      incidentDate: m.querySelector('#sg-date').value || new Date().toISOString().slice(0, 10),
+      category: m.querySelector('#sg-cat').value, description,
+      bodyMap: markers.filter(x => true), attachments: atts.slice(),
+      actionTaken: m.querySelector('#sg-action').value.trim(), reportedTo: m.querySelector('#sg-repto').value.trim(),
+      decisions: '', rationale: '', outcome: '', status: 'open', reporterId: db.session, createdAt: t, updatedAt: t };
+    db.safeguarding.push(rec);
+    sgAuditAdd('record created', rec.id);
+    if (mySchool().dslId !== db.session)
+      notify([mySchool().dslId], 'A safeguarding concern has been logged and needs your review', { page: 'safeguarding' });
+    saveDB(); m.remove(); render(); toast('Record saved — the DSL can now see it');
+  };
+  m.querySelector('#sg-desc').focus();
+}
+
+function openSGDetail(id) {
+  const r = db.safeguarding.find(x => x.id === id);
+  if (!r || !(isDSL() || r.reporterId === db.session)) return;
+  const updates = db.sgUpdates.filter(u => u.incidentId === id).sort((a, b) => a.ts - b.ts);
+  const s = user(r.studentId);
+  const m = openModal(`
+    <h3>${ic('i-shield')} ${esc(s.name)} <span class="chip ${SG_STATUS_CHIP[r.status]}">${r.status}</span></h3>
+    <p class="m-sub">${esc(r.category)} · incident ${fmtDate(new Date(r.incidentDate + 'T12:00').getTime())} · reported by ${esc(user(r.reporterId).name)} ${fmtWhen(r.createdAt)}</p>
+    <label>What happened</label><div class="sg-note">${esc(r.description)}</div>
+    ${bodyMapView(r.bodyMap)}
+    ${(r.attachments || []).length ? `<label>Photos</label><div class="row" style="flex-wrap:wrap;gap:8px">${r.attachments.map(a =>
+      `<img src="${a.data}" alt="${esc(a.name)}" style="max-width:150px;max-height:110px;border-radius:10px;border:1px solid var(--line)">`).join('')}</div>` : ''}
+    ${r.actionTaken ? `<label>Action taken</label><div class="sg-note">${esc(r.actionTaken)}</div>` : ''}
+    ${r.reportedTo ? `<label>Reported to</label><div class="small"><b>${esc(r.reportedTo)}</b></div>` : ''}
+    ${isDSL() ? `
+      <div class="nav-sep" style="margin:16px 0"></div>
+      <h4 style="margin:0 0 4px">${ic('i-tick')} DSL — decisions &amp; outcome</h4>
+      <p class="m-sub" style="margin-top:0">KCSIE: record the decisions made, the rationale for them, and the outcome.</p>
+      <label>Decisions made</label><textarea id="sgd-dec">${esc(r.decisions || '')}</textarea>
+      <label>Rationale for decisions</label><textarea id="sgd-rat">${esc(r.rationale || '')}</textarea>
+      <label>Outcome</label><textarea id="sgd-out">${esc(r.outcome || '')}</textarea>`
+    : (r.decisions || r.outcome) ? `
+      ${r.decisions ? `<label>Decisions made (DSL)</label><div class="sg-note">${esc(r.decisions)}</div>` : ''}
+      ${r.outcome ? `<label>Outcome</label><div class="sg-note">${esc(r.outcome)}</div>` : ''}` : ''}
+    <label>Case log</label>
+    ${updates.map(u => `<div class="small" style="padding:7px 0;border-bottom:1px solid var(--line)">
+      <b>${esc(user(u.authorId).name)}</b> <span class="muted">${fmtWhen(u.ts)}</span>
+      <div style="white-space:pre-wrap">${esc(u.note)}</div></div>`).join('') || '<p class="m-sub">No updates yet.</p>'}
+    <textarea id="sgd-note" placeholder="Add a dated update to the case log…" style="margin-top:8px"></textarea>
+    <div class="m-actions">
+      ${isDSL() ? `<select id="sgd-status" style="max-width:160px">${['open', 'monitoring', 'closed'].map(x =>
+        `<option ${x === r.status ? 'selected' : ''}>${x}</option>`).join('')}</select>` : ''}
+      <button class="btn ghost" data-x>Close</button>
+      <button class="btn" data-go>${ic('i-tick')} Save update</button>
+    </div>`);
+  m.querySelector('[data-x]').onclick = () => m.remove();
+  m.querySelector('[data-go]').onclick = () => {
+    const note = m.querySelector('#sgd-note').value.trim();
+    if (note) {
+      db.sgUpdates.push({ id: uid(), incidentId: id, note, authorId: db.session, ts: Date.now() });
+      sgAuditAdd('case note added', id);
+    }
+    if (isDSL()) {
+      const dec = m.querySelector('#sgd-dec').value.trim(), rat = m.querySelector('#sgd-rat').value.trim(), out = m.querySelector('#sgd-out').value.trim();
+      if (dec !== (r.decisions || '') || rat !== (r.rationale || '') || out !== (r.outcome || '')) {
+        Object.assign(r, { decisions: dec, rationale: rat, outcome: out });
+        sgAuditAdd('decisions / outcome updated', id);
+      }
+      const st = m.querySelector('#sgd-status').value;
+      if (st !== r.status) { r.status = st; sgAuditAdd('status → ' + st, id); }
+    }
+    r.updatedAt = Date.now();
+    saveDB(); m.remove(); render(); toast('Updated');
+  };
+}
+
+/* the child's full file as printable pages — for the 5-school-day transfer rule */
+function openSGFile(studentId) {
+  const s = user(studentId);
+  const recs = db.safeguarding.filter(r => r.studentId === studentId && r.schoolId === mySchool().id)
+    .sort((a, b) => (a.incidentDate < b.incidentDate ? -1 : 1));
+  sgAuditAdd('child file printed / exported', studentId);
+  saveDB();
+  const wrap = document.createElement('div');
+  wrap.className = 'sgp-wrap';
+  wrap.innerHTML = `
+    <div class="sgp-bar"><span class="mark">${MARK}</span><b>Safeguarding file — ${esc(s.name)}</b>
+      <span class="chip brand">${recs.length} record${recs.length === 1 ? '' : 's'}</span><span class="spacer"></span>
+      <button class="btn small" id="sgp-print">${ic('i-print')} Print / save PDF</button>
+      <button class="btn ghost small" id="sgp-close">${ic('i-x')} Close</button></div>
+    <div class="sgp-scroll">
+      <div class="sgp-page">
+        <h2 style="margin:0 0 4px">Safeguarding file — ${esc(s.name)}</h2>
+        <div class="meta">${esc(mySchool().name)} · prepared by ${esc(me().name)} (DSL) · ${fmtDate(Date.now())} · CONFIDENTIAL — transfer securely, confirm receipt</div>
+      </div>
+      ${recs.map(r => {
+        const ups = db.sgUpdates.filter(u => u.incidentId === r.id).sort((a, b) => a.ts - b.ts);
+        return `<div class="sgp-page">
+        <h3 style="margin:0">${esc(r.category)} — incident ${fmtDate(new Date(r.incidentDate + 'T12:00').getTime())} <span class="chip ${SG_STATUS_CHIP[r.status]}">${r.status}</span></h3>
+        <div class="meta">reported by ${esc(user(r.reporterId).name)}, logged ${fmtDate(r.createdAt)}</div>
+        <h4>What happened</h4><div class="sg-note">${esc(r.description)}</div>
+        ${(r.bodyMap || []).length ? bodyMapView(r.bodyMap) : ''}
+        ${r.actionTaken ? `<h4>Action taken</h4><div class="sg-note">${esc(r.actionTaken)}</div>` : ''}
+        ${r.reportedTo ? `<h4>Reported to</h4><div>${esc(r.reportedTo)}</div>` : ''}
+        ${r.decisions ? `<h4>Decisions made</h4><div class="sg-note">${esc(r.decisions)}</div>` : ''}
+        ${r.rationale ? `<h4>Rationale</h4><div class="sg-note">${esc(r.rationale)}</div>` : ''}
+        ${r.outcome ? `<h4>Outcome</h4><div class="sg-note">${esc(r.outcome)}</div>` : ''}
+        ${ups.length ? `<h4>Case log</h4>${ups.map(u => `<div class="small" style="padding:5px 0;border-bottom:1px solid var(--line)">
+          <b>${esc(user(u.authorId).name)}</b> · ${fmtDate(u.ts)}<div style="white-space:pre-wrap">${esc(u.note)}</div></div>`).join('')}` : ''}
+      </div>`;
+      }).join('')}
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelector('#sgp-close').onclick = () => { wrap.remove(); render(); }; // refresh the audit trail beneath
+  wrap.querySelector('#sgp-print').onclick = () => window.print();
+}
+
+function sgExportCSV() {
+  const rows = db.safeguarding.filter(r => r.schoolId === mySchool().id)
+    .sort((a, b) => (a.incidentDate < b.incidentDate ? -1 : 1));
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const csv = [['Incident date', 'Child', 'Category', 'Status', 'Description', 'Action taken', 'Reported to', 'Decisions', 'Rationale', 'Outcome', 'Reporter', 'Logged at'].map(q).join(',')]
+    .concat(rows.map(r => [r.incidentDate, user(r.studentId).name, r.category, r.status, r.description, r.actionTaken,
+      r.reportedTo, r.decisions, r.rationale, r.outcome, user(r.reporterId).name, new Date(r.createdAt).toISOString()].map(q).join(','))).join('\r\n');
+  sgAuditAdd('CSV export', rows.length + ' rows');
+  saveDB();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'safeguarding.csv';
+  a.click();
+  toast('Exported — handle the file as confidential');
 }
 
 function openLinkModal(onGo) {
