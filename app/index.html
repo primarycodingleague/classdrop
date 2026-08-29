@@ -299,6 +299,40 @@ video.lib-prev{object-fit:cover; cursor:default}
 .sgp-page{max-width:820px; margin:0 auto 22px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 32px}
 .sgp-page h4{margin:14px 0 4px}
 .sgp-page .meta{color:var(--muted); font-size:.85rem; font-weight:700}
+/* seating plans */
+.sp-room{position:relative; width:100%; aspect-ratio:1000/600; background:#fbf9f4; border:1.5px solid var(--line);
+  border-radius:16px; overflow:hidden; container-type:inline-size; touch-action:none; user-select:none}
+.sp-room .sp-scale{position:absolute; inset:0; width:1000px; height:600px; transform-origin:0 0}
+.sp-board{position:absolute; left:290px; top:14px; width:420px; height:34px; border-radius:8px; background:var(--shell);
+  color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; letter-spacing:.06em}
+.sp-room.flip .sp-scale{transform-origin:center; }
+.sp-desk{position:absolute; width:126px; height:70px; border-radius:12px; background:#fff; border:2px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:grab; padding:4px 6px;
+  box-shadow:0 1px 4px rgba(58,48,30,.10); text-align:center}
+.sp-desk.drag{cursor:grabbing; box-shadow:0 10px 26px rgba(58,48,30,.3); z-index:5}
+.sp-desk.filled{border-color:var(--gold-line); background:var(--gold-soft)}
+.sp-desk.empty{border-style:dashed; color:var(--muted)}
+.sp-desk b{font-size:15px; line-height:1.15; max-width:112px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sp-desk .sp-init{width:26px; height:26px; border-radius:50%; background:var(--gold); color:#2b2211; font-size:11px;
+  font-weight:800; display:flex; align-items:center; justify-content:center}
+.sp-desk .sp-pin{position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%; background:var(--gold-dk);
+  color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center}
+.sp-desk .sp-pin .ic{width:.85em; height:.85em}
+.sp-desk.warn{border-color:var(--red); background:var(--red-soft)}
+.sp-flipwrap{transform:rotate(180deg)}
+.sp-flipwrap .sp-desk, .sp-flipwrap .sp-board{transform:rotate(180deg)}
+.sp-side{display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 4px}
+.sp-chip{display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--line); background:#fff; border-radius:99px;
+  padding:5px 12px; font-weight:700; font-size:.84rem; cursor:pointer}
+.sp-chip:hover{border-color:var(--gold); background:var(--gold-soft)}
+.sp-apart{display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line); font-size:.9rem}
+/* full-screen display / print */
+.sp-wrap{position:fixed; inset:0; z-index:150; background:var(--paper); display:flex; flex-direction:column}
+.sp-bar{background:linear-gradient(180deg,var(--shell) 0%,#1f1d1b 100%); color:#fff; display:flex; align-items:center;
+  gap:12px; padding:12px 16px; flex-wrap:wrap}
+.sp-bar .mark{width:30px; height:30px}
+.sp-scroll{flex:1; overflow:auto; padding:22px}
+.sp-scroll .sp-room{max-width:1180px; margin:0 auto}
 /* feature switchboard */
 .feat-list{display:flex; flex-direction:column; gap:10px}
 .feat-row{display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--line);
@@ -619,6 +653,11 @@ table.mb th, table.mb td{border-bottom:1px solid var(--line); border-right:1px s
   .sgp-bar{display:none !important}
   .sgp-scroll{padding:0; overflow:visible}
   .sgp-page{border:none; border-radius:0; max-width:100%; padding:12px 4px; page-break-after:always}
+  .sp-wrap{position:static}
+  .sp-bar{display:none !important}
+  .sp-scroll{padding:0; overflow:visible}
+  .sp-print-head{display:block !important; font-size:1.3rem; font-weight:800; margin:0 0 12px}
+  .sp-room{break-inside:avoid; box-shadow:none}
   .rp-wrap{position:static}
   .rp-bar{display:none !important}
   .rp-scroll{padding:0; display:block; overflow:visible}
@@ -790,6 +829,7 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
   <symbol id="i-markbook" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" opacity=".4"/><path d="M3 9.5h18M9 9.5V20M3 14.75h18" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.2 6.6l1.1 1.1 2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-tools" viewBox="0 0 24 24"><path d="M21.6 6.1a5.4 5.4 0 01-7 6.9L7.4 20.2a2.2 2.2 0 11-3.1-3.1l7.2-7.2a5.4 5.4 0 016.9-7l-3 3 .5 2.7 2.7.5z"/></symbol>
+  <symbol id="i-seating" viewBox="0 0 24 24"><path d="M2 3.5h20v2.2H2z"/><rect x="3" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="3" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><circle cx="6.5" cy="11.3" r="1.5"/><circle cx="17.5" cy="11.3" r="1.5"/><circle cx="6.5" cy="18.7" r="1.5"/><circle cx="17.5" cy="18.7" r="1.5"/></symbol>
   <symbol id="i-timetable" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2.5" opacity=".35"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6"/><path d="M12 11h7v2h-7z"/><circle cx="8.5" cy="17" r="1.6"/><path d="M12 16h7v2h-7z"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -1255,6 +1295,8 @@ function migrateDB() {
     }
     db.sgSeeded = true; changed = true;
   }
+  // seating plans
+  if (!db.seating) { db.seating = []; changed = true; }
   // school-level feature switches + dual-role staff
   db.schools.forEach(s => { if (!s.features) { s.features = {}; changed = true; } });
   if (!db.dualSeeded) {
@@ -1495,6 +1537,7 @@ const FEATURES = [
   ['markbook', 'i-markbook', 'Markbook, grades &amp; levels', 'Columns of grades, levels and comments. Needed by the report builder.'],
   ['reports', 'i-report', 'Report builder', "Design a report once, generate a whole class's."],
   ['timetables', 'i-timetable', 'Visual timetables', 'Picture timetables for the board, print and pupil dashboards.'],
+  ['seating', 'i-seating', 'Seating plans', 'Drag-and-drop plans built from the real class list, with keep-apart pairs.'],
   ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
   ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
   ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
@@ -1595,7 +1638,7 @@ function go(patch) {
 window.addEventListener('popstate', e => {
   const drawerScrim = document.querySelector('.scrim');
   if (drawerScrim) { drawerScrim.click(); history.pushState({ view }, ''); return; }
-  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap, .sgp-wrap');
+  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap, .sgp-wrap, .sp-wrap');
   if (layer) { layer.remove(); history.pushState({ view }, ''); return; }
   if (document.querySelector('.cv-wrap')) { history.pushState({ view }, ''); return; } // canvas editor may hold unsaved work — leave via its own controls
   if (e.state && e.state.view) { view = Object.assign({}, e.state.view); render(); }
@@ -1618,7 +1661,10 @@ function render() {
   if (!me()) { renderAuth(); return; }
   renderShell();
   setTimeout(nudgeStalledMedia, 0);
+  setTimeout(() => spFitRooms(), 0);
 }
+// seating rooms are drawn in a fixed 1000x600 space and scaled to fit their column
+window.addEventListener('resize', () => spFitRooms());
 
 /* ---------- auth ---------- */
 function renderAuth() {
@@ -1790,6 +1836,7 @@ function renderShell() {
   else if (view.page === 'activity') renderActivity(main);
   else if ((view.page === 'tools' || view.page === 'library') && isTeacher()) renderTools(main);
   else if (view.page === 'timetable' && isTeacher() && feat('timetables')) renderTimetableEditor(main);
+  else if (view.page === 'seating' && isTeacher() && feat('seating')) renderSeating(main);
   else if (view.page === 'safeguarding' && (isTeacher() || isAdmin()) && feat('safeguarding')) renderSafeguarding(main);
   else if (view.page === 'portfolio' && feat('portfolios')) renderPortfolioPage(main);
   else if (view.page === 'reading' && feat('reading')) renderReadingPage(main);
@@ -4450,6 +4497,7 @@ function renderTools(main) {
   const toolTabs = [];
   if (feat('canvases')) toolTabs.push(['canvases', 'i-canvas', 'Canvases']);
   if (feat('timetables')) toolTabs.push(['timetables', 'i-timetable', 'Visual timetables']);
+  if (feat('seating')) toolTabs.push(['seating', 'i-seating', 'Seating plans']);
   if (feat('staffshare')) toolTabs.push(['sharedtasks', 'i-task', 'Shared tasks']);
   if (!toolTabs.length) { go({ page: 'dash' }); return; }
   const tab = toolTabs.some(t => t[0] === view.tab) ? view.tab : toolTabs[0][0];
@@ -4498,7 +4546,24 @@ function renderTools(main) {
       </span>
     </div>`;
   };
+  const mySPs = db.seating.filter(p => p.ownerId === db.session && klass(p.classId)).sort(sortRecent);
+  const spRow = p => {
+    const cl = klass(p.classId), seatedN = p.desks.filter(d => d.sid).length;
+    return `
+    <div class="assign-row" style="cursor:default;transform:none">
+      <span class="assign-ico">${ic('i-seating')}</span>
+      <span class="assign-body"><b>${esc(p.name)}</b>
+        <small>${esc(cl.name)} · ${seatedN}/${cl.students.length} seated · ${SP_LAYOUTS[p.layout] || 'custom'} · ${fmtWhen(p.updated || p.ts)}</small></span>
+      <span class="assign-side" style="flex-direction:row;gap:6px">
+        <button class="btn small" data-sp-open="${p.id}">${ic('i-pencil')} Open</button>
+        <button class="btn sec small" data-sp-display="${p.id}">${ic('i-laser')} Display</button>
+        <button class="btn ghost small" data-sp-del="${p.id}" aria-label="Delete">${ic('i-trash')}</button>
+      </span>
+    </div>`;
+  };
   const bodies = {
+    seating: mySPs.length ? mySPs.map(spRow).join('')
+      : `<div class="card empty">${ic('i-seating', 'big')}Build a seating plan from your real class list — drag the desks, shuffle in a second, keep certain pupils apart, then put it on the board or print it. No more paper and PowerPoint.</div>`,
     canvases: `
       <h3 style="margin:0 0 12px">My canvases</h3>
       ${mine.length ? `<div class="lib-grid">${mine.map(cv => cvCard(cv, true)).join('')}</div>`
@@ -4514,6 +4579,7 @@ function renderTools(main) {
   main.innerHTML = `
     <div class="page-head"><h2>${ic('i-tools')} Tools</h2><span class="spacer"></span>
       ${tab === 'timetables' ? `<button class="btn" id="tt-new">${ic('i-plus')} New timetable</button>`
+        : tab === 'seating' ? `<button class="btn" id="sp-new">${ic('i-plus')} New seating plan</button>`
         : tab === 'canvases' ? `<button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button>` : ''}</div>
     <p class="page-sub">Yours to build once and reuse${feat('staffshare') ? `, and to share with other staff at ${esc(mySchool().name)}` : ''}.</p>
     <div class="tabbar">${toolTabs.map(([k, icn, lbl]) =>
@@ -4522,6 +4588,16 @@ function renderTools(main) {
   main.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go({ page: 'tools', tab: b.dataset.tab }));
   const ln = $('#lib-new'); if (ln) ln.onclick = () => openLibraryCanvas(null);
   const tn = $('#tt-new'); if (tn) tn.onclick = newTimetable;
+  const spn = $('#sp-new'); if (spn) spn.onclick = newSeatingPlan;
+  main.querySelectorAll('[data-sp-open]').forEach(b => b.onclick = () => go({ page: 'seating', seatingId: b.dataset.spOpen }));
+  main.querySelectorAll('[data-sp-display]').forEach(b => b.onclick = () =>
+    openSPDisplay(db.seating.find(x => x.id === b.dataset.spDisplay)));
+  main.querySelectorAll('[data-sp-del]').forEach(b => b.onclick = () => {
+    const p = db.seating.find(x => x.id === b.dataset.spDel);
+    openConfirm(`Delete “${p.name}”?`, 'This cannot be undone.', () => {
+      db.seating = db.seating.filter(x => x.id !== p.id); saveDB(); render(); toast('Deleted');
+    });
+  });
   main.querySelectorAll('[data-tt-open]').forEach(b => b.onclick = () =>
     go({ page: 'timetable', timetableId: b.dataset.ttOpen, day: todayKey() }));
   main.querySelectorAll('[data-tt-display]').forEach(b => b.onclick = () =>
@@ -4771,6 +4847,325 @@ function wireTTStrip() {
     const t = db.timetables.find(x => x.id === el.dataset.ttStrip);
     if (t) openTTDisplay(t, todayKey());
   });
+}
+
+/* ---------- seating plans ----------
+   A plan is a room of desks (fixed 1000x600 co-ordinate space, scaled to fit)
+   with an optional pupil on each. Auto-fill respects pinned desks and
+   "keep apart" pairs; the board can be flipped to the pupils' point of view. */
+const SP_W = 1000, SP_H = 600, SP_DW = 126, SP_DH = 70, SP_GRID = 10;
+const SP_LAYOUTS = {
+  pairs: 'Pairs', rows: 'Rows', groups: 'Groups of 4', horseshoe: 'Horseshoe', exam: 'Exam rows',
+};
+function spDesks(kind, n) {
+  const d = [], put = (x, y) => d.push({ id: uid(), x: Math.round(x), y: Math.round(y), sid: '', pinned: false });
+  const top = 80;
+  if (kind === 'groups') {
+    const perGroup = 4, groups = Math.ceil(n / perGroup);
+    const cols = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(groups))));
+    for (let g = 0; g < groups; g++) {
+      const gx = 70 + (g % cols) * 310, gy = top + Math.floor(g / cols) * 190;
+      [[0, 0], [SP_DW + 8, 0], [0, SP_DH + 8], [SP_DW + 8, SP_DH + 8]].forEach(([ox, oy], i) => {
+        if (g * perGroup + i < n) put(gx + ox, gy + oy);
+      });
+    }
+  } else if (kind === 'horseshoe') {
+    const perSide = Math.max(1, Math.round((n - Math.ceil(n / 3)) / 2));
+    const bottomN = n - perSide * 2;
+    for (let i = 0; i < perSide; i++) put(60, top + 20 + i * (SP_DH + 14));
+    for (let i = 0; i < perSide; i++) put(SP_W - 60 - SP_DW, top + 20 + i * (SP_DH + 14));
+    for (let i = 0; i < bottomN; i++) put(SP_W / 2 - (bottomN * (SP_DW + 12)) / 2 + i * (SP_DW + 12), SP_H - 110);
+  } else {
+    const gap = kind === 'exam' ? 34 : kind === 'rows' ? 14 : 8;
+    const perRow = kind === 'exam' ? 5 : 6;
+    const pairGap = kind === 'pairs' ? 46 : gap;
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / perRow), c = i % perRow;
+      const extra = kind === 'pairs' ? Math.floor(c / 2) * pairGap : 0;
+      const rowW = perRow * SP_DW + (perRow - 1) * gap + (kind === 'pairs' ? 2 * pairGap : 0);
+      put((SP_W - rowW) / 2 + c * (SP_DW + gap) + extra, top + r * (SP_DH + (kind === 'exam' ? 42 : 26)));
+    }
+  }
+  // centre the whole block in the room, so small classes don't hug the whiteboard
+  if (d.length) {
+    const minY = Math.min(...d.map(x => x.y)), maxY = Math.max(...d.map(x => x.y)) + SP_DH;
+    const shift = Math.round(((SP_H - 70 - (maxY - minY)) / 2 + 70) - minY);
+    if (shift > 0) d.forEach(x => x.y += shift);
+  }
+  return d;
+}
+const spViolations = plan => {
+  const at = {}; plan.desks.forEach(d => { if (d.sid) at[d.sid] = d; });
+  return (plan.apart || []).filter(([a, b]) => at[a] && at[b]
+    && Math.hypot(at[a].x - at[b].x, at[a].y - at[b].y) < 190);
+};
+function spAutoFill(plan, mode) {
+  const c = klass(plan.classId);
+  const pinned = new Set(plan.desks.filter(d => d.pinned && d.sid).map(d => d.sid));
+  let pool = c.students.filter(s => !pinned.has(s));
+  if (mode === 'alpha') pool.sort((a, b) => user(a).name.localeCompare(user(b).name));
+  const open = plan.desks.filter(d => !(d.pinned && d.sid));
+  const place = list => { open.forEach((d, i) => d.sid = list[i] || ''); };
+  if (mode === 'alpha') { place(pool); return spViolations(plan).length; }
+  // random: try a few arrangements and keep the one with fewest keep-apart clashes
+  let best = null, bestBad = Infinity;
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const shuffled = pool.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+    place(shuffled);
+    const bad = spViolations(plan).length;
+    if (bad < bestBad) { bestBad = bad; best = shuffled; }
+    if (!bad) break;
+  }
+  place(best || pool);
+  return bestBad;
+}
+function newSeatingPlan() {
+  pickClass('New seating plan', 'Desks are laid out for the class list, ready to arrange.', cid => {
+    const c = klass(cid);
+    const p = { id: uid(), classId: cid, ownerId: db.session, schoolId: me().schoolId,
+      name: c.name + ' — seating', layout: 'pairs', desks: spDesks('pairs', Math.max(c.students.length, 1)),
+      apart: [], flipped: false, ts: Date.now(), updated: Date.now() };
+    spAutoFill(p, 'alpha');
+    db.seating.push(p);
+    saveDB();
+    go({ page: 'seating', seatingId: p.id });
+  });
+}
+
+/* one desk, as HTML */
+function spDeskHTML(d, opts) {
+  const s = d.sid ? user(d.sid) : null;
+  const bad = opts.bad && opts.bad.has(d.id);
+  return `<div class="sp-desk ${s ? 'filled' : 'empty'} ${bad ? 'warn' : ''}" data-desk="${d.id}"
+      style="left:${d.x}px; top:${d.y}px; ${opts.readOnly ? 'cursor:default' : ''}">
+      ${d.pinned && s ? `<span class="sp-pin" title="Pinned">${ic('i-lock')}</span>` : ''}
+      ${s ? `<span class="sp-init">${initials(s.name)}</span><b>${esc(s.name)}</b>`
+          : `<b style="font-weight:700">empty</b>`}
+    </div>`;
+}
+function spRoomHTML(plan, opts) {
+  opts = opts || {};
+  const bad = new Set();
+  if (!opts.readOnly || opts.showWarn) spViolations(plan).forEach(([a, b]) =>
+    plan.desks.forEach(d => { if (d.sid === a || d.sid === b) bad.add(d.id); }));
+  return `<div class="sp-room" data-room="${plan.id}">
+      <div class="sp-scale${plan.flipped ? ' sp-flipwrap' : ''}">
+        <div class="sp-board">FRONT OF CLASS</div>
+        ${plan.desks.map(d => spDeskHTML(d, { readOnly: opts.readOnly, bad })).join('')}
+      </div>
+    </div>`;
+}
+/* scale the 1000x600 room down to whatever width it actually gets */
+function spFitRooms(root) {
+  (root || document).querySelectorAll('.sp-room').forEach(room => {
+    const inner = room.querySelector('.sp-scale');
+    if (!inner) return;
+    const k = room.clientWidth / SP_W;
+    inner.style.transform = (room.querySelector('.sp-flipwrap') ? '' : '') + `scale(${k})`;
+    if (inner.classList.contains('sp-flipwrap')) inner.style.transform = `scale(${k}) rotate(180deg)`;
+    inner.style.transformOrigin = inner.classList.contains('sp-flipwrap') ? 'center center' : '0 0';
+    if (inner.classList.contains('sp-flipwrap')) {
+      // keep the rotated room centred in the scaled box
+      inner.style.left = (room.clientWidth - SP_W) / 2 + 'px';
+      inner.style.top = (room.clientHeight - SP_H) / 2 + 'px';
+    } else { inner.style.left = '0px'; inner.style.top = '0px'; }
+  });
+}
+
+function renderSeating(main) {
+  const plan = db.seating.find(p => p.id === view.seatingId && p.ownerId === db.session);
+  if (!plan) { go({ page: 'tools', tab: 'seating' }); return; }
+  const c = klass(plan.classId);
+  if (!c) { go({ page: 'tools', tab: 'seating' }); return; }
+  const seated = new Set(plan.desks.filter(d => d.sid).map(d => d.sid));
+  const unseated = c.students.filter(s => !seated.has(s));
+  const bad = spViolations(plan);
+  const touch = () => { plan.updated = Date.now(); saveDB(); render(); };
+  main.innerHTML = `
+    <button class="crumb" id="crumb">${ic('i-back')} Tools</button>
+    <div class="page-head" style="gap:12px">
+      <input class="tt-title-input" id="sp-name" maxlength="60" value="${esc(plan.name)}">
+      <button class="btn sec small" id="sp-disp">${ic('i-laser')} Display</button>
+      <button class="btn ghost small" id="sp-print">${ic('i-print')} Print</button>
+    </div>
+    <p class="page-sub">${esc(c.name)} · ${c.students.length} pupil${c.students.length === 1 ? '' : 's'} · drag desks to move them, tap a desk to seat someone</p>
+    <div class="row" style="flex-wrap:wrap; gap:8px; margin-bottom:10px">
+      <select id="sp-layout" class="cv-size" style="width:auto">${Object.entries(SP_LAYOUTS).map(([k, l]) =>
+        `<option value="${k}" ${plan.layout === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <button class="btn sec small" id="sp-alpha">${ic('i-people')} Fill A–Z</button>
+      <button class="btn sec small" id="sp-shuffle">${ic('i-rotate')} Shuffle</button>
+      <button class="btn ghost small" id="sp-clear">${ic('i-x')} Clear seats</button>
+      <button class="btn ghost small" id="sp-flip">${ic('i-rotate')} ${plan.flipped ? 'Teacher view' : 'Pupil view'}</button>
+      <span class="spacer"></span>
+      <button class="btn ghost small" id="sp-apart">${ic('i-flag')} Keep apart${(plan.apart || []).length ? ` (${plan.apart.length})` : ''}</button>
+      <button class="btn ghost small" id="sp-adddesk">${ic('i-plus')} Add desk</button>
+    </div>
+    ${bad.length ? `<div class="pending-flag" style="margin-bottom:10px">${ic('i-flag')} ${bad.length} keep-apart pair${bad.length === 1 ? ' is' : 's are'} still sitting close together — shuffle again or move a desk.</div>` : ''}
+    ${spRoomHTML(plan)}
+    ${unseated.length ? `<h3 style="margin:16px 0 6px">Not seated yet (${unseated.length})</h3>
+      <div class="sp-side">${unseated.map(s => `<button class="sp-chip" data-seat="${s}">${ic('i-plus')} ${esc(user(s).name)}</button>`).join('')}</div>`
+      : `<p class="page-sub" style="margin-top:14px">${ic('i-tick')} Everyone has a seat.</p>`}`;
+  $('#crumb').onclick = () => go({ page: 'tools', tab: 'seating', seatingId: null });
+  $('#sp-name').onchange = e => { plan.name = e.target.value.trim() || 'Seating plan'; plan.updated = Date.now(); saveDB(); };
+  $('#sp-disp').onclick = () => openSPDisplay(plan);
+  $('#sp-print').onclick = () => openSPDisplay(plan, { print: true });
+  $('#sp-flip').onclick = () => { plan.flipped = !plan.flipped; touch(); };
+  $('#sp-layout').onchange = e => {
+    const keep = plan.desks.filter(d => d.sid).map(d => d.sid);
+    plan.layout = e.target.value;
+    plan.desks = spDesks(plan.layout, Math.max(plan.desks.length, c.students.length, 1));
+    plan.desks.forEach((d, i) => d.sid = keep[i] || '');
+    touch(); toast(SP_LAYOUTS[plan.layout] + ' layout');
+  };
+  $('#sp-alpha').onclick = () => { const n = spAutoFill(plan, 'alpha'); touch(); toast(n ? `Seated A–Z — ${n} keep-apart pair${n === 1 ? '' : 's'} still close` : 'Seated A–Z', !!n); };
+  $('#sp-shuffle').onclick = () => { const n = spAutoFill(plan, 'random'); touch(); toast(n ? `Shuffled — couldn't separate ${n} pair${n === 1 ? '' : 's'}` : 'Shuffled ✨', !!n); };
+  $('#sp-clear').onclick = () => { plan.desks.forEach(d => { if (!d.pinned) d.sid = ''; }); touch(); toast('Seats cleared'); };
+  $('#sp-adddesk').onclick = () => {
+    plan.desks.push({ id: uid(), x: 40, y: SP_H - 90, sid: '', pinned: false });
+    touch(); toast('Desk added — drag it where you want it');
+  };
+  $('#sp-apart').onclick = () => openSPApart(plan);
+  main.querySelectorAll('[data-seat]').forEach(b => b.onclick = () => {
+    const free = plan.desks.find(d => !d.sid);
+    if (!free) { toast('No empty desk — add one first.', true); return; }
+    free.sid = b.dataset.seat; touch();
+  });
+  spWireRoom(main, plan, touch);
+  spFitRooms(main);
+}
+
+/* dragging desks + tapping to seat, shared by the editor */
+function spWireRoom(root, plan, touch) {
+  const room = root.querySelector('.sp-room');
+  if (!room) return;
+  let drag = null;
+  room.querySelectorAll('[data-desk]').forEach(el => {
+    el.onpointerdown = e => {
+      const d = plan.desks.find(x => x.id === el.dataset.desk);
+      const k = room.clientWidth / SP_W;
+      drag = { d, el, startX: e.clientX, startY: e.clientY, ox: d.x, oy: d.y, k, moved: false };
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('drag');
+    };
+    el.onpointermove = e => {
+      if (!drag || drag.el !== el) return;
+      const dx = (e.clientX - drag.startX) / drag.k * (plan.flipped ? -1 : 1);
+      const dy = (e.clientY - drag.startY) / drag.k * (plan.flipped ? -1 : 1);
+      if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+      drag.d.x = Math.max(0, Math.min(SP_W - SP_DW, Math.round((drag.ox + dx) / SP_GRID) * SP_GRID));
+      drag.d.y = Math.max(0, Math.min(SP_H - SP_DH, Math.round((drag.oy + dy) / SP_GRID) * SP_GRID));
+      el.style.left = drag.d.x + 'px';
+      el.style.top = drag.d.y + 'px';
+    };
+    el.onpointerup = () => {
+      if (!drag || drag.el !== el) return;
+      el.classList.remove('drag');
+      const moved = drag.moved, d = drag.d;
+      drag = null;
+      if (moved) { plan.updated = Date.now(); saveDB(); }
+      else openSPDesk(plan, d, touch);
+    };
+    el.onpointercancel = () => { if (drag) { drag.el.classList.remove('drag'); drag = null; } };
+  });
+}
+
+/* tap a desk: seat, swap, pin or remove */
+function openSPDesk(plan, d, touch) {
+  const c = klass(plan.classId);
+  const here = d.sid ? user(d.sid) : null;
+  const at = {}; plan.desks.forEach(x => { if (x.sid) at[x.sid] = x; });
+  const m = openModal(`
+    <h3>${ic('i-seating')} ${here ? esc(here.name) : 'Empty desk'}</h3>
+    <p class="m-sub">${here ? 'Tap another pupil to swap them over, or use the buttons below.' : 'Who sits here?'}</p>
+    <div class="sp-side">${c.students.map(s => `<button class="sp-chip" data-pick="${s}" ${s === d.sid ? 'style="border-color:var(--gold);background:var(--gold-soft)"' : ''}>
+      ${at[s] && s !== d.sid ? ic('i-rotate') : ic('i-plus')} ${esc(user(s).name)}</button>`).join('')}</div>
+    <div class="m-actions">
+      ${here ? `<button class="btn ghost" data-pin>${ic('i-lock')} ${d.pinned ? 'Unpin' : 'Pin here'}</button>
+        <button class="btn ghost" data-empty>${ic('i-x')} Empty desk</button>` : ''}
+      <button class="btn ghost" data-del>${ic('i-trash')} Remove desk</button>
+      <button class="btn" data-x>Done</button>
+    </div>`);
+  m.querySelector('[data-x]').onclick = () => m.remove();
+  m.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    const sid = b.dataset.pick, other = at[sid];
+    if (other && other !== d) { other.sid = d.sid; }   // swap the two desks over
+    d.sid = sid;
+    m.remove(); touch();
+  });
+  const pin = m.querySelector('[data-pin]');
+  if (pin) pin.onclick = () => { d.pinned = !d.pinned; m.remove(); touch(); toast(d.pinned ? 'Pinned — shuffling leaves them here' : 'Unpinned'); };
+  const emp = m.querySelector('[data-empty]');
+  if (emp) emp.onclick = () => { d.sid = ''; d.pinned = false; m.remove(); touch(); };
+  m.querySelector('[data-del]').onclick = () => {
+    plan.desks = plan.desks.filter(x => x.id !== d.id);
+    m.remove(); touch(); toast('Desk removed');
+  };
+}
+
+/* pupils who shouldn't sit together */
+function openSPApart(plan) {
+  const c = klass(plan.classId);
+  plan.apart = plan.apart || [];
+  const draw = m => {
+    m.querySelector('#spa-list').innerHTML = plan.apart.map(([a, b], i) => `
+      <div class="sp-apart"><b>${esc(user(a).name)}</b> <span class="muted">and</span> <b>${esc(user(b).name)}</b>
+        <span class="spacer"></span><button class="btn ghost small" data-rm="${i}">${ic('i-x')}</button></div>`).join('')
+      || '<p class="m-sub">No pairs yet.</p>';
+    m.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+      plan.apart.splice(+b.dataset.rm, 1); plan.updated = Date.now(); saveDB(); draw(m);
+    });
+  };
+  const opts = c.students.map(s => `<option value="${s}">${esc(user(s).name)}</option>`).join('');
+  const m = openModal(`
+    <h3>${ic('i-flag')} Keep apart</h3>
+    <p class="m-sub">Shuffling tries hard to keep these pupils at different desks. Pairs still sitting close are outlined in red.</p>
+    <div id="spa-list"></div>
+    <div class="form-2col" style="margin-top:10px">
+      <div><label>Pupil</label><select id="spa-a">${opts}</select></div>
+      <div><label>and</label><select id="spa-b">${opts}</select></div>
+    </div>
+    <button class="btn sec small" id="spa-add" style="margin-top:8px">${ic('i-plus')} Add pair</button>
+    <div class="m-actions"><button class="btn" data-x>Done</button></div>`);
+  draw(m);
+  m.querySelector('[data-x]').onclick = () => { m.remove(); render(); };
+  m.querySelector('#spa-add').onclick = () => {
+    const a = m.querySelector('#spa-a').value, b = m.querySelector('#spa-b').value;
+    if (a === b) { toast('Pick two different pupils', true); return; }
+    if (plan.apart.some(p => p.includes(a) && p.includes(b))) { toast('That pair is already listed'); return; }
+    plan.apart.push([a, b]); plan.updated = Date.now(); saveDB(); draw(m);
+  };
+}
+
+/* full-screen for the board, and the print view */
+function openSPDisplay(plan, opts) {
+  opts = opts || {};
+  const c = klass(plan.classId);
+  const wrap = document.createElement('div');
+  wrap.className = 'sp-wrap';
+  wrap.innerHTML = `
+    <div class="sp-bar"><span class="mark">${MARK}</span><b>${esc(plan.name)}</b>
+      <span class="chip brand">${esc(c.name)}</span><span class="spacer"></span>
+      <button class="btn ghost small" id="spd-flip">${ic('i-rotate')} Flip</button>
+      <button class="btn small" id="spd-print">${ic('i-print')} Print</button>
+      <button class="btn ghost small" id="spd-close">${ic('i-x')} Close</button></div>
+    <div class="sp-scroll">
+      <h2 class="sp-print-head" style="display:none">${esc(plan.name)} — ${esc(c.name)}</h2>
+      ${spRoomHTML(plan, { readOnly: true })}
+    </div>`;
+  document.body.appendChild(wrap);
+  const refit = () => spFitRooms(wrap);
+  spFitRooms(wrap);
+  window.addEventListener('resize', refit);
+  const close = () => { window.removeEventListener('resize', refit); wrap.remove(); };
+  wrap.querySelector('#spd-close').onclick = close;
+  wrap.querySelector('#spd-print').onclick = () => window.print();
+  wrap.querySelector('#spd-flip').onclick = () => {
+    plan.flipped = !plan.flipped; saveDB();
+    wrap.querySelector('.sp-scroll').innerHTML = `<h2 class="sp-print-head" style="display:none">${esc(plan.name)} — ${esc(c.name)}</h2>` + spRoomHTML(plan, { readOnly: true });
+    spFitRooms(wrap);
+  };
+  if (opts.print) setTimeout(() => window.print(), 150);
 }
 
 /* ---------- safeguarding (ported from ClubHQ; KCSIE-structured) ----------
