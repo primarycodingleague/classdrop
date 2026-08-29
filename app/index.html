@@ -299,6 +299,37 @@ video.lib-prev{object-fit:cover; cursor:default}
 .sgp-page{max-width:820px; margin:0 auto 22px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 32px}
 .sgp-page h4{margin:14px 0 4px}
 .sgp-page .meta{color:var(--muted); font-size:.85rem; font-weight:700}
+/* feature switchboard */
+.feat-list{display:flex; flex-direction:column; gap:10px}
+.feat-row{display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--line);
+  border-radius:var(--radius); padding:14px 16px; transition:opacity .12s}
+.feat-row.off{opacity:.62; background:var(--paper)}
+.feat-ico{flex:none; width:42px; height:42px; border-radius:12px; background:var(--gold-soft); color:var(--gold-dk);
+  display:flex; align-items:center; justify-content:center}
+.feat-ico .ic{width:1.3em; height:1.3em}
+.feat-body{flex:1; min-width:0}
+.feat-body b{display:block; font-size:.98rem}
+.feat-body small{color:var(--muted); font-size:.84rem}
+.feat-body .feat-warn{display:block; margin-top:4px; color:var(--amber); font-weight:700}
+.toggle{flex:none; width:52px; height:30px; border-radius:99px; border:none; background:#cfc7b8; cursor:pointer;
+  padding:3px; display:flex; transition:background .15s}
+.toggle span{width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.28); transition:transform .15s}
+.toggle.on{background:var(--green)}
+.toggle.on span{transform:translateX(22px)}
+/* dual-role chips + hat switcher */
+.role-chips{display:inline-flex; gap:6px; flex-wrap:wrap}
+.rchip{border:1.5px solid var(--line); background:#fff; color:var(--muted); border-radius:99px; padding:5px 12px;
+  font-family:var(--font); font-weight:800; font-size:.78rem; cursor:pointer; display:inline-flex; align-items:center; gap:5px}
+.rchip .ic{width:1em; height:1em}
+.rchip.on{border-color:var(--gold); background:var(--gold-soft); color:var(--gold-dk)}
+.rchip:disabled{cursor:not-allowed; opacity:.55}
+.hat-switch{display:flex; gap:4px; background:var(--shell-2); border:1px solid var(--shell-line); border-radius:99px;
+  padding:3px; margin-bottom:10px}
+.hat-switch button{flex:1; border:none; background:none; color:var(--shell-muted); font-family:var(--font); font-weight:800;
+  font-size:.74rem; padding:6px 4px; border-radius:99px; cursor:pointer; display:inline-flex; align-items:center;
+  justify-content:center; gap:4px; white-space:nowrap}
+.hat-switch button .ic{width:1em; height:1em}
+.hat-switch button.on{background:var(--gold); color:#2b2211}
 
 /* ---------- work items (folders) ---------- */
 .work-list{display:flex; flex-direction:column; gap:12px}
@@ -1224,6 +1255,13 @@ function migrateDB() {
     }
     db.sgSeeded = true; changed = true;
   }
+  // school-level feature switches + dual-role staff
+  db.schools.forEach(s => { if (!s.features) { s.features = {}; changed = true; } });
+  if (!db.dualSeeded) {
+    const ose = db.users.find(u => u.id === 'u-ose');
+    if (ose && !ose.alsoAdmin) ose.alsoAdmin = true; // demo: a teacher who also works in the office
+    db.dualSeeded = true; changed = true;
+  }
   if (changed) saveDB();
 }
 function saveDB() {
@@ -1426,11 +1464,43 @@ function seedDemo() {
 
 /* ---------- accessors ---------- */
 const me = () => db.users.find(u => u.id === db.session);
-const isTeacher = () => me() && me().role === 'teacher';
+/* staff can hold two hats: classroom teaching and the school office. `role` is the
+   primary one; alsoAdmin / alsoTeacher add the second. Dual-role staff switch hats
+   from the sidebar, and every screen keeps branching on isTeacher()/isAdmin(). */
+const canTeach = u => !!u && (u.role === 'teacher' || u.alsoTeacher);
+const canOffice = u => !!u && (u.role === 'admin' || u.alsoAdmin);
+const dualRole = u => canTeach(u) && canOffice(u);
+function activeHat() {
+  const u = me();
+  if (!dualRole(u)) return canOffice(u) ? 'office' : 'teaching';
+  return db.hat === 'office' || db.hat === 'teaching' ? db.hat : (u.role === 'admin' ? 'office' : 'teaching');
+}
+const isTeacher = () => canTeach(me()) && activeHat() === 'teaching';
 const isParent = () => me() && me().role === 'parent';
-const isAdmin = () => me() && me().role === 'admin';
+const isAdmin = () => canOffice(me()) && activeHat() === 'office';
 const mySchool = () => db.schools.find(s => s.id === me().schoolId) || db.schools[0];
 const schoolUsers = role => db.users.filter(u => u.role === role && u.schoolId === mySchool().id);
+/* everyone who teaches / everyone with office access, dual-role staff included */
+const schoolTeaching = () => db.users.filter(u => canTeach(u) && u.schoolId === mySchool().id);
+const schoolOffice = () => db.users.filter(u => canOffice(u) && u.schoolId === mySchool().id);
+const schoolStaff = () => db.users.filter(u => (canTeach(u) || canOffice(u)) && u.schoolId === mySchool().id);
+
+/* ---------- school feature switches (the office turns modules on and off) ---------- */
+const FEATURES = [
+  ['points', 'i-award', 'Behaviour points', 'House-style points for effort, kindness and great work.'],
+  ['discussions', 'i-chat', 'Class discussions', 'Teacher-led threads; pupil posts held for approval.'],
+  ['reading', 'i-book', 'Reading log', 'A running reading record teachers and parents both write in.'],
+  ['portfolios', 'i-star', 'Portfolios', 'Starred work follows each child through the year.'],
+  ['gradebook', 'i-grade', 'Gradebook', 'Who has handed in and who has been graded, at a glance.'],
+  ['markbook', 'i-markbook', 'Markbook, grades &amp; levels', 'Columns of grades, levels and comments. Needed by the report builder.'],
+  ['reports', 'i-report', 'Report builder', "Design a report once, generate a whole class's."],
+  ['timetables', 'i-timetable', 'Visual timetables', 'Picture timetables for the board, print and pupil dashboards.'],
+  ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
+  ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
+  ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
+];
+/* default on: anything not explicitly switched off stays available */
+const feat = k => { const s = me() ? mySchool() : null; return !s || !s.features || s.features[k] !== false; };
 const user = id => db.users.find(u => u.id === id) || { name: 'Unknown', role: 'student' };
 const klass = id => db.classes.find(c => c.id === id);
 const classTeachers = c => (c.teachers && c.teachers.length ? c.teachers : [c.teacher]);
@@ -1438,7 +1508,7 @@ const assignment = id => db.assignments.find(a => a.id === id);
 function myClasses(includeArchived) {
   const u = me();
   let list;
-  if (u.role === 'teacher') list = db.classes.filter(c => classTeachers(c).includes(u.id));
+  if (canTeach(u)) list = db.classes.filter(c => classTeachers(c).includes(u.id));
   else if (u.role === 'parent') list = db.classes.filter(c => c.students.includes(u.childId));
   else list = db.classes.filter(c => c.students.includes(u.id));
   return includeArchived ? list : list.filter(c => !c.archived);
@@ -1452,7 +1522,7 @@ const folderItems = (aid, sid) => db.items
 const parentsOf = sid => db.users.filter(u => u.role === 'parent' && u.childId === sid).map(u => u.id);
 const teachesStudent = sid => myClasses(true).some(c => c.students.includes(sid));
 const readingOf = sid => (db.reading && db.reading[sid]) || [];
-const canEditReading = sid => (isParent() && me().childId === sid) || (isTeacher() && teachesStudent(sid));
+const canEditReading = sid => (isParent() && me().childId === sid) || (canTeach(me()) && teachesStudent(sid));
 const canViewReading = sid => canEditReading(sid) || (isStudent() && me().id === sid) || (isAdmin() && user(sid).schoolId === mySchool().id);
 const isStudent = () => me() && me().role === 'student';
 
@@ -1555,7 +1625,7 @@ function renderAuth() {
   const grp = role => db.users.filter(u => u.role === role).map(u => `
     <button class="demo-user" data-login="${u.id}">
       <span class="avatar">${initials(u.name)}</span>
-      <span><b>${esc(u.name)}</b><small>${u.role}${u.role === 'parent' ? ' of ' + esc(user(u.childId).name.split(' ')[0]) : ''}</small></span>
+      <span><b>${esc(u.name)}</b><small>${dualRole(u) ? 'teacher + office' : u.role}${u.role === 'parent' ? ' of ' + esc(user(u.childId).name.split(' ')[0]) : ''}</small></span>
     </button>`).join('');
   $('#app').innerHTML = `
     <div class="auth-wrap"><div class="auth-card">
@@ -1635,19 +1705,20 @@ function renderShell() {
       <button class="nav-item ${view.page === 'staff' ? 'active' : ''}" data-nav="staff"><span class="nico">${ic('i-teacher')}</span>Staff</button>
       <button class="nav-item ${view.page === 'pupils' ? 'active' : ''}" data-nav="pupils"><span class="nico">${ic('i-people')}</span>Students</button>
       <button class="nav-item ${view.page === 'aclasses' ? 'active' : ''}" data-nav="aclasses"><span class="nico">${ic('i-class')}</span>Classes</button>
-      <button class="nav-item ${view.page === 'ascales' ? 'active' : ''}" data-nav="ascales"><span class="nico">${ic('i-markbook')}</span>Grades &amp; levels</button>
-      <button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>
-      <button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding"><span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}</button>` : `
-      ${isTeacher() ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
+      ${feat('markbook') ? `<button class="nav-item ${view.page === 'ascales' ? 'active' : ''}" data-nav="ascales"><span class="nico">${ic('i-markbook')}</span>Grades &amp; levels</button>` : ''}
+      ${feat('reports') ? `<button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>` : ''}
+      ${feat('safeguarding') ? `<button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding"><span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}</button>` : ''}
+      <button class="nav-item ${view.page === 'afeatures' ? 'active' : ''}" data-nav="afeatures"><span class="nico">${ic('i-gear')}</span>Features</button>` : `
+      ${isTeacher() && (feat('canvases') || feat('timetables') || feat('staffshare')) ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
         <span class="nico">${ic('i-tools')}</span>Tools
-      </button>
-      <button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding">
+      </button>` : ''}
+      ${isTeacher() && feat('safeguarding') ? `<button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding">
         <span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}
       </button>` : ''}
-      <button class="nav-item ${view.page === 'portfolio' ? 'active' : ''}" data-nav="portfolio">
+      ${feat('portfolios') ? `<button class="nav-item ${view.page === 'portfolio' ? 'active' : ''}" data-nav="portfolio">
         <span class="nico">${ic('i-star')}</span>${isTeacher() ? 'Portfolios' : isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s portfolio" : 'My portfolio'}
-      </button>
-      ${isStudent() || isParent() ? `<button class="nav-item ${view.page === 'reading' ? 'active' : ''}" data-nav="reading">
+      </button>` : ''}
+      ${(isStudent() || isParent()) && feat('reading') ? `<button class="nav-item ${view.page === 'reading' ? 'active' : ''}" data-nav="reading">
         <span class="nico">${ic('i-book')}</span>${isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s reading" : 'Reading record'}
       </button>` : ''}
       <div class="nav-sep"></div>
@@ -1659,8 +1730,12 @@ function renderShell() {
       ${isTeacher() && archivedClasses.length ? `<div class="nav-head">Archived</div>` + archivedClasses.map(c =>
         `<button class="nav-item" data-nav-class="${c.id}" style="opacity:.6"><span class="nico">${ic('i-archive')}</span>${esc(c.name)}</button>`).join('') : ''}`}
       <div class="side-user">
+        ${dualRole(u) ? `<div class="hat-switch" role="group" aria-label="Switch hat">
+          <button class="${activeHat() === 'teaching' ? 'on' : ''}" data-hat="teaching">${ic('i-teacher')} Teaching</button>
+          <button class="${activeHat() === 'office' ? 'on' : ''}" data-hat="office">${ic('i-shield')} Office</button>
+        </div>` : ''}
         <div class="who">${esc(u.name)}</div>
-        <div class="role">${isAdmin() ? 'school office' : u.role}${isParent() ? ' · ' + esc(user(u.childId).name.split(' ')[0]) : ''}</div>
+        <div class="role">${isAdmin() ? 'school office' : u.role}${dualRole(u) ? ' · dual role' : ''}${isParent() ? ' · ' + esc(user(u.childId).name.split(' ')[0]) : ''}</div>
         <button class="btn ghost small" id="btn-out">${ic('i-logout')} Switch user</button>
       </div>
     </nav>
@@ -1683,8 +1758,16 @@ function renderShell() {
     if (n === 'aclasses') go({ page: 'aclasses' });
     if (n === 'ascales') go({ page: 'ascales' });
     if (n === 'areports') go({ page: 'areports' });
+    if (n === 'afeatures') go({ page: 'afeatures' });
     if (n === 'newclass') openNewClass();
     if (n === 'join') openJoinClass();
+  });
+  // dual-role staff swap hats; land on Home so the new hat's nav makes sense
+  document.querySelectorAll('[data-hat]').forEach(b => b.onclick = () => {
+    db.hat = b.dataset.hat;
+    saveDB();
+    go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
+    toast(db.hat === 'office' ? 'Switched to the school office' : 'Switched to teaching');
   });
   $('#btn-out').onclick = () => { db.session = null; saveDB(); render(); };
   const bs = $('#btn-search'); if (bs) bs.onclick = openSearch;
@@ -1702,20 +1785,21 @@ function renderShell() {
   const main = $('#main');
   if (view.page === 'folder') renderFolder(main);
   else if (view.page === 'assignment') renderAssignment(main);
-  else if (view.page === 'discussion') renderDiscussionThread(main);
+  else if (view.page === 'discussion' && feat('discussions')) renderDiscussionThread(main);
   else if (view.page === 'class') renderClass(main);
   else if (view.page === 'activity') renderActivity(main);
   else if ((view.page === 'tools' || view.page === 'library') && isTeacher()) renderTools(main);
-  else if (view.page === 'timetable' && isTeacher()) renderTimetableEditor(main);
-  else if (view.page === 'safeguarding' && (isTeacher() || isAdmin())) renderSafeguarding(main);
-  else if (view.page === 'portfolio') renderPortfolioPage(main);
-  else if (view.page === 'reading') renderReadingPage(main);
+  else if (view.page === 'timetable' && isTeacher() && feat('timetables')) renderTimetableEditor(main);
+  else if (view.page === 'safeguarding' && (isTeacher() || isAdmin()) && feat('safeguarding')) renderSafeguarding(main);
+  else if (view.page === 'portfolio' && feat('portfolios')) renderPortfolioPage(main);
+  else if (view.page === 'reading' && feat('reading')) renderReadingPage(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
   else if (view.page === 'pupils' && isAdmin()) renderAdminStudents(main);
   else if (view.page === 'aclasses' && isAdmin()) renderAdminClasses(main);
-  else if (view.page === 'ascales' && isAdmin()) renderAdminScales(main);
-  else if (view.page === 'areports' && isAdmin()) renderAdminReports(main);
-  else if (view.page === 'rbuild' && isAdmin()) renderReportBuilder(main);
+  else if (view.page === 'afeatures' && isAdmin()) renderAdminFeatures(main);
+  else if (view.page === 'ascales' && isAdmin() && feat('markbook')) renderAdminScales(main);
+  else if (view.page === 'areports' && isAdmin() && feat('reports')) renderAdminReports(main);
+  else if (view.page === 'rbuild' && isAdmin() && feat('reports')) renderReportBuilder(main);
   else renderDash(main);
 }
 
@@ -1769,7 +1853,7 @@ function renderDash(main) {
         <div class="stat ${open.length ? 'amber' : 'green'}"><div class="n">${open.length}</div><div class="l">Tasks to do</div></div>
         <div class="stat green"><div class="n">${tasks.filter(t => t.h.status !== 'none').length}</div><div class="l">Handed in</div></div>
       </div>
-      ${(tt => tt ? ttStripHTML(tt) : '')(ttForStudent(u.id))}
+      ${feat('timetables') ? (tt => tt ? ttStripHTML(tt) : '')(ttForStudent(u.id)) : ''}
       <h3 style="margin:6px 0 12px">My tasks</h3>
       ${rows || `<div class="card empty">${ic('i-task', 'big')}No tasks yet — join a class to get started.</div>`}
       <h3 style="margin:20px 0 12px">My classes</h3>
@@ -1830,12 +1914,15 @@ function renderAdminDash(main) {
       <div class="card"><h3>${ic('i-class')} Classes</h3>
         <p class="small muted" style="margin:0 0 12px">See every class in the school at a glance — who teaches it, who's in it.</p>
         <button class="btn sec" data-goto="aclasses">${ic('i-class')} View classes</button></div>
-      <div class="card"><h3>${ic('i-markbook')} Grades &amp; levels</h3>
+      ${feat('markbook') ? `<div class="card"><h3>${ic('i-markbook')} Grades &amp; levels</h3>
         <p class="small muted" style="margin:0 0 12px">Set the school's own grade and level scales — academic, effort, behaviour — for every teacher's Markbook.</p>
-        <button class="btn sec" data-goto="ascales">${ic('i-markbook')} Manage grades</button></div>
-      <div class="card"><h3>${ic('i-report')} Report builder</h3>
+        <button class="btn sec" data-goto="ascales">${ic('i-markbook')} Manage grades</button></div>` : ''}
+      ${feat('reports') ? `<div class="card"><h3>${ic('i-report')} Report builder</h3>
         <p class="small muted" style="margin:0 0 12px">Design report templates that pull from the Markbook, so teachers generate a whole class's reports at once.</p>
-        <button class="btn sec" data-goto="areports">${ic('i-report')} Build reports</button></div>
+        <button class="btn sec" data-goto="areports">${ic('i-report')} Build reports</button></div>` : ''}
+      <div class="card"><h3>${ic('i-gear')} Features</h3>
+        <p class="small muted" style="margin:0 0 12px">Switch modules on and off for the whole school — points, discussions, reading, timetables, reports, safeguarding and more.</p>
+        <button class="btn sec" data-goto="afeatures">${ic('i-gear')} Choose features</button></div>
       <div class="card"><h3>${ic('i-download')} Back up &amp; export</h3>
         <p class="small muted" style="margin:0 0 12px">Download everything as a file to keep a backup, or restore from one. (On a real server this happens automatically.)</p>
         <button class="btn sec" id="btn-export">${ic('i-download')} Download backup</button>
@@ -1921,46 +2008,90 @@ function openSchoolDetails(school) {
   m.querySelector('#sd-name').focus();
 }
 
+/* the office switchboard: which modules this school actually uses */
+function renderAdminFeatures(main) {
+  const s = mySchool();
+  main.innerHTML = `
+    <div class="page-head"><h2>${ic('i-gear')} Features</h2></div>
+    <p class="page-sub">Turn off anything ${esc(s.name)} doesn't use and it disappears for everyone — staff, pupils and parents. Nothing is deleted: switch a module back on and its data is exactly where it was.</p>
+    <div class="feat-list">
+      ${FEATURES.map(([k, icn, label, blurb]) => `
+        <div class="feat-row ${feat(k) ? '' : 'off'}">
+          <span class="feat-ico">${ic(icn)}</span>
+          <span class="feat-body"><b>${label}</b><small>${blurb}</small>
+            ${k === 'reports' && feat('reports') && !feat('markbook') ? `<small class="feat-warn">${ic('i-flag')} The Markbook is off, so reports have no grades or comments to pull in.</small>` : ''}</span>
+          <button class="toggle ${feat(k) ? 'on' : ''}" data-feat="${k}" role="switch" aria-checked="${feat(k)}" aria-label="${label}"><span></span></button>
+        </div>`).join('')}
+    </div>`;
+  main.querySelectorAll('[data-feat]').forEach(b => b.onclick = () => {
+    const k = b.dataset.feat;
+    s.features[k] = !feat(k);
+    saveDB(); render();
+    toast(`${FEATURES.find(f => f[0] === k)[2].replace('&amp;', '&')} switched ${s.features[k] ? 'on' : 'off'}`);
+  });
+}
+
 function renderAdminStaff(main) {
-  const admins = schoolUsers('admin');
-  const teachers = schoolUsers('teacher');
-  const adminRows = admins.map(a => `<tr>
-      <td><span class="row"><span class="avatar">${initials(a.name)}</span><b>${esc(a.name)}</b>${a.id === db.session ? ' <span class="chip brand">you</span>' : ''}</span></td>
-      <td class="muted small">Full office access — accounts, grades, reports, backups</td>
-      <td style="text-align:right">${a.id === db.session ? '' : `<button class="btn ghost small" data-rmadmin="${a.id}">${ic('i-x')} Remove</button>`}</td>
-    </tr>`).join('');
-  const rows = teachers.map(t => {
+  const staff = schoolStaff();
+  const rows = staff.map(t => {
     const owned = schoolClasses().filter(c => c.teacher === t.id);
     const co = schoolClasses().filter(c => c.teacher !== t.id && classTeachers(c).includes(t.id));
+    const isMe = t.id === db.session;
+    const lastOffice = canOffice(t) && schoolOffice().length === 1;
     return `<tr>
-      <td><span class="row"><span class="avatar">${initials(t.name)}</span><b>${esc(t.name)}</b></span></td>
-      <td>${owned.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>'}</td>
-      <td>${co.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>'}</td>
-      <td style="text-align:right"><button class="btn ghost small" data-rmstaff="${t.id}">${ic('i-x')} Remove</button></td>
+      <td><span class="row"><span class="avatar">${initials(t.name)}</span><b>${esc(t.name)}</b>${isMe ? ' <span class="chip brand">you</span>' : ''}</span></td>
+      <td>
+        <span class="role-chips">
+          <button class="rchip ${canTeach(t) ? 'on' : ''}" data-role="teach|${t.id}" aria-pressed="${canTeach(t)}">${ic('i-teacher')} Teaching</button>
+          <button class="rchip ${canOffice(t) ? 'on' : ''}" data-role="office|${t.id}" aria-pressed="${canOffice(t)}"${lastOffice ? ' disabled title="The school needs at least one office account"' : ''}>${ic('i-shield')} Office</button>
+        </span>
+        ${dualRole(t) ? '<div class="small muted">Dual role — switches hats from the sidebar</div>' : ''}
+      </td>
+      <td>${canTeach(t) ? (owned.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>') : '<span class="muted">—</span>'}</td>
+      <td>${canTeach(t) ? (co.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>') : '<span class="muted">—</span>'}</td>
+      <td style="text-align:right">${isMe ? '' : `<button class="btn ghost small" data-rmstaff="${t.id}">${ic('i-x')} Remove</button>`}</td>
     </tr>`;
   }).join('');
   main.innerHTML = `
-    <div class="page-head"><h2>${ic('i-teacher')} Staff</h2></div>
-    <p class="page-sub">The school office runs every account. New staff appear on this device's sign-in screen straight away. (The real, multi-device version gives each a password — this demo skips that.)</p>
-    <div class="row" style="margin:0 0 10px"><h3 style="margin:0">${ic('i-shield')} Office admins</h3><span class="spacer"></span>
-      <button class="btn sec small" id="btn-addadmin">${ic('i-plus')} Add office account</button></div>
-    <div class="tbl-wrap" style="margin-bottom:20px"><table>
-      <thead><tr><th>Admin</th><th>Access</th><th></th></tr></thead>
-      <tbody>${adminRows}</tbody>
-    </table></div>
-    <div class="row" style="margin:0 0 10px"><h3 style="margin:0">${ic('i-teacher')} Teachers</h3><span class="spacer"></span>
+    <div class="page-head"><h2>${ic('i-teacher')} Staff</h2><span class="spacer"></span>
+      <button class="btn sec small" id="btn-addadmin">${ic('i-plus')} Add office account</button>
       <button class="btn sec small" id="btn-addstaff">${ic('i-plus')} Add a teacher</button></div>
+    <p class="page-sub">The school office runs every account. Tap the chips to give someone both hats — a teaching head or an office manager who also covers a class holds a dual role and switches between them from their sidebar. (The real, multi-device version gives each a password — this demo skips that.)</p>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Teacher</th><th>Own classes</th><th>Co-teaching</th><th></th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="4" class="empty">No teachers yet.</td></tr>`}</tbody>
+      <thead><tr><th>Name</th><th>Roles</th><th>Own classes</th><th>Co-teaching</th><th></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="5" class="empty">No staff yet.</td></tr>`}</tbody>
     </table></div>
-    <div class="card" style="margin-top:20px">
+    ${feat('safeguarding') ? `<div class="card" style="margin-top:20px">
       <h3>${ic('i-shield')} Designated safeguarding lead</h3>
       <p class="m-sub" style="margin-top:0">The DSL sees every safeguarding record in the school; other staff see only records they reported themselves.</p>
-      <select id="dsl-sel" style="max-width:300px">${db.users.filter(u => (u.role === 'teacher' || u.role === 'admin') && u.schoolId === mySchool().id)
-        .map(u => `<option value="${u.id}" ${u.id === mySchool().dslId ? 'selected' : ''}>${esc(u.name)} (${u.role === 'admin' ? 'office' : 'teacher'})</option>`).join('')}</select>
-    </div>`;
-  $('#dsl-sel').onchange = e => {
+      <select id="dsl-sel" style="max-width:300px">${schoolStaff()
+        .map(u => `<option value="${u.id}" ${u.id === mySchool().dslId ? 'selected' : ''}>${esc(u.name)} (${dualRole(u) ? 'dual role' : canOffice(u) ? 'office' : 'teacher'})</option>`).join('')}</select>
+    </div>` : ''}`;
+  main.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
+    const [which, id] = b.dataset.role.split('|');
+    const t = user(id);
+    const has = which === 'teach' ? canTeach(t) : canOffice(t);
+    // never leave someone with no role at all — that would strand the account
+    if (has && (which === 'teach' ? !canOffice(t) : !canTeach(t))) {
+      toast(`${t.name} needs at least one role — give them the other first.`, true); return;
+    }
+    if (which === 'teach') {
+      if (has) {
+        const teaching = schoolClasses().filter(c => classTeachers(c).includes(t.id));
+        if (teaching.length) { toast(`${t.name} still teaches ${teaching.map(c => c.name).join(', ')} — remove them from the class first.`, true); return; }
+        if (t.role === 'teacher') { t.role = 'admin'; t.alsoAdmin = false; } else t.alsoTeacher = false;
+      } else { if (t.role === 'admin') t.alsoTeacher = true; else t.role = 'teacher'; }
+    } else {
+      if (has) {
+        if (mySchool().dslId === t.id && !canTeach(t)) { toast(`${t.name} is the DSL — hand that over first.`, true); return; }
+        if (t.role === 'admin') { t.role = 'teacher'; t.alsoTeacher = false; } else t.alsoAdmin = false;
+      } else { if (t.role === 'teacher') t.alsoAdmin = true; else t.role = 'admin'; }
+    }
+    saveDB(); render();
+    toast(`${t.name}: ${[canTeach(t) ? 'teaching' : '', canOffice(t) ? 'office' : ''].filter(Boolean).join(' + ')}`);
+  });
+  const ds = $('#dsl-sel');
+  if (ds) ds.onchange = e => {
     mySchool().dslId = e.target.value;
     sgAuditAdd('DSL changed', user(e.target.value).name);
     notify([e.target.value], 'You are now the designated safeguarding lead — all safeguarding records are visible to you', { page: 'safeguarding' });
@@ -1974,22 +2105,16 @@ function renderAdminStaff(main) {
     db.users.push({ id: uid(), name, role: 'teacher', schoolId: mySchool().id });
     saveDB(); render(); toast(name + ' can now sign in and make classes');
   });
-  document.querySelectorAll('[data-rmadmin]').forEach(b => b.onclick = () => {
-    const a = user(b.dataset.rmadmin);
-    if (admins.length <= 1) { toast('A school needs at least one office admin.', true); return; }
-    openConfirm(`Remove ${a.name}?`, 'They will lose office access to the school.', () => {
-      db.users = db.users.filter(x => x.id !== a.id);
-      const sch = mySchool(); if (sch.adminId === a.id) sch.adminId = schoolUsers('admin')[0] && schoolUsers('admin')[0].id;
-      saveDB(); render(); toast(`${a.name} removed`);
-    });
-  });
   document.querySelectorAll('[data-rmstaff]').forEach(b => b.onclick = () => {
     const t = user(b.dataset.rmstaff);
     const owned = schoolClasses().filter(c => c.teacher === t.id);
     if (owned.length) { toast(`${t.name} still owns ${owned.length} class${owned.length === 1 ? '' : 'es'} — delete or hand those over first.`, true); return; }
+    if (canOffice(t) && schoolOffice().length <= 1) { toast('A school needs at least one office account.', true); return; }
+    if (mySchool().dslId === t.id) { toast(`${t.name} is the DSL — hand that over first.`, true); return; }
     openConfirm(`Remove ${t.name}?`, "Their account goes; classes and students' work stay.", () => {
       db.classes.forEach(c => { if (c.teachers) c.teachers = c.teachers.filter(x => x !== t.id); });
       db.users = db.users.filter(x => x.id !== t.id);
+      const sch = mySchool(); if (sch.adminId === t.id) sch.adminId = (schoolOffice()[0] || {}).id;
       saveDB(); render(); toast(`${t.name} removed`);
     });
   });
@@ -2479,7 +2604,7 @@ function renderParentDash(main) {
       <div class="stat green"><div class="n">${tasks.filter(a => handin(a.id, child.id).status !== 'none').length}</div><div class="l">Handed in</div></div>
       <div class="stat amber"><div class="n">${starred.length}</div><div class="l">Portfolio pieces</div></div>
     </div>
-    ${(tt => tt ? ttStripHTML(tt) : '')(ttForStudent(child.id))}
+    ${feat('timetables') ? (tt => tt ? ttStripHTML(tt) : '')(ttForStudent(child.id)) : ''}
     <h3 style="margin:6px 0 12px">${esc(child.name.split(' ')[0])}'s tasks</h3>
     ${tasks.map(a => taskRowHTML(a, child.id)).join('') || `<div class="card empty">${ic('i-task', 'big')}No tasks yet.</div>`}
     <h3 style="margin:20px 0 12px">${ic('i-star')} Portfolio</h3>
@@ -2537,14 +2662,18 @@ function renderActivity(main) {
 function renderClass(main) {
   const c = klass(view.classId);
   if (!c) { go({ page: 'dash' }); return; }
-  const teacherView = isTeacher();
-  const tabs = [
-    ['tasks', 'i-task', 'Tasks'],
-    ['points', 'i-award', 'Points'],
-    ['discussions', 'i-chat', 'Discussions'],
-  ];
-  if (teacherView) { tabs.push(['students', 'i-people', 'Students']); tabs.push(['gradebook', 'i-grade', 'Gradebook']); tabs.push(['markbook', 'i-markbook', 'Markbook']); tabs.push(['reading', 'i-book', 'Reading']); }
-  else if (!isParent()) tabs.push(['portfolio', 'i-star', 'My portfolio']);
+  // the office can look into any class (read-only); only teachers get the action buttons
+  const teacherView = isTeacher() || isAdmin();
+  const tabs = [['tasks', 'i-task', 'Tasks']];
+  if (feat('points')) tabs.push(['points', 'i-award', 'Points']);
+  if (feat('discussions')) tabs.push(['discussions', 'i-chat', 'Discussions']);
+  if (teacherView) {
+    tabs.push(['students', 'i-people', 'Students']);
+    if (feat('gradebook')) tabs.push(['gradebook', 'i-grade', 'Gradebook']);
+    if (feat('markbook')) tabs.push(['markbook', 'i-markbook', 'Markbook']);
+    if (feat('reading')) tabs.push(['reading', 'i-book', 'Reading']);
+  } else if (!isParent() && feat('portfolios')) tabs.push(['portfolio', 'i-star', 'My portfolio']);
+  if (!tabs.some(t => t[0] === view.tab)) view.tab = 'tasks'; // a switched-off tab falls back
   const tabBtns = tabs.map(([k, icn, lbl]) =>
     `<button class="${view.tab === k ? 'on' : ''}" data-tab="${k}">${ic(icn)} ${lbl}</button>`).join('');
   main.innerHTML = `
@@ -2552,26 +2681,26 @@ function renderClass(main) {
     <div class="page-head"><h2>${esc(c.name)}</h2>
       ${c.archived ? `<span class="chip red">${ic('i-archive')} archived</span>` : ''}
       <span class="spacer"></span>
-      ${teacherView ? `<button class="btn ghost small" id="btn-settings">${ic('i-gear')} Class settings</button>
+      ${isTeacher() ? `<button class="btn ghost small" id="btn-settings">${ic('i-gear')} Class settings</button>
         <button class="btn" id="btn-newtask" ${c.archived ? 'disabled' : ''}>${ic('i-plus')} New task</button>` : ''}</div>
-    <p class="page-sub">${esc(c.subject || '')}${teacherView ? ` · Join code: <b>${c.code}</b>` : ''}</p>
+    <p class="page-sub">${esc(c.subject || '')}${teacherView ? ` · Join code: <b>${c.code}</b>` : ''}${isAdmin() ? ` · <span class="chip grey">${ic('i-eye')} office view</span>` : ''}</p>
     <div class="tabbar">${tabBtns}</div>
     <div id="tabbody"></div>`;
   $('#crumb').onclick = () => go({ page: 'dash', classId: null });
   document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go({ tab: b.dataset.tab }));
-  if (teacherView) {
+  if (isTeacher()) {
     $('#btn-newtask').onclick = () => openTaskModal(c.id, null);
     $('#btn-settings').onclick = () => openClassSettings(c);
   }
 
   const body = $('#tabbody');
-  if (view.tab === 'points') renderPointsTab(body, c);
-  else if (view.tab === 'discussions') renderDiscussionList(body, c);
+  if (view.tab === 'points' && feat('points')) renderPointsTab(body, c);
+  else if (view.tab === 'discussions' && feat('discussions')) renderDiscussionList(body, c);
   else if (view.tab === 'students' && teacherView) renderStudents(body, c);
-  else if (view.tab === 'gradebook' && teacherView) renderGradebook(body, c);
-  else if (view.tab === 'markbook' && teacherView) renderMarkbook(body, c);
-  else if (view.tab === 'reading' && teacherView) renderReadingTab(body, c);
-  else if (view.tab === 'portfolio') renderPortfolioTab(body, c);
+  else if (view.tab === 'gradebook' && teacherView && feat('gradebook')) renderGradebook(body, c);
+  else if (view.tab === 'markbook' && teacherView && feat('markbook')) renderMarkbook(body, c);
+  else if (view.tab === 'reading' && teacherView && feat('reading')) renderReadingTab(body, c);
+  else if (view.tab === 'portfolio' && feat('portfolios')) renderPortfolioTab(body, c);
   else renderTasksTab(body, c);
 }
 
@@ -2614,7 +2743,7 @@ function renderStudents(body, c) {
       <td><code style="font-weight:800;letter-spacing:.1em;color:var(--gold-dk)">${db.parentCodes[sid]}</code>
         ${parents ? `<div class="small muted">${ic('i-family')} ${esc(parents)}</div>` : ''}</td>
       <td style="text-align:right">
-        <button class="btn ghost small" data-portfolio="${sid}">${ic('i-star')} Portfolio</button>
+        ${feat('portfolios') ? `<button class="btn ghost small" data-portfolio="${sid}">${ic('i-star')} Portfolio</button>` : ''}
         <button class="btn ghost small" data-remove="${sid}">${ic('i-x')} Remove</button></td>
     </tr>`;
   }).join('');
@@ -3452,7 +3581,7 @@ function renderAssignment(main) {
     <div class="page-head"><h2>${esc(a.title)}</h2><span class="spacer"></span>
       <button class="btn ghost small" id="btn-edit">${ic('i-pencil')} Edit</button>
       <button class="btn ghost small" id="btn-copy">${ic('i-copy')} Reuse…</button>
-      <button class="btn ghost small" id="btn-share" title="Put a copy in the staff library so colleagues can use it">${ic('i-teacher')} ${db.taskLibrary.some(t => t.sourceId === a.id) ? 'Shared with staff' : 'Share with staff'}</button>
+      ${feat('staffshare') ? `<button class="btn ghost small" id="btn-share" title="Put a copy in the staff library so colleagues can use it">${ic('i-teacher')} ${db.taskLibrary.some(t => t.sourceId === a.id) ? 'Shared with staff' : 'Share with staff'}</button>` : ''}
       <button class="btn ghost small" id="btn-arch">${ic('i-archive')} ${a.archived ? 'Restore' : 'Archive'}</button>
       <button class="btn sec small" id="btn-lock">${a.locked ? ic('i-unlock') + ' Unlock' : ic('i-lock') + ' Lock'}</button>
       <button class="btn danger small" id="btn-del">${ic('i-trash')}</button></div>
@@ -3473,7 +3602,7 @@ function renderAssignment(main) {
   $('#crumb').onclick = () => go({ page: 'class', classId: c.id, tab: 'tasks', assignmentId: null });
   $('#btn-edit').onclick = () => openTaskModal(c.id, a);
   $('#btn-copy').onclick = () => openReuseTask(a);
-  $('#btn-share').onclick = () => shareTaskWithStaff(a);
+  const shb = $('#btn-share'); if (shb) shb.onclick = () => shareTaskWithStaff(a);
   $('#btn-arch').onclick = () => { a.archived = !a.archived; saveDB(); render(); toast(a.archived ? 'Task archived' : 'Task restored'); };
   $('#btn-lock').onclick = () => { a.locked = !a.locked; saveDB(); render(); toast(a.locked ? 'Task locked' : 'Task unlocked'); };
   $('#btn-del').onclick = () => openConfirm('Delete this task?', 'The task and all student work in it will be removed. This cannot be undone.', () => {
@@ -3750,7 +3879,7 @@ function renderWorkItem(i, a, opts) {
   const isImage = (i.kind === 'drawing') || (i.kind === 'file' && i.type && i.type.startsWith('image/'));
   const isDoc = i.kind === 'file' && !!docKind(i.name, i.type);
   const canDel = !isParent() && (i.authorId === db.session || opts.teacherView);
-  const canStar = i.studentId !== SHARED && (opts.teacherView || i.studentId === db.session);
+  const canStar = feat('portfolios') && i.studentId !== SHARED && (opts.teacherView || i.studentId === db.session);
   const comments = i.comments || [];
   const commentsHTML = comments.map(cm => {
     const cu = user(cm.authorId);
@@ -3938,7 +4067,7 @@ function searchScope() {
   const sids = [...new Set(classes.flatMap(c => c.students))];
   const aids = classes.map(c => c.id);
   const tasks = db.assignments.filter(a => aids.includes(a.classId));
-  const staff = isAdmin() ? schoolUsers('teacher') : [];
+  const staff = isAdmin() ? schoolStaff() : [];
   return { classes, students: sids.map(user), tasks, staff };
 }
 function openSearch() {
@@ -3968,7 +4097,7 @@ function openSearch() {
     box.querySelectorAll('[data-goclass]').forEach(el => el.onclick = () => { m.remove(); go({ page: 'class', classId: el.dataset.goclass, tab: 'tasks' }); });
     box.querySelectorAll('[data-gostudent]').forEach(el => el.onclick = () => {
       m.remove();
-      if (isTeacher() || isAdmin()) go({ page: 'reading', studentId: el.dataset.gostudent });
+      if ((isTeacher() || isAdmin()) && feat('reading')) go({ page: 'reading', studentId: el.dataset.gostudent });
       else go({ page: 'reading' });
     });
     box.querySelectorAll('[data-gostaff]').forEach(el => el.onclick = () => { m.remove(); go({ page: 'staff' }); });
@@ -4286,7 +4415,7 @@ function openReuseTask(a) {
 function shareTaskWithStaff(a) {
   if (db.taskLibrary.some(t => t.sourceId === a.id)) { toast('Already in the staff library — colleagues can see it.'); return; }
   db.taskLibrary.push(Object.assign({ id: uid(), sourceId: a.id, ownerId: db.session, schoolId: me().schoolId, ts: Date.now() }, taskTemplate(a)));
-  notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a task with staff: “${a.title}”`, { page: 'tools' });
+  notify(schoolTeaching().map(t => t.id), `${me().name} shared a task with staff: “${a.title}”`, { page: 'tools' });
   saveDB(); render(); toast('Shared with staff — colleagues will find it in their Library');
 }
 
@@ -4318,7 +4447,12 @@ function useCanvasInTask(cv) {
 
 /* ---------- Tools: canvases, visual timetables, and the staff library ---------- */
 function renderTools(main) {
-  const tab = ['canvases', 'timetables', 'sharedtasks'].includes(view.tab) ? view.tab : 'canvases';
+  const toolTabs = [];
+  if (feat('canvases')) toolTabs.push(['canvases', 'i-canvas', 'Canvases']);
+  if (feat('timetables')) toolTabs.push(['timetables', 'i-timetable', 'Visual timetables']);
+  if (feat('staffshare')) toolTabs.push(['sharedtasks', 'i-task', 'Shared tasks']);
+  if (!toolTabs.length) { go({ page: 'dash' }); return; }
+  const tab = toolTabs.some(t => t[0] === view.tab) ? view.tab : toolTabs[0][0];
   const sortRecent = (a, b) => (b.updated || b.ts) - (a.updated || a.ts);
   const mine = db.canvases.filter(cv => cv.ownerId === db.session).sort(sortRecent);
   const shared = db.canvases.filter(cv => cv.shared && cv.ownerId !== db.session && cv.schoolId === me().schoolId).sort(sortRecent);
@@ -4333,7 +4467,7 @@ function renderTools(main) {
       <div class="lib-actions">
         ${cv.kind === 'file' ? '' : `<button class="btn ghost small" data-open="${cv.id}">${own ? ic('i-pencil') + ' Edit' : ic('i-eye') + ' Open'}</button>`}
         <button class="btn ghost small" data-use="${cv.id}">${ic('i-task')} Use in a task</button>
-        ${own ? `<button class="btn ghost small" data-share="${cv.id}">${cv.shared ? ic('i-x') + ' Unshare' : ic('i-teacher') + ' Share'}</button>
+        ${own ? `${feat('staffshare') ? `<button class="btn ghost small" data-share="${cv.id}">${cv.shared ? ic('i-x') + ' Unshare' : ic('i-teacher') + ' Share'}</button>` : ''}
                  <button class="btn ghost small" data-del="${cv.id}" aria-label="Delete">${ic('i-trash')}</button>`
               : `<button class="btn ghost small" data-copy="${cv.id}">${ic('i-copy')} Save a copy</button>`}
       </div>
@@ -4379,15 +4513,11 @@ function renderTools(main) {
   };
   main.innerHTML = `
     <div class="page-head"><h2>${ic('i-tools')} Tools</h2><span class="spacer"></span>
-      ${tab === 'timetables'
-        ? `<button class="btn" id="tt-new">${ic('i-plus')} New timetable</button>`
-        : `<button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button>`}</div>
-    <p class="page-sub">Canvases, visual timetables and shared tasks — yours to reuse, and to share with other staff at ${esc(mySchool().name)}.</p>
-    <div class="tabbar">
-      <button data-tab="canvases" class="${tab === 'canvases' ? 'on' : ''}">${ic('i-canvas')} Canvases</button>
-      <button data-tab="timetables" class="${tab === 'timetables' ? 'on' : ''}">${ic('i-timetable')} Visual timetables</button>
-      <button data-tab="sharedtasks" class="${tab === 'sharedtasks' ? 'on' : ''}">${ic('i-task')} Shared tasks</button>
-    </div>
+      ${tab === 'timetables' ? `<button class="btn" id="tt-new">${ic('i-plus')} New timetable</button>`
+        : tab === 'canvases' ? `<button class="btn" id="lib-new">${ic('i-canvas')} New canvas</button>` : ''}</div>
+    <p class="page-sub">Yours to build once and reuse${feat('staffshare') ? `, and to share with other staff at ${esc(mySchool().name)}` : ''}.</p>
+    <div class="tabbar">${toolTabs.map(([k, icn, lbl]) =>
+      `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${ic(icn)} ${lbl}</button>`).join('')}</div>
     ${bodies[tab]}`;
   main.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go({ page: 'tools', tab: b.dataset.tab }));
   const ln = $('#lib-new'); if (ln) ln.onclick = () => openLibraryCanvas(null);
@@ -4412,7 +4542,7 @@ function renderTools(main) {
   main.querySelectorAll('[data-share]').forEach(b => b.onclick = () => {
     const cv = find(b.dataset.share);
     cv.shared = !cv.shared;
-    if (cv.shared) notify(schoolUsers('teacher').map(t => t.id), `${me().name} shared a canvas with staff: “${cv.name}”`, { page: 'tools' });
+    if (cv.shared) notify(schoolTeaching().map(t => t.id), `${me().name} shared a canvas with staff: “${cv.name}”`, { page: 'tools' });
     saveDB(); render(); toast(cv.shared ? 'Shared — colleagues will see it in their Library' : 'No longer shared');
   });
   main.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
@@ -4660,6 +4790,7 @@ function sgAuditAdd(action, detail) {
 /* students this staff member may log a concern about */
 function sgStudents() {
   if (isDSL() || isAdmin()) return schoolUsers('student');
+  if (!canTeach(me())) return [];
   const mine = new Set(myClasses(true).flatMap(c => c.students));
   return schoolUsers('student').filter(s => mine.has(s.id));
 }
