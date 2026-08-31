@@ -104,6 +104,33 @@ p.sub{color:var(--muted); font-size:1.05rem; max-width:40em; margin:0 0 40px}
 .feature.wide p{max-width:62em}
 @media (max-width:560px){ .feature.wide{flex-direction:column; gap:12px} }
 
+/* ---------- one place band ---------- */
+.oneplace{background:var(--shell-2); color:var(--shell-ink)}
+.oneplace h2{color:#fff}
+.oneplace p.sub{color:var(--shell-muted)}
+.swap{display:grid; grid-template-columns:1fr 74px 1fr; gap:26px; align-items:start; margin-top:8px}
+.swap .col > b{display:block; font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--shell-muted); margin-bottom:14px}
+.scatter{display:flex; flex-wrap:wrap; gap:10px}
+.scatter span{background:var(--shell); border:1px solid var(--shell-line); border-radius:12px; padding:10px 14px;
+  font-size:.86rem; font-weight:700; color:var(--shell-muted); box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.scatter span:nth-child(2n){transform:rotate(-1.6deg)}
+.scatter span:nth-child(3n){transform:rotate(1.9deg)}
+.swap .arrow{align-self:center; text-align:center; font-size:1.9rem; color:var(--gold-hi); font-weight:800}
+.onecard{background:var(--shell); border:1.5px solid rgba(174,133,62,.55); border-radius:18px; padding:24px 22px;
+  box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.onecard .mark{width:52px; height:52px; border-radius:14px; background:var(--gold); color:#fff;
+  display:flex; align-items:center; justify-content:center; margin-bottom:14px}
+.onecard .mark svg{width:28px; height:28px; fill:currentColor}
+.onecard h3{margin:0 0 8px; color:#fff; font-size:1.15rem}
+.onecard p{margin:0 0 14px; color:var(--shell-muted); font-size:.92rem}
+.onecard ul{margin:0; padding-left:18px; color:var(--shell-ink); font-size:.9rem}
+.onecard li{margin-bottom:5px}
+@media (max-width:880px){
+  .swap{grid-template-columns:1fr; gap:16px}
+  .swap .arrow{transform:rotate(90deg); font-size:1.5rem}
+}
+
 /* ---------- roles band ---------- */
 .roles{background:var(--shell-2); color:var(--shell-ink)}
 .roles h2{color:#fff}
@@ -233,6 +260,43 @@ footer .sp{margin-left:auto}
     </div>
   </div>
 </header>
+
+<section class="oneplace" id="oneplace">
+  <div class="wrap">
+    <p class="kicker">Why it exists</p>
+    <h2>One child. One place.</h2>
+    <p class="sub">Most primary schools run the school day across half a dozen separate systems — one for setting work,
+      another for behaviour, another for portfolios, another for safeguarding, and a folder of photos and spreadsheets
+      holding the rest together. Every one is its own subscription, its own login, its own place to look. ClassDrop
+      is all of it in a single app.</p>
+    <div class="swap">
+      <div class="col">
+        <b>Today, in most schools</b>
+        <div class="scatter">
+          <span>Work &amp; hand-ins app</span><span>Behaviour points app</span><span>Portfolio app</span>
+          <span>Safeguarding log</span><span>Second CP log</span><span>Timetable maker</span>
+          <span>Seating plan tool</span><span>Reports spreadsheet</span><span>Shared photo drive</span>
+          <span>Paper folder</span>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="col">
+        <b>With ClassDrop</b>
+        <div class="onecard">
+          <div class="mark"><svg><use href="#i-handin"/></svg></div>
+          <h3>ClassDrop</h3>
+          <p>One app for the classroom and the office, switched on module by module to suit your school.</p>
+          <ul>
+            <li>One login for every member of staff, every child, every parent</li>
+            <li>One subscription instead of six</li>
+            <li>One record of a child — work, feedback, reading, behaviour, concerns</li>
+            <li>Anything you don't want, the office switches off</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section id="features">
   <div class="wrap">
