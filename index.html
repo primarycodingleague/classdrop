@@ -104,6 +104,33 @@ p.sub{color:var(--muted); font-size:1.05rem; max-width:40em; margin:0 0 40px}
 .feature.wide p{max-width:62em}
 @media (max-width:560px){ .feature.wide{flex-direction:column; gap:12px} }
 
+/* ---------- one place band ---------- */
+.oneplace{background:var(--shell-2); color:var(--shell-ink)}
+.oneplace h2{color:#fff}
+.oneplace p.sub{color:var(--shell-muted)}
+.swap{display:grid; grid-template-columns:1fr 74px 1fr; gap:26px; align-items:start; margin-top:8px}
+.swap .col > b{display:block; font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--shell-muted); margin-bottom:14px}
+.scatter{display:flex; flex-wrap:wrap; gap:10px}
+.scatter span{background:var(--shell); border:1px solid var(--shell-line); border-radius:12px; padding:10px 14px;
+  font-size:.86rem; font-weight:700; color:var(--shell-muted); box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.scatter span:nth-child(2n){transform:rotate(-1.6deg)}
+.scatter span:nth-child(3n){transform:rotate(1.9deg)}
+.swap .arrow{align-self:center; text-align:center; font-size:1.9rem; color:var(--gold-hi); font-weight:800}
+.onecard{background:var(--shell); border:1.5px solid rgba(174,133,62,.55); border-radius:18px; padding:24px 22px;
+  box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.onecard .mark{width:52px; height:52px; border-radius:14px; background:var(--gold); color:#fff;
+  display:flex; align-items:center; justify-content:center; margin-bottom:14px}
+.onecard .mark svg{width:28px; height:28px; fill:currentColor}
+.onecard h3{margin:0 0 8px; color:#fff; font-size:1.15rem}
+.onecard p{margin:0 0 14px; color:var(--shell-muted); font-size:.92rem}
+.onecard ul{margin:0; padding-left:18px; color:var(--shell-ink); font-size:.9rem}
+.onecard li{margin-bottom:5px}
+@media (max-width:880px){
+  .swap{grid-template-columns:1fr; gap:16px}
+  .swap .arrow{transform:rotate(90deg); font-size:1.5rem}
+}
+
 /* ---------- roles band ---------- */
 .roles{background:var(--shell-2); color:var(--shell-ink)}
 .roles h2{color:#fff}
@@ -180,6 +207,8 @@ footer .sp{margin-left:auto}
   <symbol id="i-shared" viewBox="0 0 24 24"><path d="M9 11a3.2 3.2 0 100-6.4A3.2 3.2 0 009 11zm7 .6a2.7 2.7 0 100-5.4 2.7 2.7 0 000 5.4zM2.5 19c0-3 3-5.4 6.5-5.4s6.5 2.4 6.5 5.4v.6h-13zm14.6.6v-.6c0-1.6-.7-3-1.8-4.1.6-.2 1.2-.3 1.9-.3 2.7 0 4.8 1.8 4.8 4.1v.9z"/></symbol>
   <symbol id="i-grade" viewBox="0 0 24 24"><path d="M4 4h16v3H4zm0 5h7v11H4zm9 0h7v5h-7zm0 7h7v4h-7z"/></symbol>
   <symbol id="i-reading" viewBox="0 0 24 24"><path d="M12 5.5C10.6 4 8.4 3 5.8 3c-1 0-2 .15-2.8.4v15.1c.8-.25 1.8-.4 2.8-.4 2.6 0 4.8 1 6.2 2.4 1.4-1.4 3.6-2.4 6.2-2.4 1 0 2 .15 2.8.4V3.4c-.8-.25-1.8-.4-2.8-.4-2.6 0-4.8 1-6.2 2.5zm0 0v15"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.3 14.6l-4.2-4.2 1.7-1.7 2.5 2.5 5.4-5.4 1.7 1.7z"/></symbol>
+  <symbol id="i-tables" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="3.5" opacity=".3"/><path d="M8.1 7.4L12 11.3l3.9-3.9 1.7 1.7-3.9 3.9 3.9 3.9-1.7 1.7-3.9-3.9-3.9 3.9-1.7-1.7 3.9-3.9-3.9-3.9z"/></symbol>
   <symbol id="i-points" viewBox="0 0 24 24"><path d="M12 2l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 15.5 6.6 18.5l1.2-6L3.3 8.3l6.1-.7z"/></symbol>
   <symbol id="i-discuss" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h9a2 2 0 012 2v6a2 2 0 01-2 2H8l-5 4zm14 2h2a2 2 0 012 2v11l-4-3h-6a2 2 0 01-2-2v-1h6a4 4 0 004-4z"/></symbol>
   <symbol id="i-portfolio" viewBox="0 0 24 24"><path d="M12 2l2.4 5.2 5.6.6-4.2 3.9 1.1 5.6L12 14.5l-4.9 2.8 1.1-5.6L4 7.8l5.6-.6zM5 20h14v2H5z"/></symbol>
@@ -234,6 +263,43 @@ footer .sp{margin-left:auto}
   </div>
 </header>
 
+<section class="oneplace" id="oneplace">
+  <div class="wrap">
+    <p class="kicker">Why it exists</p>
+    <h2>One child. One place.</h2>
+    <p class="sub">Most primary schools run the school day across half a dozen separate systems — one for setting work,
+      another for behaviour, another for portfolios, another for times tables, another for safeguarding, and a folder
+      of photos and spreadsheets holding the rest together. Every one is its own subscription, its own login, its own place to look. ClassDrop
+      is all of it in a single app.</p>
+    <div class="swap">
+      <div class="col">
+        <b>Today, in most schools</b>
+        <div class="scatter">
+          <span>Work &amp; hand-ins app</span><span>Behaviour points app</span><span>Portfolio app</span>
+          <span>Times tables app</span><span>Safeguarding log</span><span>Second CP log</span>
+          <span>Timetable maker</span><span>Seating plan tool</span><span>Reports spreadsheet</span>
+          <span>Shared photo drive</span><span>Paper folder</span>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="col">
+        <b>With ClassDrop</b>
+        <div class="onecard">
+          <div class="mark"><svg><use href="#i-handin"/></svg></div>
+          <h3>ClassDrop</h3>
+          <p>One app for the classroom and the office, switched on module by module to suit your school.</p>
+          <ul>
+            <li>One login for every member of staff, every child, every parent</li>
+            <li>One subscription instead of six</li>
+            <li>One record of a child — work, feedback, reading, behaviour, concerns</li>
+            <li>Anything you don't want, the office switches off</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="features">
   <div class="wrap">
     <p class="kicker">What it does</p>
@@ -271,6 +337,17 @@ footer .sp{margin-left:auto}
         <p>A simple reading record teachers and parents both write in — books, pages, and a note about how it went, all in one running log per child.</p>
       </div>
       <div class="feature">
+        <div class="fic"><svg><use href="#i-tables"/></svg></div>
+        <h3>Times tables, assessed</h3>
+        <p>Not another tables game. Every answer a child gives is timed, so ClassDrop can tell the facts they genuinely <em>recall</em> from the ones they are working out — the distinction the whole of Year 4 turns on. Teachers get a recall grid for every child, the facts the class is collectively stuck on, and a predicted check score. The practice that produces the data comes with it — a one-minute sprint, a big number pad, a personal best to beat.</p>
+        <p>Most schools pay a separate subscription to one of the other popular platforms for this. The practice those wrap in avatars and leaderboards is here too; what a separate system can't do is put six-second recall data next to the markbook, the reading log and everything else you already know about that child.</p>
+      </div>
+      <div class="feature">
+        <div class="fic"><svg><use href="#i-tick"/></svg></div>
+        <h3>Ready for the Year 4 check</h3>
+        <p>Switch on check practice and pupils get a proper mock of the multiplication tables check: 25 questions, 6 seconds each, a 3-second pause, drawn from the 2–12 tables in the same proportions the real check uses. Access arrangements match the ones the check offers — colour contrast, larger text, the question read aloud, an audible time alert, a “next” button instead of the pause, or no on-screen keypad — so a child rehearses exactly how they'll sit it. Every prediction shows how much of the 2–12 tables that child has actually met, so a maths lead knows which numbers to trust and which need more practice behind them first.</p>
+      </div>
+      <div class="feature">
         <div class="fic"><svg><use href="#i-points"/></svg></div>
         <h3>Behaviour points</h3>
         <p>Award house-style points for effort, kindness and great work, with class totals and per-child views. Behaviours are customisable per class.</p>
@@ -289,7 +366,7 @@ footer .sp{margin-left:auto}
         <div class="fic"><svg><use href="#i-gear"/></svg></div>
         <div>
           <h3>Your school, your ClassDrop</h3>
-          <p>No two schools work the same way, so the office decides what ClassDrop <em>is</em>. Behaviour points, discussions, reading log, portfolios, gradebook, markbook, reports, timetables, seating plans, canvases, staff sharing and safeguarding each switch on and off for the whole school — turn one off and it disappears for staff, pupils and parents alike, with nothing deleted and everything exactly where you left it if you turn it back on. And because a teaching head or an office manager who covers a class is one person, not two, staff can hold <b>both roles at once</b> and switch hats whenever they need to.</p>
+          <p>No two schools work the same way, so the office decides what ClassDrop <em>is</em>. Behaviour points, discussions, reading log, portfolios, gradebook, markbook, reports, timetables, seating plans, times tables, canvases, staff sharing and safeguarding each switch on and off for the whole school — turn one off and it disappears for staff, pupils and parents alike, with nothing deleted and everything exactly where you left it if you turn it back on. And because a teaching head or an office manager who covers a class is one person, not two, staff can hold <b>both roles at once</b> and switch hats whenever they need to.</p>
         </div>
       </div>
       <div class="feature wide">
@@ -324,12 +401,12 @@ footer .sp{margin-left:auto}
       <div class="role">
         <span class="tag">Pupils</span>
         <h3>Big friendly buttons</h3>
-        <p>Join a class with a 5-letter code. See “my tasks”, add work with the camera or canvas, and collect stickers and feedback.</p>
+        <p>Join a class with a 5-letter code. See “my tasks”, add work with the camera or canvas, beat your times-tables best, and collect stickers and feedback.</p>
       </div>
       <div class="role">
         <span class="tag">Parents</span>
         <h3>Follow along</h3>
-        <p>A simple parent code links you to your child. See their work, the teacher's feedback, and add to the reading log at home.</p>
+        <p>A simple parent code links you to your child. See their work, the teacher's feedback, how their times tables are coming on, and add to the reading log at home.</p>
       </div>
       <div class="role">
         <span class="tag">School office</span>
