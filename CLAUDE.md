@@ -6,6 +6,7 @@ Primary Coding League web product, published at https://classdrop.co.uk via GitH
 - Teacher "Tools" page (page id `tools`, legacy alias `library`): tabs for canvases, visual timetables, seating plans, shared tasks.
 - School feature switches: `school.features[key]` (default on unless explicitly `false`); gate UI with `feat(key)` and keep router guards in step. Add new modules to the `FEATURES` list so the office can switch them.
 - Times tables (feature key `tables`, code prefixed `xt`): teacher class tab + pupil/parent page `tables`. Every answer is stored with its recall time in `db.tablesRuns`; fluency is derived, never stored. Per-class settings live in `db.tablesSettings`.
+- Year 4 MTC mock (`s.mtc` per class, code prefixed `mtc`): 25 questions, 6s each, 3s gap, question spread per DfE in `MTC_PLAN` — keep it faithful to the published proportions, and never adapt it to the child. Per-pupil access arrangements in `db.tablesAccess`. Predicted scores are estimates from recall data and must always be shown with their coverage caveat.
 - Staff can hold two roles: `role` plus `alsoAdmin`/`alsoTeacher`. Use `canTeach()`/`canOffice()` for capability, `isTeacher()`/`isAdmin()` for the currently worn hat (`db.hat`).
 - `index.html` — the public landing page; its CTAs link to `/app/`.
 - Local preview: any static server (on the original Mac: launch config "classdrop", port 8641).
