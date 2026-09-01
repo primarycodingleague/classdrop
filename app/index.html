@@ -458,6 +458,85 @@ tr:last-child td{border-bottom:none}
 .gb-cell{text-align:center; font-weight:800; white-space:nowrap}
 .gb-cell .chip{font-size:.68rem}
 
+/* ---------- times tables ---------- */
+.xt-hero{background:linear-gradient(135deg, var(--shell) 0%, #35312b 100%); color:#f3ede1; border-radius:var(--radius);
+  padding:24px 26px; box-shadow:var(--shadow); margin-bottom:16px}
+.xt-hero h3{margin:0 0 6px; color:#fff; font-size:1.25rem}
+.xt-hero p{margin:0 0 16px; color:#b9b0a1; font-size:.92rem; max-width:46em}
+.xt-hero .row{display:flex; gap:10px; flex-wrap:wrap}
+.xt-hero .btn.ghost{border-color:rgba(243,237,225,.32); color:#f3ede1}
+.xt-hero .btn.ghost:hover{background:rgba(243,237,225,.1)}
+.xt-tabchips{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+.xt-tabchips button{border:1px solid var(--line); background:#fff; border-radius:99px; padding:6px 14px;
+  font-family:var(--font); font-weight:800; font-size:.82rem; color:var(--muted); cursor:pointer}
+.xt-tabchips button.on{background:var(--gold); border-color:var(--gold); color:#fff}
+
+/* the 12 × 12 recall grid */
+.xt-gridwrap{overflow-x:auto; padding-bottom:4px}
+.xt-grid{display:inline-grid; gap:3px; background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px; box-shadow:var(--shadow)}
+.xt-cell{width:38px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:800; color:#fff; background:var(--line)}
+.xt-cell.hd{background:none; color:var(--muted); font-size:.7rem}
+.xt-cell.off{background:#f0ece4; color:#c9c2b5}
+.xt-cell.s-new{background:#e6e1d6; color:#8d8577}
+.xt-cell.s-learning{background:#c9603f}
+.xt-cell.s-nearly{background:#d8a13c}
+.xt-cell.s-fluent{background:#4b8a5e}
+.xt-key{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin:10px 0 0; font-size:.78rem; color:var(--muted)}
+.xt-key i{display:inline-block; width:13px; height:13px; border-radius:4px; margin-right:5px; vertical-align:-2px}
+.xt-hot{display:flex; gap:8px; flex-wrap:wrap}
+.xt-hot span{background:var(--gold-soft); border:1px solid var(--gold-line); border-radius:10px; padding:7px 12px;
+  font-weight:800; font-size:.86rem; color:var(--gold-dk)}
+.xt-hot span small{display:block; font-weight:700; font-size:.68rem; color:var(--muted)}
+.xt-bar{height:7px; border-radius:99px; background:var(--line); overflow:hidden; min-width:78px}
+.xt-bar i{display:block; height:100%; background:var(--green)}
+.xt-lead{counter-reset:pos}
+.xt-lead .assign-ico{background:var(--gold-soft); color:var(--gold-dk); font-weight:800; font-size:.9rem}
+
+/* full-screen game */
+.xt-play{position:fixed; inset:0; z-index:70; background:var(--shell); color:#f3ede1; display:flex; flex-direction:column;
+  font-family:var(--font)}
+.xt-top{display:flex; align-items:center; gap:14px; padding:12px 18px; border-bottom:1px solid var(--shell-line)}
+.xt-top .mark{width:30px; height:30px}
+.xt-top b{font-size:.95rem}
+.xt-top .spacer{flex:1}
+.xt-pill{background:rgba(243,237,225,.1); border:1px solid var(--shell-line); border-radius:99px; padding:5px 13px;
+  font-weight:800; font-size:.86rem; white-space:nowrap}
+.xt-pill.hot{background:rgba(201,96,63,.22); border-color:rgba(201,96,63,.5); color:#f0b09a}
+.xt-pill.go{background:rgba(75,138,94,.2); border-color:rgba(75,138,94,.5); color:#a7d8b6}
+.xt-clock{height:5px; background:rgba(243,237,225,.14)}
+.xt-clock i{display:block; height:100%; background:var(--gold); transition:width .25s linear}
+.xt-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px}
+.xt-q{font-size:clamp(2.6rem, 9vw, 5.4rem); font-weight:800; letter-spacing:-.02em; line-height:1}
+.xt-q em{font-style:normal; color:var(--gold-hi)}
+.xt-ans{min-width:210px; min-height:78px; padding:8px 26px; border-radius:18px; border:2.5px solid var(--shell-line);
+  background:rgba(243,237,225,.06); font-size:3rem; font-weight:800; display:flex; align-items:center; justify-content:center;
+  letter-spacing:.04em}
+.xt-ans.ok{border-color:#4b8a5e; background:rgba(75,138,94,.22); color:#c6e9d0}
+.xt-ans.no{border-color:#c9603f; background:rgba(201,96,63,.22); color:#f4bda9}
+.xt-ans .ghost{opacity:.32}
+.xt-pad{display:grid; grid-template-columns:repeat(3, 84px); gap:10px}
+.xt-pad button{height:64px; border-radius:16px; border:1px solid var(--shell-line); background:rgba(243,237,225,.08);
+  color:#f3ede1; font-family:var(--font); font-weight:800; font-size:1.5rem; cursor:pointer}
+.xt-pad button:hover{background:rgba(243,237,225,.16)}
+.xt-pad button:active{transform:scale(.95)}
+.xt-pad button.wide{grid-column:span 2}
+.xt-hint{color:#b9b0a1; font-size:.9rem; min-height:1.4em; text-align:center}
+.xt-hint b{color:var(--gold-hi)}
+.xt-end{max-width:520px; text-align:center}
+.xt-end h2{color:#fff; font-size:2rem; margin:0 0 6px}
+.xt-end p{color:#b9b0a1; margin:0 0 18px}
+.xt-score{font-size:4.6rem; font-weight:800; color:var(--gold-hi); line-height:1}
+.xt-end .stat-row{margin:18px 0}
+.xt-end .stat{background:rgba(243,237,225,.07); border-color:var(--shell-line)}
+.xt-end .stat .n{color:#fff}
+.xt-end .stat .l{color:#b9b0a1}
+@media (max-width:560px){
+  .xt-pad{grid-template-columns:repeat(3, 72px)}
+  .xt-cell{width:30px; height:27px; font-size:.64rem}
+}
+
 /* ---------- markbook ---------- */
 .mb-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
 .mb-wrap{overflow:auto; max-height:72vh; background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
@@ -829,6 +908,7 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
   <symbol id="i-markbook" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" opacity=".4"/><path d="M3 9.5h18M9 9.5V20M3 14.75h18" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.2 6.6l1.1 1.1 2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-tools" viewBox="0 0 24 24"><path d="M21.6 6.1a5.4 5.4 0 01-7 6.9L7.4 20.2a2.2 2.2 0 11-3.1-3.1l7.2-7.2a5.4 5.4 0 016.9-7l-3 3 .5 2.7 2.7.5z"/></symbol>
+  <symbol id="i-tables" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="3.5" opacity=".3"/><path d="M8.1 7.4L12 11.3l3.9-3.9 1.7 1.7-3.9 3.9 3.9 3.9-1.7 1.7-3.9-3.9-3.9 3.9-1.7-1.7 3.9-3.9-3.9-3.9z"/></symbol>
   <symbol id="i-seating" viewBox="0 0 24 24"><path d="M2 3.5h20v2.2H2z"/><rect x="3" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="3" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><circle cx="6.5" cy="11.3" r="1.5"/><circle cx="17.5" cy="11.3" r="1.5"/><circle cx="6.5" cy="18.7" r="1.5"/><circle cx="17.5" cy="18.7" r="1.5"/></symbol>
   <symbol id="i-timetable" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2.5" opacity=".35"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6"/><path d="M12 11h7v2h-7z"/><circle cx="8.5" cy="17" r="1.6"/><path d="M12 16h7v2h-7z"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -1297,6 +1377,39 @@ function migrateDB() {
   }
   // seating plans
   if (!db.seating) { db.seating = []; changed = true; }
+  // times tables
+  if (!db.tablesSettings) { db.tablesSettings = []; changed = true; }
+  if (!db.tablesRuns) { db.tablesRuns = []; changed = true; }
+  if (!db.tablesSeeded) {
+    const c1 = db.classes.find(c => c.id === 'c1');
+    if (c1) {
+      db.tablesSettings.push({ classId: 'c1', tables: [2, 3, 4, 5, 8, 10], upTo: 12, seconds: 60, leaderboard: true });
+      // a fortnight of practice so the class grid, hotspots and leaderboard have something to say
+      const rng = (seed => () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648)(20260901);
+      const skill = { 'u-may': .93, 'u-leo': .62, 'u-ais': .82, 'u-sam': .71, 'u-pop': .55 };
+      const facts = [];
+      [2, 3, 4, 5, 8, 10].forEach(a => { for (let b = 1; b <= 12; b++) facts.push([a, b]); });
+      c1.students.forEach(sid => {
+        const s = skill[sid] != null ? skill[sid] : .7;
+        const sessions = 3 + Math.floor(rng() * 5);
+        for (let r = 0; r < sessions; r++) {
+          const ago = Math.floor(rng() * 13) * DAY + (4 + Math.floor(rng() * 8)) * 3600000;
+          const answers = [];
+          const n = 14 + Math.floor(rng() * 12);
+          for (let q = 0; q < n; q++) {
+            const [a, b] = facts[Math.floor(rng() * facts.length)];
+            // the harder end of each table is slower for everyone, and much slower for weaker recall
+            const hard = (b >= 6 ? 1 : 0) + (a >= 7 ? 1 : 0);
+            const ok = rng() < s - hard * 0.09;
+            const ms = Math.round((1100 + hard * 900 + (1 - s) * 3200) * (0.7 + rng() * 0.8));
+            answers.push({ a, b, ms, ok });
+          }
+          db.tablesRuns.push(xtRunRecord(sid, 'c1', 'sprint', 60, answers, Date.now() - ago));
+        }
+      });
+    }
+    db.tablesSeeded = true; changed = true;
+  }
   // school-level feature switches + dual-role staff
   db.schools.forEach(s => { if (!s.features) { s.features = {}; changed = true; } });
   if (!db.dualSeeded) {
@@ -1538,6 +1651,7 @@ const FEATURES = [
   ['reports', 'i-report', 'Report builder', "Design a report once, generate a whole class's."],
   ['timetables', 'i-timetable', 'Visual timetables', 'Picture timetables for the board, print and pupil dashboards.'],
   ['seating', 'i-seating', 'Seating plans', 'Drag-and-drop plans built from the real class list, with keep-apart pairs.'],
+  ['tables', 'i-tables', 'Times tables', 'Timed recall practice, per-fact fluency and class hotspots. Replaces a separate tables subscription.'],
   ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
   ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
   ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
@@ -1767,6 +1881,9 @@ function renderShell() {
       ${(isStudent() || isParent()) && feat('reading') ? `<button class="nav-item ${view.page === 'reading' ? 'active' : ''}" data-nav="reading">
         <span class="nico">${ic('i-book')}</span>${isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s reading" : 'Reading record'}
       </button>` : ''}
+      ${(isStudent() || isParent()) && feat('tables') ? `<button class="nav-item ${view.page === 'tables' ? 'active' : ''}" data-nav="tables">
+        <span class="nico">${ic('i-tables')}</span>${isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s tables" : 'Times tables'}
+      </button>` : ''}
       <div class="nav-sep"></div>
       <div class="nav-head">${isParent() ? esc(user(u.childId).name.split(' ')[0]) + "'s classes" : 'My classes'}</div>
       ${navClasses || '<div class="nav-head" style="font-weight:600;text-transform:none;letter-spacing:0">No classes yet</div>'}
@@ -1799,6 +1916,7 @@ function renderShell() {
     if (n === 'safeguarding') go({ page: 'safeguarding', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
+    if (n === 'tables') go({ page: 'tables', assignmentId: null, studentId: null, discussionId: null });
     if (n === 'staff') go({ page: 'staff' });
     if (n === 'pupils') go({ page: 'pupils' });
     if (n === 'aclasses') go({ page: 'aclasses' });
@@ -1840,6 +1958,7 @@ function renderShell() {
   else if (view.page === 'safeguarding' && (isTeacher() || isAdmin()) && feat('safeguarding')) renderSafeguarding(main);
   else if (view.page === 'portfolio' && feat('portfolios')) renderPortfolioPage(main);
   else if (view.page === 'reading' && feat('reading')) renderReadingPage(main);
+  else if (view.page === 'tables' && (isStudent() || isParent()) && feat('tables')) renderTables(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
   else if (view.page === 'pupils' && isAdmin()) renderAdminStudents(main);
   else if (view.page === 'aclasses' && isAdmin()) renderAdminClasses(main);
@@ -1901,6 +2020,7 @@ function renderDash(main) {
         <div class="stat green"><div class="n">${tasks.filter(t => t.h.status !== 'none').length}</div><div class="l">Handed in</div></div>
       </div>
       ${feat('timetables') ? (tt => tt ? ttStripHTML(tt) : '')(ttForStudent(u.id)) : ''}
+      ${feat('tables') ? xtDashHTML(u.id) : ''}
       <h3 style="margin:6px 0 12px">My tasks</h3>
       ${rows || `<div class="card empty">${ic('i-task', 'big')}No tasks yet — join a class to get started.</div>`}
       <h3 style="margin:20px 0 12px">My classes</h3>
@@ -1908,6 +2028,7 @@ function renderDash(main) {
     $('#btn-join2').onclick = openJoinClass;
     wireTaskRows(u.id);
     wireTTStrip();
+    wireXtDash();
   }
   document.querySelectorAll('[data-open-assign]').forEach(b => b.onclick = () => {
     const a = assignment(b.dataset.openAssign);
@@ -2652,6 +2773,7 @@ function renderParentDash(main) {
       <div class="stat amber"><div class="n">${starred.length}</div><div class="l">Portfolio pieces</div></div>
     </div>
     ${feat('timetables') ? (tt => tt ? ttStripHTML(tt) : '')(ttForStudent(child.id)) : ''}
+    ${feat('tables') ? xtDashHTML(child.id, true) : ''}
     <h3 style="margin:6px 0 12px">${esc(child.name.split(' ')[0])}'s tasks</h3>
     ${tasks.map(a => taskRowHTML(a, child.id)).join('') || `<div class="card empty">${ic('i-task', 'big')}No tasks yet.</div>`}
     <h3 style="margin:20px 0 12px">${ic('i-star')} Portfolio</h3>
@@ -2659,6 +2781,7 @@ function renderParentDash(main) {
   wireTaskRows();
   wirePortfolioGrid();
   wireTTStrip();
+  wireXtDash();
 }
 
 /* ---------- class grid ---------- */
@@ -2719,6 +2842,7 @@ function renderClass(main) {
     if (feat('gradebook')) tabs.push(['gradebook', 'i-grade', 'Gradebook']);
     if (feat('markbook')) tabs.push(['markbook', 'i-markbook', 'Markbook']);
     if (feat('reading')) tabs.push(['reading', 'i-book', 'Reading']);
+    if (feat('tables')) tabs.push(['tables', 'i-tables', 'Times tables']);
   } else if (!isParent() && feat('portfolios')) tabs.push(['portfolio', 'i-star', 'My portfolio']);
   if (!tabs.some(t => t[0] === view.tab)) view.tab = 'tasks'; // a switched-off tab falls back
   const tabBtns = tabs.map(([k, icn, lbl]) =>
@@ -2747,6 +2871,7 @@ function renderClass(main) {
   else if (view.tab === 'gradebook' && teacherView && feat('gradebook')) renderGradebook(body, c);
   else if (view.tab === 'markbook' && teacherView && feat('markbook')) renderMarkbook(body, c);
   else if (view.tab === 'reading' && teacherView && feat('reading')) renderReadingTab(body, c);
+  else if (view.tab === 'tables' && teacherView && feat('tables')) renderTablesTab(body, c);
   else if (view.tab === 'portfolio' && feat('portfolios')) renderPortfolioTab(body, c);
   else renderTasksTab(body, c);
 }
@@ -5166,6 +5291,522 @@ function openSPDisplay(plan, opts) {
     spFitRooms(wrap);
   };
   if (opts.print) setTimeout(() => window.print(), 150);
+}
+
+/* ---------- times tables ----------
+   Timed recall practice, scored per fact rather than per quiz. Every answer is
+   kept with the milliseconds it took, so a fact moves from "learning" to
+   "fluent" only once the child can recall it quickly — which is what the
+   multiplication tables check actually measures. Teachers get the class
+   hotspots that fall out of the same data. */
+const XT_FLUENT = 3000, XT_NEARLY = 6000;   // ms to recall, on recent correct answers
+const XT_KEEP = 60;                         // runs kept per pupil; older ones are trimmed
+const XT_MODES = {
+  sprint: { label: 'Sprint', icon: 'i-rocket', blurb: 'Against the clock. As many as you can.' },
+  practice: { label: 'Practice', icon: 'i-star', blurb: 'No timer. Wrong ones come back around.' },
+};
+const xtKey = (a, b) => a + '×' + b;
+
+function xtSettings(classId) {
+  let s = db.tablesSettings.find(x => x.classId === classId);
+  if (!s) {
+    s = { classId, tables: [2, 5, 10], upTo: 12, seconds: 60, leaderboard: true };
+    db.tablesSettings.push(s); saveDB();
+  }
+  if (!s.tables.length) s.tables = [2, 5, 10];
+  return s;
+}
+function xtFacts(s) {
+  const out = [];
+  s.tables.forEach(a => { for (let b = 1; b <= s.upTo; b++) out.push([a, b]); });
+  return out;
+}
+/* score: right answers are worth more the faster they come back */
+function xtPoints(ms) { return ms < 2000 ? 3 : ms < 4000 ? 2 : 1; }
+function xtRunRecord(sid, classId, mode, seconds, answers, ts) {
+  const ok = answers.filter(x => x.ok);
+  return {
+    id: 'xr' + Math.random().toString(36).slice(2, 10), studentId: sid, classId, mode,
+    ts: ts || Date.now(), seconds,
+    correct: ok.length, wrong: answers.length - ok.length,
+    score: ok.reduce((n, x) => n + xtPoints(x.ms), 0),
+    answers,
+  };
+}
+function xtSaveRun(run) {
+  db.tablesRuns.push(run);
+  const mine = db.tablesRuns.filter(r => r.studentId === run.studentId).sort((a, b) => b.ts - a.ts);
+  if (mine.length > XT_KEEP) {
+    const drop = new Set(mine.slice(XT_KEEP).map(r => r.id));
+    db.tablesRuns = db.tablesRuns.filter(r => !drop.has(r.id));
+  }
+  saveDB();
+}
+const xtRuns = (sid, classId) => db.tablesRuns
+  .filter(r => r.studentId === sid && (!classId || r.classId === classId))
+  .sort((a, b) => b.ts - a.ts);
+
+/* Monday-start week, so "this week" means what a school means by it */
+function xtWeekStart(ts) {
+  const d = new Date(ts || Date.now());
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d.getTime();
+}
+const xtThisWeek = runs => { const w = xtWeekStart(); return runs.filter(r => r.ts >= w); };
+
+/* per-fact recall picture for one child: status comes from recent correct answers */
+function xtFactStats(sid, classId) {
+  const map = new Map();
+  xtRuns(sid, classId).slice().reverse().forEach(r => r.answers.forEach(x => {
+    const k = xtKey(x.a, x.b);
+    let f = map.get(k);
+    if (!f) { f = { a: x.a, b: x.b, tries: 0, right: 0, times: [], lastOk: true }; map.set(k, f); }
+    f.tries++;
+    f.lastOk = x.ok;
+    if (x.ok) { f.right++; f.times.push(x.ms); if (f.times.length > 3) f.times.shift(); }
+  }));
+  map.forEach(f => {
+    const med = f.times.length ? f.times.slice().sort((p, q) => p - q)[Math.floor(f.times.length / 2)] : null;
+    f.median = med;
+    f.status = med == null || !f.lastOk ? 'learning'
+      : med < XT_FLUENT ? 'fluent' : med < XT_NEARLY ? 'nearly' : 'learning';
+  });
+  return map;
+}
+function xtSummary(sid, classId) {
+  const s = xtSettings(classId);
+  const facts = xtFacts(s), stats = xtFactStats(sid, classId);
+  let fluent = 0, tries = 0, right = 0, totalMs = 0, timed = 0;
+  facts.forEach(([a, b]) => {
+    const f = stats.get(xtKey(a, b));
+    if (!f) return;
+    if (f.status === 'fluent') fluent++;
+    tries += f.tries; right += f.right;
+    if (f.median != null) { totalMs += f.median; timed++; }
+  });
+  const runs = xtRuns(sid, classId), week = xtThisWeek(runs);
+  return {
+    facts: facts.length, fluent, tries, right,
+    accuracy: tries ? Math.round(right / tries * 100) : null,
+    avgMs: timed ? Math.round(totalMs / timed) : null,
+    runs: runs.length, weekRuns: week.length,
+    best: runs.filter(r => r.mode === 'sprint').reduce((n, r) => Math.max(n, r.score), 0),
+    weekBest: week.filter(r => r.mode === 'sprint').reduce((n, r) => Math.max(n, r.score), 0),
+    last: runs.length ? runs[0].ts : null,
+  };
+}
+/* the facts this class is worst at — slowest and least accurate first */
+function xtHotspots(c, limit) {
+  const s = xtSettings(c.id);
+  const agg = new Map();
+  c.students.forEach(sid => xtFactStats(sid, c.id).forEach((f, k) => {
+    let g = agg.get(k);
+    if (!g) { g = { a: f.a, b: f.b, tries: 0, right: 0, ms: 0, n: 0 }; agg.set(k, g); }
+    g.tries += f.tries; g.right += f.right;
+    if (f.median != null) { g.ms += f.median; g.n++; }
+  }));
+  return [...agg.values()]
+    .filter(g => g.tries >= 3 && s.tables.includes(g.a))
+    .map(g => ({ ...g, acc: g.right / g.tries, avg: g.n ? g.ms / g.n : 0 }))
+    .sort((x, y) => (x.acc - y.acc) || (y.avg - x.avg))
+    .slice(0, limit || 6);
+}
+
+/* weighted pick: shore up the shaky facts, keep the solid ones warm */
+function xtPick(facts, stats, recent) {
+  const weight = ([a, b]) => {
+    const f = stats.get(xtKey(a, b));
+    if (!f) return 3;
+    return f.status === 'learning' ? 6 : f.status === 'nearly' ? 4 : 1;
+  };
+  const pool = facts.filter(f => !recent.includes(xtKey(f[0], f[1])));
+  const use = pool.length ? pool : facts;
+  const total = use.reduce((n, f) => n + weight(f), 0);
+  let r = Math.random() * total;
+  for (const f of use) { r -= weight(f); if (r <= 0) return f; }
+  return use[use.length - 1];
+}
+
+function xtGridHTML(sid, classId) {
+  const s = xtSettings(classId), stats = xtFactStats(sid, classId);
+  const on = new Set(s.tables);
+  const cells = [`<span class="xt-cell hd">×</span>`];
+  for (let b = 1; b <= s.upTo; b++) cells.push(`<span class="xt-cell hd">${b}</span>`);
+  for (let a = 1; a <= 12; a++) {
+    cells.push(`<span class="xt-cell hd">${a}</span>`);
+    for (let b = 1; b <= s.upTo; b++) {
+      if (!on.has(a)) { cells.push(`<span class="xt-cell off" title="${a} × ${b} — not set yet"></span>`); continue; }
+      const f = stats.get(xtKey(a, b));
+      const st = f ? f.status : 'new';
+      const t = f && f.median ? ` — ${(f.median / 1000).toFixed(1)}s` : '';
+      cells.push(`<span class="xt-cell s-${st}" title="${a} × ${b} = ${a * b} · ${st}${t}">${a * b}</span>`);
+    }
+  }
+  return `<div class="xt-gridwrap"><div class="xt-grid" style="grid-template-columns:repeat(${s.upTo + 1}, auto)">${cells.join('')}</div></div>
+    <div class="xt-key">
+      <span><i style="background:#4b8a5e"></i>Fluent (under ${XT_FLUENT / 1000}s)</span>
+      <span><i style="background:#d8a13c"></i>Nearly there</span>
+      <span><i style="background:#c9603f"></i>Still learning</span>
+      <span><i style="background:#e6e1d6"></i>Not tried yet</span>
+      <span><i style="background:#f0ece4"></i>Not set for this class</span>
+    </div>`;
+}
+
+/* ---------- times tables: the child's own page ---------- */
+function xtMyClasses(sid) {
+  return db.classes.filter(c => c.students.includes(sid) && !c.archived);
+}
+/* a nudge on the dashboard — the child's own, or their parent's view of it */
+function xtDashHTML(sid, forParent) {
+  const classes = xtMyClasses(sid);
+  if (!classes.length) return '';
+  const c = classes[0], sum = xtSummary(sid, c.id);
+  const who = forParent ? esc(user(sid).name.split(' ')[0]) : null;
+  return `
+    <button class="assign-row" id="xt-dash">
+      <span class="assign-ico">${ic('i-tables')}</span>
+      <span class="assign-body"><b>Times tables</b>
+        <small>${sum.fluent}/${sum.facts} facts fluent${sum.weekRuns
+          ? ` · ${sum.weekRuns} go${sum.weekRuns === 1 ? '' : 'es'} this week`
+          : forParent ? ' · no practice yet this week' : ' · nothing yet this week'}</small></span>
+      <span class="assign-side">${sum.weekRuns
+        ? `<span class="chip green">${ic('i-tick')} practised</span>`
+        : `<span class="chip amber">${forParent ? who + ' hasn’t practised' : 'have a go'}</span>`}</span>
+    </button>`;
+}
+function wireXtDash() {
+  const b = $('#xt-dash');
+  if (b) b.onclick = () => go({ page: 'tables', classId: null });
+}
+function renderTables(main) {
+  const u = me();
+  const sid = isParent() ? u.childId : u.id;
+  const classes = xtMyClasses(sid);
+  if (!classes.length) {
+    main.innerHTML = `<div class="page-head"><h2>Times tables</h2></div>
+      <div class="card empty">${ic('i-tables', 'big')}Join a class and your teacher will set the tables you're working on.</div>`;
+    return;
+  }
+  const c = classes.find(k => k.id === view.classId) || classes[0];
+  const s = xtSettings(c.id);
+  const sum = xtSummary(sid, c.id);
+  const mine = isParent() ? false : true;
+  const name = isParent() ? esc(user(sid).name.split(' ')[0]) : 'you';
+
+  const board = s.leaderboard ? c.students.map(x => ({ x, w: xtSummary(x, c.id).weekBest }))
+    .filter(r => r.w > 0).sort((p, q) => q.w - p.w).slice(0, 8) : [];
+
+  main.innerHTML = `
+    <div class="page-head"><h2>Times tables</h2>
+      <span class="spacer"></span></div>
+    <p class="page-sub">${esc(c.name)} · working on ${s.tables.map(t => t + '×').join(' ')} up to ${s.upTo}</p>
+    ${classes.length > 1 ? `<div class="xt-tabchips">${classes.map(k =>
+      `<button class="${k.id === c.id ? 'on' : ''}" data-xtclass="${k.id}">${esc(k.name)}</button>`).join('')}</div>` : ''}
+    ${mine ? `
+    <div class="xt-hero">
+      <h3>${sum.weekRuns ? `${sum.weekRuns} go${sum.weekRuns === 1 ? '' : 'es'} this week — keep it up` : 'Ready when you are'}</h3>
+      <p>${sum.fluent} of ${sum.facts} facts are coming back in under ${XT_FLUENT / 1000} seconds.
+        ${sum.fluent < sum.facts ? 'A sprint takes one minute.' : 'Everything is fluent — try adding a harder table with your teacher.'}</p>
+      <div class="row">
+        <button class="btn" id="xt-sprint">${ic('i-rocket')} Start a ${s.seconds}-second sprint</button>
+        <button class="btn ghost" id="xt-practice">${ic('i-star')} Practise, no timer</button>
+      </div>
+    </div>` : ''}
+    <div class="stat-row">
+      <div class="stat green"><div class="n">${sum.fluent}</div><div class="l">Fluent facts</div></div>
+      <div class="stat"><div class="n">${sum.accuracy == null ? '—' : sum.accuracy + '%'}</div><div class="l">Accuracy</div></div>
+      <div class="stat"><div class="n">${sum.avgMs == null ? '—' : (sum.avgMs / 1000).toFixed(1) + 's'}</div><div class="l">Average recall</div></div>
+      <div class="stat ${sum.weekBest ? 'amber' : ''}"><div class="n">${sum.weekBest || '—'}</div><div class="l">Best this week</div></div>
+    </div>
+    <h3 style="margin:22px 0 10px">${mine ? 'Your' : name + '’s'} recall grid</h3>
+    ${xtGridHTML(sid, c.id)}
+    ${board.length ? `<h3 style="margin:26px 0 10px">This week in ${esc(c.name)}</h3>
+      <div class="xt-lead">${board.map((r, i) => `
+        <div class="assign-row" style="cursor:default">
+          <span class="assign-ico">${i + 1}</span>
+          <span class="assign-body"><b>${esc(user(r.x).name)}${r.x === sid ? ' — that\'s ' + (isParent() ? name : 'you') : ''}</b>
+            <small>best sprint this week</small></span>
+          <span class="assign-side"><span class="chip ${i === 0 ? 'amber' : 'grey'}">${r.w} points</span></span>
+        </div>`).join('')}</div>` : ''}`;
+
+  document.querySelectorAll('[data-xtclass]').forEach(b => b.onclick = () => go({ classId: b.dataset.xtclass }));
+  if (mine) {
+    $('#xt-sprint').onclick = () => openTablesGame(c.id, 'sprint');
+    $('#xt-practice').onclick = () => openTablesGame(c.id, 'practice');
+  }
+}
+
+/* ---------- times tables: the teacher's class tab ---------- */
+function renderTablesTab(body, c) {
+  const s = xtSettings(c.id);
+  const hot = xtHotspots(c);
+  const rows = c.students.map(sid => ({ sid, s: xtSummary(sid, c.id) }));
+  const active = rows.filter(r => r.s.weekRuns > 0).length;
+  const accs = rows.map(r => r.s.accuracy).filter(a => a != null);
+  const avgs = rows.map(r => r.s.avgMs).filter(a => a != null);
+  const fluentPct = rows.length
+    ? Math.round(rows.reduce((n, r) => n + r.s.fluent / Math.max(r.s.facts, 1), 0) / rows.length * 100) : 0;
+
+  body.innerHTML = `
+    <div class="mb-actions">
+      <span class="chip grey">${ic('i-tables')} ${s.tables.map(t => t + '×').join(' ')} · up to ${s.upTo}</span>
+      <span class="chip ${s.leaderboard ? 'green' : 'grey'}">${s.leaderboard ? 'Leaderboard on' : 'Leaderboard off'}</span>
+      <span class="spacer"></span>
+      ${isTeacher() ? `<button class="btn sec small" id="xt-set">${ic('i-gear')} Which tables?</button>` : ''}
+    </div>
+    <div class="stat-row">
+      <div class="stat ${active ? 'green' : 'amber'}"><div class="n">${active}/${c.students.length}</div><div class="l">Practised this week</div></div>
+      <div class="stat"><div class="n">${accs.length ? Math.round(accs.reduce((a, b) => a + b, 0) / accs.length) + '%' : '—'}</div><div class="l">Class accuracy</div></div>
+      <div class="stat"><div class="n">${avgs.length ? (avgs.reduce((a, b) => a + b, 0) / avgs.length / 1000).toFixed(1) + 's' : '—'}</div><div class="l">Average recall</div></div>
+      <div class="stat"><div class="n">${fluentPct}%</div><div class="l">Facts fluent</div></div>
+    </div>
+    ${hot.length ? `<h3 style="margin:20px 0 10px">Where the class is stuck</h3>
+      <p class="page-sub" style="margin-top:-6px">The facts most often wrong or slowest to come back. Worth ten minutes on the carpet.</p>
+      <div class="xt-hot">${hot.map(g => `<span>${g.a} × ${g.b}
+        <small>${Math.round(g.acc * 100)}% right${g.avg ? ' · ' + (g.avg / 1000).toFixed(1) + 's' : ''}</small></span>`).join('')}</div>` : ''}
+    <h3 style="margin:22px 0 10px">Every child</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Pupil</th><th>Fluent facts</th><th>Accuracy</th><th>Recall</th>
+        <th>This week</th><th>Best sprint</th><th>Last practised</th></tr></thead>
+      <tbody>${rows.map(r => `
+        <tr data-xtpupil="${r.sid}" style="cursor:pointer">
+          <td><b>${esc(user(r.sid).name)}</b></td>
+          <td><div class="row" style="gap:8px; align-items:center">
+            <span class="xt-bar"><i style="width:${Math.round(r.s.fluent / Math.max(r.s.facts, 1) * 100)}%"></i></span>
+            <small class="muted">${r.s.fluent}/${r.s.facts}</small></div></td>
+          <td class="gb-cell">${r.s.accuracy == null ? '<span class="muted">—</span>'
+            : `<span class="chip ${r.s.accuracy >= 90 ? 'green' : r.s.accuracy >= 70 ? 'amber' : 'red'}">${r.s.accuracy}%</span>`}</td>
+          <td class="gb-cell">${r.s.avgMs == null ? '<span class="muted">—</span>' : (r.s.avgMs / 1000).toFixed(1) + 's'}</td>
+          <td class="gb-cell">${r.s.weekRuns || '<span class="muted">0</span>'}</td>
+          <td class="gb-cell">${r.s.best || '<span class="muted">—</span>'}</td>
+          <td>${r.s.last ? fmtWhen(r.s.last) : '<span class="muted">not yet</span>'}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>
+    ${c.students.length ? '' : `<div class="card empty">${ic('i-tables', 'big')}Add pupils to the class and their practice appears here.</div>`}`;
+
+  const setBtn = $('#xt-set'); if (setBtn) setBtn.onclick = () => openTablesSettings(c);
+  document.querySelectorAll('[data-xtpupil]').forEach(tr => tr.onclick = () => openTablesPupil(tr.dataset.xtpupil, c));
+}
+
+function openTablesPupil(sid, c) {
+  const sum = xtSummary(sid, c.id);
+  const runs = xtRuns(sid, c.id).slice(0, 5);
+  const m = openModal(`
+    <h3>${ic('i-tables')} ${esc(user(sid).name)}</h3>
+    <p class="m-sub">${esc(c.name)} · ${sum.runs} practice${sum.runs === 1 ? '' : 's'} recorded${sum.last ? ' · last ' + fmtWhen(sum.last) : ''}</p>
+    <div class="stat-row">
+      <div class="stat green"><div class="n">${sum.fluent}/${sum.facts}</div><div class="l">Fluent</div></div>
+      <div class="stat"><div class="n">${sum.accuracy == null ? '—' : sum.accuracy + '%'}</div><div class="l">Accuracy</div></div>
+      <div class="stat"><div class="n">${sum.avgMs == null ? '—' : (sum.avgMs / 1000).toFixed(1) + 's'}</div><div class="l">Recall</div></div>
+    </div>
+    <div style="margin:14px 0">${xtGridHTML(sid, c.id)}</div>
+    ${runs.length ? `<h4 style="margin:16px 0 8px">Recent goes</h4>` + runs.map(r => `
+      <div class="assign-row" style="cursor:default">
+        <span class="assign-ico">${ic(XT_MODES[r.mode] ? XT_MODES[r.mode].icon : 'i-rocket')}</span>
+        <span class="assign-body"><b>${XT_MODES[r.mode] ? XT_MODES[r.mode].label : r.mode}</b>
+          <small>${r.correct} right, ${r.wrong} wrong · ${fmtWhen(r.ts)}</small></span>
+        <span class="assign-side"><span class="chip grey">${r.score} points</span></span>
+      </div>`).join('') : ''}
+    <div class="m-actions"><button class="btn ghost" data-x>Close</button></div>`);
+  m.querySelector('.modal').classList.add('wide');
+  m.querySelector('[data-x]').onclick = () => m.remove();
+}
+
+function openTablesSettings(c) {
+  const s = xtSettings(c.id);
+  const m = openModal(`
+    <h3>${ic('i-tables')} Times tables — ${esc(c.name)}</h3>
+    <p class="m-sub">Pick the tables this class is working on. Everything else stays greyed out on their grid until you add it.</p>
+    <label>Tables</label>
+    <div class="xt-tabchips" id="xt-pick">${[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(t =>
+      `<button class="${s.tables.includes(t) ? 'on' : ''}" data-t="${t}">${t}×</button>`).join('')}</div>
+    <label for="xt-upto">Up to</label>
+    <select id="xt-upto">${[10, 12].map(n => `<option value="${n}" ${s.upTo === n ? 'selected' : ''}>${n} (e.g. 8 × ${n})</option>`).join('')}</select>
+    <label for="xt-secs">Sprint length</label>
+    <select id="xt-secs">${[30, 60, 90, 120].map(n =>
+      `<option value="${n}" ${s.seconds === n ? 'selected' : ''}>${n} seconds</option>`).join('')}</select>
+    <label style="display:flex; gap:9px; align-items:flex-start; margin-top:14px; font-weight:600">
+      <input type="checkbox" id="xt-lead" ${s.leaderboard ? 'checked' : ''} style="width:auto; margin-top:3px">
+      <span>Show the class leaderboard<br><small class="muted">Children see the week's top scores with names. Turn it off if a public
+        board isn't right for this class — everyone still sees their own progress.</small></span>
+    </label>
+    <div class="m-actions">
+      <button class="btn ghost" data-x>Cancel</button>
+      <button class="btn" data-go>Save</button>
+    </div>`);
+  const picked = new Set(s.tables);
+  m.querySelectorAll('#xt-pick button').forEach(b => b.onclick = () => {
+    const t = +b.dataset.t;
+    if (picked.has(t)) picked.delete(t); else picked.add(t);
+    b.classList.toggle('on', picked.has(t));
+  });
+  m.querySelector('[data-x]').onclick = () => m.remove();
+  m.querySelector('[data-go]').onclick = () => {
+    if (!picked.size) { toast('Pick at least one table.', true); return; }
+    s.tables = [...picked].sort((a, b) => a - b);
+    s.upTo = +m.querySelector('#xt-upto').value;
+    s.seconds = +m.querySelector('#xt-secs').value;
+    s.leaderboard = m.querySelector('#xt-lead').checked;
+    saveDB(); m.remove(); render();
+    toast('Times tables updated');
+  };
+}
+
+/* ---------- times tables: the game ---------- */
+function openTablesGame(classId, mode) {
+  const s = xtSettings(classId);
+  const sid = db.session;
+  const facts = xtFacts(s);
+  const stats = xtFactStats(sid, classId);
+  const answers = [];
+  const recent = [];
+  const again = [];                       // wrong ones queued to come back (practice mode)
+  const total = mode === 'practice' ? 12 : null;
+  let cur = null, typed = '', asked = 0, streak = 0, best = 0, shownAt = 0, locked = false;
+  let endAt = mode === 'sprint' ? Date.now() + s.seconds * 1000 : null;
+  let ticker = null, done = false;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'xt-play';
+  document.body.appendChild(wrap);
+
+  const close = () => {
+    if (ticker) clearInterval(ticker);
+    document.removeEventListener('keydown', onKey);
+    wrap.remove();
+    render();
+  };
+
+  function nextFact() {
+    if (again.length && (asked % 3 === 2 || !facts.length)) return again.shift();
+    const f = xtPick(facts, stats, recent.slice(-3));
+    return f;
+  }
+  function ask() {
+    cur = nextFact();
+    typed = ''; locked = false;
+    recent.push(xtKey(cur[0], cur[1]));
+    shownAt = performance.now();
+    paint();
+  }
+  function commit(ok) {
+    locked = true;
+    const ms = Math.round(performance.now() - shownAt);
+    answers.push({ a: cur[0], b: cur[1], ms, ok });
+    asked++;
+    if (ok) { streak++; best = Math.max(best, streak); }
+    else { streak = 0; again.push(cur); }
+    // keep the running picture fresh so the next question reacts to this answer
+    const k = xtKey(cur[0], cur[1]);
+    const f = stats.get(k) || { a: cur[0], b: cur[1], tries: 0, right: 0, times: [], status: 'learning' };
+    f.tries++; f.lastOk = ok;
+    if (ok) { f.right++; f.times.push(ms); if (f.times.length > 3) f.times.shift(); }
+    const med = f.times.length ? f.times.slice().sort((p, q) => p - q)[Math.floor(f.times.length / 2)] : null;
+    f.median = med;
+    f.status = med == null || !ok ? 'learning' : med < XT_FLUENT ? 'fluent' : med < XT_NEARLY ? 'nearly' : 'learning';
+    stats.set(k, f);
+    paint();
+    setTimeout(() => {
+      if (done) return;
+      if (total && asked >= total) finish();
+      else if (mode === 'sprint' && Date.now() >= endAt) finish();
+      else ask();
+    }, ok ? 380 : 1150);
+  }
+  function press(ch) {
+    if (locked || done) return;
+    if (ch === 'del') { typed = typed.slice(0, -1); paint(); return; }
+    if (typed.length >= 3) return;
+    typed += ch;
+    const want = String(cur[0] * cur[1]);
+    if (typed === want) { commit(true); return; }
+    if (typed.length >= want.length) { commit(false); return; }
+    paint();
+  }
+  function onKey(e) {
+    if (done) { if (e.key === 'Escape') close(); return; }
+    if (e.key === 'Escape') { finish(); return; }
+    if (e.key === 'Backspace') { e.preventDefault(); press('del'); return; }
+    if (/^[0-9]$/.test(e.key)) { e.preventDefault(); press(e.key); }
+  }
+
+  function paint() {
+    const want = String(cur[0] * cur[1]);
+    const left = mode === 'sprint' ? Math.max(0, endAt - Date.now()) : null;
+    const state = locked ? (answers[answers.length - 1].ok ? 'ok' : 'no') : '';
+    wrap.innerHTML = `
+      <div class="xt-top">
+        <span class="mark">${MARK}</span><b>${XT_MODES[mode].label}</b>
+        <span class="spacer"></span>
+        ${streak >= 3 ? `<span class="xt-pill go">${streak} in a row</span>` : ''}
+        <span class="xt-pill">${answers.filter(x => x.ok).length} right</span>
+        ${mode === 'sprint'
+          ? `<span class="xt-pill ${left < 10000 ? 'hot' : ''}">${Math.ceil(left / 1000)}s</span>`
+          : `<span class="xt-pill">${asked}/${total}</span>`}
+        <button class="btn ghost small" id="xt-quit">${ic('i-x')} Finish</button>
+      </div>
+      <div class="xt-clock"><i style="width:${mode === 'sprint' ? (left / (s.seconds * 1000) * 100) : (asked / total * 100)}%"></i></div>
+      <div class="xt-stage">
+        <div class="xt-q">${cur[0]} <em>×</em> ${cur[1]} <em>=</em></div>
+        <div class="xt-ans ${state}">${esc(typed) || '<span class="ghost">?</span>'}</div>
+        <div class="xt-hint">${locked
+          ? (answers[answers.length - 1].ok
+            ? `${['Yes!', 'Spot on.', 'Nice one.', 'Quick!'][answers.length % 4]}`
+            : `Not quite — <b>${cur[0]} × ${cur[1]} = ${want}</b>. It'll come back around.`)
+          : 'Type the answer'}</div>
+        <div class="xt-pad">
+          ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}
+          <button data-k="del" aria-label="Delete">⌫</button>
+          <button data-k="0">0</button>
+        </div>
+      </div>`;
+    wrap.querySelectorAll('[data-k]').forEach(b => b.onclick = () => press(b.dataset.k));
+    $('#xt-quit').onclick = finish;
+  }
+
+  function finish() {
+    if (done) return;
+    done = true;
+    if (ticker) clearInterval(ticker);
+    const run = xtRunRecord(sid, classId, mode, mode === 'sprint' ? s.seconds : null, answers);
+    const prevBest = xtRuns(sid, classId).filter(r => r.mode === 'sprint').reduce((n, r) => Math.max(n, r.score), 0);
+    if (answers.length) xtSaveRun(run);
+    const pb = mode === 'sprint' && answers.length && run.score > prevBest;
+    const acc = answers.length ? Math.round(run.correct / answers.length * 100) : 0;
+    const avg = run.correct ? Math.round(answers.filter(x => x.ok).reduce((n, x) => n + x.ms, 0) / run.correct) : null;
+    const wrong = [...new Set(answers.filter(x => !x.ok).map(x => xtKey(x.a, x.b)))].slice(0, 6);
+    wrap.innerHTML = `
+      <div class="xt-top"><span class="mark">${MARK}</span><b>${XT_MODES[mode].label}</b><span class="spacer"></span></div>
+      <div class="xt-stage">
+        <div class="xt-end">
+          ${answers.length ? `
+            <div class="xt-score">${run.score}</div>
+            <h2 style="margin-top:8px">${pb ? 'New personal best! 🎉' : acc >= 90 ? 'Great going' : 'Nice work'}</h2>
+            <p>${run.correct} right out of ${answers.length}${best >= 4 ? ` · best streak ${best}` : ''}</p>
+            <div class="stat-row">
+              <div class="stat"><div class="n">${acc}%</div><div class="l">Accuracy</div></div>
+              <div class="stat"><div class="n">${avg == null ? '—' : (avg / 1000).toFixed(1) + 's'}</div><div class="l">Average</div></div>
+              <div class="stat"><div class="n">${prevBest || '—'}</div><div class="l">Previous best</div></div>
+            </div>
+            ${wrong.length ? `<p style="margin-bottom:16px">Worth another look: <b style="color:var(--gold-hi)">${wrong.join(', ')}</b></p>` : ''}`
+          : `<h2>No answers this time</h2><p>Have another go whenever you're ready.</p>`}
+          <div class="row" style="justify-content:center; gap:10px">
+            <button class="btn" id="xt-again">${ic('i-rotate')} Go again</button>
+            <button class="btn ghost" id="xt-done">${ic('i-tick')} Done</button>
+          </div>
+        </div>
+      </div>`;
+    $('#xt-again').onclick = () => { close(); openTablesGame(classId, mode); };
+    $('#xt-done').onclick = close;
+  }
+
+  document.addEventListener('keydown', onKey);
+  if (mode === 'sprint') ticker = setInterval(() => {
+    if (done) return;
+    if (Date.now() >= endAt) finish(); else if (!locked) paint();
+  }, 250);
+  ask();
 }
 
 /* ---------- safeguarding (ported from ClubHQ; KCSIE-structured) ----------
