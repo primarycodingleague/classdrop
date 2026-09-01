@@ -1677,7 +1677,7 @@ const FEATURES = [
   ['reports', 'i-report', 'Report builder', "Design a report once, generate a whole class's."],
   ['timetables', 'i-timetable', 'Visual timetables', 'Picture timetables for the board, print and pupil dashboards.'],
   ['seating', 'i-seating', 'Seating plans', 'Drag-and-drop plans built from the real class list, with keep-apart pairs.'],
-  ['tables', 'i-tables', 'Times tables', 'Timed recall practice, per-fact fluency and class hotspots. Replaces a separate tables subscription.'],
+  ['tables', 'i-tables', 'Times tables', 'Recall assessment: what every child knows, how fast, and who is ready for the Year 4 check. Practice included.'],
   ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
   ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
   ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
@@ -5681,6 +5681,9 @@ function renderTablesTab(body, c) {
       <span class="spacer"></span>
       ${isTeacher() ? `<button class="btn sec small" id="xt-set">${ic('i-gear')} Which tables?</button>` : ''}
     </div>
+    <p class="page-sub" style="margin-top:-2px">Every answer is timed, so this is what each child can
+      <em>recall</em> — not what they can work out. Nothing here is a test they have to sit: it builds
+      itself from the practice they already do.</p>
     <div class="stat-row">
       <div class="stat ${active ? 'green' : 'amber'}"><div class="n">${active}/${c.students.length}</div><div class="l">Practised this week</div></div>
       <div class="stat"><div class="n">${accs.length ? Math.round(accs.reduce((a, b) => a + b, 0) / accs.length) + '%' : '—'}</div><div class="l">Class accuracy</div></div>
