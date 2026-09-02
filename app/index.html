@@ -458,6 +458,70 @@ tr:last-child td{border-bottom:none}
 .gb-cell{text-align:center; font-weight:800; white-space:nowrap}
 .gb-cell .chip{font-size:.68rem}
 
+/* ---------- reading corner (shared device, no pupil logins) ---------- */
+.rc-wrap{position:fixed; inset:0; z-index:70; background:linear-gradient(170deg,#f3ece0,#e7ddcb);
+  color:#2b2723; font-family:var(--font); display:flex; flex-direction:column; overflow:auto}
+.rc-bar{display:flex; align-items:center; gap:10px; padding:10px 16px; flex:none}
+.rc-bar .mark{width:26px; height:26px}
+.rc-bar b{font-size:.95rem}
+.rc-bar .spacer{flex:1}
+.rc-main{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:18px 20px 40px}
+.rc-title{font-size:clamp(1.4rem,3.4vw,2.1rem); font-weight:800; text-align:center; letter-spacing:-.02em}
+.rc-sub{color:#6d6457; font-size:.95rem; text-align:center; max-width:34em; margin:-8px 0 0}
+.rc-kids{display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); width:100%; max-width:900px}
+.rc-kid{background:#fff; border:1px solid #ded5c2; border-radius:18px; padding:14px 8px 11px; cursor:pointer;
+  font-family:var(--font); display:flex; flex-direction:column; align-items:center; gap:7px;
+  box-shadow:0 4px 14px rgba(80,66,38,.08)}
+.rc-kid:hover{border-color:var(--gold); transform:translateY(-2px)}
+.rc-kid .face{width:56px; height:56px; border-radius:50%; background:var(--gold-soft); color:var(--gold-dk);
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.2rem}
+.rc-kid b{font-size:.86rem; font-weight:800; line-height:1.2; text-align:center}
+.rc-kid small{font-size:.68rem; color:#8a8172; font-weight:700}
+.rc-kid .dot{width:8px; height:8px; border-radius:50%; background:var(--green)}
+.rc-card{background:#fff; border:1px solid #ded5c2; border-radius:22px; padding:26px 28px; width:100%;
+  max-width:620px; box-shadow:0 12px 34px rgba(80,66,38,.13); text-align:center}
+.rc-card h3{margin:0 0 6px; font-size:1.5rem}
+.rc-card p{margin:0 0 16px; color:#6d6457}
+.rc-book{display:flex; align-items:center; gap:14px; text-align:left; background:var(--gold-soft);
+  border:1px solid var(--gold-line); border-radius:14px; padding:12px 14px; margin-bottom:16px}
+.rc-book .sp{width:38px; height:54px; border-radius:5px; background:var(--gold); flex:none;
+  display:flex; align-items:center; justify-content:center; color:#fff}
+.rc-book b{display:block; font-size:1rem}
+.rc-book small{color:#7a7161; font-size:.82rem}
+.rc-row{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.rc-btn{border:1px solid #d6cbb5; background:#fff; color:#2b2723; font-family:var(--font); font-weight:800;
+  font-size:1rem; border-radius:14px; padding:13px 22px; cursor:pointer}
+.rc-btn:hover{border-color:var(--gold); background:var(--gold-soft)}
+.rc-btn.go{background:var(--gold); border-color:var(--gold); color:#fff}
+.rc-btn.go:hover{background:var(--gold-dk)}
+.rc-scan{display:flex; align-items:center; gap:10px; background:#fbf7ef; border:2px dashed var(--gold-line);
+  border-radius:14px; padding:14px 16px; margin-bottom:14px}
+.rc-scan input{flex:1; border:none; background:none; font-family:var(--font); font-weight:800; font-size:1.1rem;
+  color:#2b2723; outline:none; letter-spacing:.04em; min-width:0}
+.rc-scan .ic{width:24px; height:24px; color:var(--gold-dk); flex:none}
+.rc-rate{display:flex; flex-direction:column; gap:8px}
+.rc-rate button{display:flex; align-items:center; gap:12px; border:1px solid #ded5c2; background:#fff;
+  border-radius:14px; padding:12px 16px; cursor:pointer; font-family:var(--font); font-weight:800; font-size:1rem;
+  color:#2b2723; text-align:left}
+.rc-rate button:hover{border-color:var(--gold); background:var(--gold-soft)}
+.rc-rate .em{font-size:1.5rem}
+.rc-rate .stars{margin-left:auto; color:var(--gold); letter-spacing:.08em; white-space:nowrap}
+.rc-done{font-size:3.6rem}
+@media (max-width:520px){ .rc-kids{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))} }
+
+/* teacher's view of the corner */
+.rc-q{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); margin-bottom:6px}
+.rc-qcard{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow)}
+.rc-qcard h4{margin:0 0 9px; font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
+.rc-qcard ul{margin:0; padding-left:17px; font-size:.9rem}
+.rc-qcard li{margin-bottom:5px}
+.rc-qcard .none{color:var(--muted); font-size:.88rem; margin:0}
+.rc-top{counter-reset:rank; margin:0; padding:0; list-style:none}
+.rc-top li{display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line-2, #f0ebdf); font-size:.9rem}
+.rc-top li:last-child{border-bottom:none}
+.rc-top .r{width:20px; font-weight:800; color:var(--gold-dk); font-variant-numeric:tabular-nums}
+.rc-top .s{margin-left:auto; color:var(--gold); white-space:nowrap; font-size:.82rem}
+
 /* ---------- class screen (the board at the front of the room) ---------- */
 .cs-wrap{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; font-family:var(--font)}
 .cs-wrap.bg-dark{background:var(--shell); color:#f3ede1}
@@ -1545,6 +1609,37 @@ function migrateDB() {
   }
   // seating plans
   if (!db.seating) { db.seating = []; changed = true; }
+  // reading corner: the school's book stock, and who has what out
+  if (!db.books) { db.books = []; changed = true; }
+  if (!db.loans) { db.loans = []; changed = true; }
+  if (!db.booksSeeded) {
+    const c1 = db.classes.find(c => c.id === 'c1');
+    if (c1) {
+      const B = (isbn, title, author) => ({ id: 'bk-' + isbn.slice(-5), isbn, title, author,
+        schoolId: 'sch1', addedBy: 'u-tay', ts: Date.now() - 40 * DAY });
+      db.books.push(
+        B('9780571342792', 'The Iron Man', 'Ted Hughes'),
+        B('9781444942200', 'The Wild Robot', 'Peter Brown'),
+        B('9780192734884', 'Amulet: The Stonekeeper', 'Kazu Kibuishi'),
+        B('9780241340813', 'The Boy at the Back of the Class', 'Onjali Q Raúf'),
+        B('9781406387063', 'Dragon Destiny', 'Lucy Hope'),
+        B('9780008164621', 'Fantastic Earth Facts', 'Anita Ganeri'));
+      const L = (bk, sid, outAgo, backAgo, rating) => ({
+        id: 'ln-' + bk + '-' + sid, bookId: bk, studentId: sid, classId: 'c1',
+        out: Date.now() - outAgo * DAY,
+        back: backAgo == null ? null : Date.now() - backAgo * DAY,
+        rating: rating || null, finished: rating != null,
+      });
+      db.loans.push(
+        L('bk-42792', 'u-may', 26, 19, 5), L('bk-42200', 'u-may', 18, 9, 5),
+        L('bk-34884', 'u-may', 8, null, null),
+        L('bk-42200', 'u-leo', 31, 24, 3), L('bk-64621', 'u-leo', 23, null, null),
+        L('bk-40813', 'u-ais', 21, 12, 4), L('bk-87063', 'u-ais', 10, null, null),
+        L('bk-42792', 'u-sam', 15, 6, 2), L('bk-64621', 'u-sam', 5, null, null),
+        L('bk-40813', 'u-pop', 34, null, null));
+    }
+    db.booksSeeded = true; changed = true;
+  }
   // class screen
   if (!db.screens) { db.screens = []; changed = true; }
   if (!db.screensSeeded) {
@@ -3433,16 +3528,29 @@ function openPointsHistory(c) {
 
 function renderReadingTab(body, c) {
   body.innerHTML = `
-    <p class="page-sub" style="margin-top:0">A shared reading diary for every child — you and their parents keep it up to date, children can see it. Tap a pupil to open theirs.</p>
+    <div class="mb-actions">
+      <span class="spacer"></span>
+      <button class="btn ghost small" id="rc-find-btn">${ic('i-search')} Where's my copy of…</button>
+      <button class="btn" id="rc-open">${ic('i-laser')} Open the reading corner</button>
+    </div>
+    <p class="page-sub" style="margin-top:-4px">Put one device in the book corner with a barcode scanner and children
+      change their own books — no logins, and every finished book writes itself into the reading record below.</p>
+    ${rcTeacherHTML(c)}
+    <h3 style="margin:22px 0 10px">Every child</h3>
     ${c.students.map(sid => {
       const es = readingOf(sid);
       const last = es.length ? fmtDate(new Date(es.slice().sort((a, b) => a.date < b.date ? 1 : -1)[0].date).getTime()) : 'no entries yet';
+      const loan = rcOut(sid), bk = loan ? rcBook(loan.bookId) : null;
       return `<button class="assign-row" data-reading="${sid}">
         <span class="assign-ico">${ic('i-book')}</span>
-        <span class="assign-body"><b>${esc(user(sid).name)}</b><small>${es.length} entr${es.length === 1 ? 'y' : 'ies'} · last: ${last}</small></span>
-        <span class="assign-side">${ic('i-back')}</span>
+        <span class="assign-body"><b>${esc(user(sid).name)}</b><small>${bk
+          ? `reading <b>${esc(bk.title)}</b> · out ${rcDays(loan.out)} day${rcDays(loan.out) === 1 ? '' : 's'}`
+          : `${es.length} entr${es.length === 1 ? 'y' : 'ies'} · last: ${last}`}</small></span>
+        <span class="assign-side">${bk && rcDays(loan.out) >= 14 ? `<span class="chip amber">not changed</span>` : ''}${ic('i-back')}</span>
       </button>`;
     }).join('') || `<div class="card empty">${ic('i-people', 'big')}No students in this class yet.</div>`}`;
+  $('#rc-open').onclick = () => openReadingCorner(c);
+  $('#rc-find-btn').onclick = () => openBookSearch(c);
   body.querySelectorAll('[data-reading]').forEach(b => b.onclick = () => go({ page: 'reading', studentId: b.dataset.reading }));
 }
 
@@ -5485,6 +5593,295 @@ function openSPDisplay(plan, opts) {
   if (opts.print) setTimeout(() => window.print(), 150);
 }
 
+/* ---------- reading corner ----------
+   One shared device in the book corner, no pupil logins: a child taps their name,
+   scans a book out or rates the one they've finished, and goes back to reading.
+   A USB barcode scanner is just a keyboard that types fast and presses enter, so
+   nothing here needs a driver — typing the ISBN by hand works identically.
+   Every loan writes into the reading log, so the teacher's record fills itself. */
+const RC_RATINGS = [
+  [5, '😍', 'It was AMAZING!'], [4, '😊', 'I really enjoyed it'], [3, '🙂', 'It was quite good'],
+  [2, '😐', 'It was just OK'], [1, '😕', "It wasn't for me"],
+];
+const rcBook = id => db.books.find(b => b.id === id);
+const rcLoans = sid => db.loans.filter(l => l.studentId === sid).sort((a, b) => b.out - a.out);
+const rcOut = sid => db.loans.find(l => l.studentId === sid && !l.back);
+const rcDays = ts => Math.floor((Date.now() - ts) / 86400000);
+const rcInitials = name => name.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+/* who has this book right now — the "where's my copy of The Wild Robot?" question */
+const rcHolders = bookId => db.loans.filter(l => l.bookId === bookId && !l.back).map(l => l.studentId);
+
+/* the class's books ranked by how the children rated them */
+function rcTopBooks(c, limit) {
+  const agg = new Map();
+  db.loans.filter(l => l.classId === c.id && l.rating).forEach(l => {
+    const g = agg.get(l.bookId) || { n: 0, sum: 0 };
+    g.n++; g.sum += l.rating; agg.set(l.bookId, g);
+  });
+  return [...agg.entries()]
+    .map(([id, g]) => ({ book: rcBook(id), n: g.n, avg: g.sum / g.n }))
+    .filter(x => x.book)
+    .sort((a, b) => (b.avg - a.avg) || (b.n - a.n))
+    .slice(0, limit || 10);
+}
+
+/* a finished loan becomes a reading-log entry, so the two never drift apart */
+function rcLogEntry(loan) {
+  const b = rcBook(loan.bookId);
+  if (!b) return;
+  const words = RC_RATINGS.find(r => r[0] === loan.rating);
+  const iso = new Date(loan.back || Date.now()).toISOString().slice(0, 10);
+  (db.reading[loan.studentId] = readingOf(loan.studentId).slice()).push({
+    id: uid(), date: iso, book: b.title, author: b.author, pages: 'Finished the book',
+    rating: loan.rating, note: `Read in the reading corner${words ? ' — “' + words[2] + '”' : ''}.`,
+    by: loan.studentId, ts: Date.now(),
+  });
+}
+
+function openReadingCorner(c) {
+  const wrap = document.createElement('div');
+  wrap.className = 'rc-wrap';
+  document.body.appendChild(wrap);
+  let sid = null, step = 'grid', pending = null, idle = null;
+  const close = () => { clearTimeout(idle); document.removeEventListener('keydown', onKey); wrap.remove(); render(); };
+  /* nobody signs out of a shared device, so it takes itself back to the grid */
+  const resetIdle = () => {
+    clearTimeout(idle);
+    if (step !== 'grid') idle = setTimeout(() => { sid = null; step = 'grid'; pending = null; paint(); }, 45000);
+  };
+
+  /* a barcode scanner types the digits in a burst and presses enter */
+  let buf = '', last = 0;
+  function onKey(e) {
+    resetIdle();
+    if (e.key === 'Escape') { if (step === 'grid') close(); else { sid = null; step = 'grid'; paint(); } return; }
+    if (step !== 'scan') return;
+    const now = Date.now();
+    if (now - last > 400) buf = '';
+    last = now;
+    if (e.key === 'Enter') { if (buf.length >= 6) takeIsbn(buf); buf = ''; return; }
+    if (/^[0-9Xx]$/.test(e.key)) buf += e.key;
+  }
+
+  function takeIsbn(raw) {
+    const isbn = String(raw).replace(/[^0-9Xx]/g, '');
+    if (isbn.length < 6) { toast('That barcode looks too short — try again.', true); return; }
+    const known = db.books.find(b => b.isbn === isbn && b.schoolId === me().schoolId);
+    if (known) { lend(known); return; }
+    pending = isbn; step = 'newbook'; paint();
+  }
+
+  function lend(book) {
+    const already = rcOut(sid);
+    if (already) { already.back = Date.now(); }          // swapping straight over
+    db.loans.push({ id: uid(), bookId: book.id, studentId: sid, classId: c.id,
+      out: Date.now(), back: null, rating: null, finished: false });
+    saveDB();
+    step = 'took'; pending = book; paint();
+    setTimeout(() => { if (step === 'took') { sid = null; step = 'grid'; pending = null; paint(); } }, 3200);
+  }
+
+  function finish(loan, rating) {
+    loan.back = Date.now(); loan.rating = rating; loan.finished = true;
+    rcLogEntry(loan);
+    saveDB();
+    step = 'thanks'; pending = rating; paint();
+    setTimeout(() => { if (step === 'thanks') { sid = null; step = 'grid'; pending = null; paint(); } }, 3200);
+  }
+
+  function paint() {
+    resetIdle();
+    const kid = sid ? user(sid) : null;
+    const loan = sid ? rcOut(sid) : null;
+    const book = loan ? rcBook(loan.bookId) : null;
+    let main = '';
+
+    if (step === 'grid') {
+      main = `
+        <h2 class="rc-title">Who's changing a book?</h2>
+        <p class="rc-sub">Tap your name. Nothing to log in to.</p>
+        <div class="rc-kids">${c.students.map(s => {
+          const l = rcOut(s), b = l ? rcBook(l.bookId) : null;
+          return `<button class="rc-kid" data-kid="${s}">
+            <span class="face">${esc(rcInitials(user(s).name))}</span>
+            <b>${esc(user(s).name.split(' ')[0])}</b>
+            ${b ? `<small>${ic('i-book')} reading</small>` : `<small style="opacity:.55">no book out</small>`}
+          </button>`;
+        }).join('')}</div>`;
+    } else if (step === 'who') {
+      main = `
+        <div class="rc-card">
+          <h3>Hello, ${esc(kid.name.split(' ')[0])} 👋</h3>
+          ${book ? `<p>You've had this out for ${rcDays(loan.out)} day${rcDays(loan.out) === 1 ? '' : 's'}.</p>
+            <div class="rc-book"><span class="sp">${ic('i-book')}</span>
+              <span><b>${esc(book.title)}</b><small>${esc(book.author || '')}</small></span></div>`
+            : `<p>You haven't got a book out at the moment.</p>`}
+          <div class="rc-row">
+            ${book ? `<button class="rc-btn go" data-act="rate">${ic('i-star')} I've finished it</button>` : ''}
+            <button class="rc-btn ${book ? '' : 'go'}" data-act="take">${ic('i-book')} ${book ? 'Change my book' : 'Take a book'}</button>
+            <button class="rc-btn" data-act="back">Not me</button>
+          </div>
+        </div>`;
+    } else if (step === 'scan') {
+      main = `
+        <div class="rc-card">
+          <h3>Scan the barcode</h3>
+          <p>Point the scanner at the back of the book — or type the numbers underneath it.</p>
+          <div class="rc-scan">${ic('i-search')}<input id="rc-isbn" inputmode="numeric" autocomplete="off"
+            placeholder="9781444942200" aria-label="Book barcode number"></div>
+          <div class="rc-row">
+            <button class="rc-btn go" id="rc-isbn-go">${ic('i-tick')} That's the one</button>
+            <button class="rc-btn" data-act="who">Back</button>
+          </div>
+        </div>`;
+    } else if (step === 'newbook') {
+      main = `
+        <div class="rc-card">
+          <h3>A new book for the library</h3>
+          <p>Nobody has scanned this one before. Type the title and it's saved for everyone from now on.</p>
+          <label style="text-align:left; display:block; font-weight:800; font-size:.8rem; margin-bottom:4px">Title</label>
+          <input id="rc-nb-title" placeholder="The Wild Robot" maxlength="90">
+          <label style="text-align:left; display:block; font-weight:800; font-size:.8rem; margin:10px 0 4px">Author</label>
+          <input id="rc-nb-author" placeholder="Peter Brown" maxlength="60">
+          <div class="rc-row" style="margin-top:16px">
+            <button class="rc-btn go" id="rc-nb-go">${ic('i-tick')} Add it</button>
+            <button class="rc-btn" data-act="scan">Back</button>
+          </div>
+        </div>`;
+    } else if (step === 'rate') {
+      main = `
+        <div class="rc-card">
+          <h3>What did you think?</h3>
+          <div class="rc-book"><span class="sp">${ic('i-book')}</span>
+            <span><b>${esc(book.title)}</b><small>${esc(book.author || '')}</small></span></div>
+          <div class="rc-rate">${RC_RATINGS.map(([n, em, label]) => `
+            <button data-rate="${n}"><span class="em">${em}</span>${esc(label)}
+              <span class="stars">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span></button>`).join('')}</div>
+          <div class="rc-row" style="margin-top:14px"><button class="rc-btn" data-act="who">Back</button></div>
+        </div>`;
+    } else if (step === 'took') {
+      main = `
+        <div class="rc-card">
+          <div class="rc-done">📖</div>
+          <h3>Enjoy it, ${esc(kid.name.split(' ')[0])}!</h3>
+          <div class="rc-book" style="margin-top:14px"><span class="sp">${ic('i-book')}</span>
+            <span><b>${esc(pending.title)}</b><small>${esc(pending.author || '')}</small></span></div>
+        </div>`;
+    } else if (step === 'thanks') {
+      main = `
+        <div class="rc-card">
+          <div class="rc-done">${RC_RATINGS.find(r => r[0] === pending)[1]}</div>
+          <h3>Thanks, ${esc(kid.name.split(' ')[0])}</h3>
+          <p>That's gone in your reading record. Take another whenever you're ready.</p>
+        </div>`;
+    }
+
+    wrap.innerHTML = `
+      <div class="rc-bar"><span class="mark">${MARK}</span><b>Reading corner · ${esc(c.name)}</b>
+        <span class="spacer"></span>
+        <button class="btn ghost small" id="rc-close">${ic('i-x')} Close</button></div>
+      <div class="rc-main">${main}</div>`;
+
+    $('#rc-close').onclick = close;
+    wrap.querySelectorAll('[data-kid]').forEach(b => b.onclick = () => { sid = b.dataset.kid; step = 'who'; paint(); });
+    wrap.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
+      const a = b.dataset.act;
+      if (a === 'back') { sid = null; step = 'grid'; }
+      else if (a === 'who') step = 'who';
+      else if (a === 'take') { step = 'scan'; buf = ''; }
+      else if (a === 'rate') step = 'rate';
+      else if (a === 'scan') step = 'scan';
+      paint();
+    });
+    wrap.querySelectorAll('[data-rate]').forEach(b => b.onclick = () => finish(loan, +b.dataset.rate));
+    const go = $('#rc-isbn-go');
+    if (go) {
+      const inp = $('#rc-isbn');
+      inp.focus();
+      go.onclick = () => takeIsbn(inp.value);
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); takeIsbn(inp.value); } };
+    }
+    const nb = $('#rc-nb-go');
+    if (nb) {
+      $('#rc-nb-title').focus();
+      nb.onclick = () => {
+        const title = $('#rc-nb-title').value.trim();
+        if (!title) { toast('Give the book a title first.', true); return; }
+        const book = { id: uid(), isbn: pending, title, author: $('#rc-nb-author').value.trim(),
+          schoolId: me().schoolId, addedBy: db.session, ts: Date.now() };
+        db.books.push(book); saveDB();
+        lend(book);
+      };
+    }
+  }
+
+  document.addEventListener('keydown', onKey);
+  paint();
+}
+
+/* the four questions a teacher actually has, answered from the loan history */
+function rcTeacherHTML(c) {
+  const stale = c.students.map(sid => ({ sid, l: rcOut(sid) }))
+    .filter(x => x.l && rcDays(x.l.out) >= 14)
+    .sort((a, b) => a.l.out - b.l.out);
+  const none = c.students.filter(sid => !rcOut(sid));
+  const abandoned = db.loans.filter(l => l.classId === c.id && l.back && !l.finished);
+  const finished = db.loans.filter(l => l.classId === c.id && l.finished);
+  const top = rcTopBooks(c, 5);
+  return `
+    <div class="rc-q">
+      <div class="rc-qcard">
+        <h4>Hasn't changed in a fortnight</h4>
+        ${stale.length ? `<ul>${stale.map(x => `<li><b>${esc(user(x.sid).name.split(' ')[0])}</b> —
+          ${esc((rcBook(x.l.bookId) || {}).title || 'a book')}, ${rcDays(x.l.out)} days</li>`).join('')}</ul>`
+          : `<p class="none">${ic('i-tick')} Everyone's moving through their books.</p>`}
+      </div>
+      <div class="rc-qcard">
+        <h4>Nothing out right now</h4>
+        ${none.length ? `<ul>${none.map(sid => `<li>${esc(user(sid).name.split(' ')[0])}</li>`).join('')}</ul>`
+          : `<p class="none">${ic('i-tick')} Everyone has a book.</p>`}
+      </div>
+      <div class="rc-qcard">
+        <h4>Finishing</h4>
+        <p class="none" style="font-size:1.5rem; font-weight:800; color:var(--ink); margin:0 0 2px">
+          ${finished.length + abandoned.length ? Math.round(finished.length / (finished.length + abandoned.length) * 100) + '%' : '—'}</p>
+        <p class="none">${finished.length} finished, ${abandoned.length} given up on</p>
+      </div>
+      <div class="rc-qcard">
+        <h4>Class top five</h4>
+        ${top.length ? `<ol class="rc-top">${top.map((t, i) => `<li><span class="r">${i + 1}</span>
+          <span>${esc(t.book.title)}</span><span class="s">${'★'.repeat(Math.round(t.avg))} <small>(${t.n})</small></span></li>`).join('')}</ol>`
+          : `<p class="none">No ratings yet.</p>`}
+      </div>
+    </div>`;
+}
+
+/* "where's my copy of…" — search the stock, see who has it */
+function openBookSearch(c) {
+  const m = openModal(`
+    <h3>${ic('i-search')} Where's my copy of…</h3>
+    <p class="m-sub">Search the books this school has scanned in, and see who has one out.</p>
+    <input id="rc-find" placeholder="The Wild Robot" autocomplete="off">
+    <div id="rc-found" style="margin-top:10px"></div>`);
+  m.querySelector('.modal').classList.add('wide');
+  const box = m.querySelector('#rc-found'), q = m.querySelector('#rc-find');
+  const run = () => {
+    const t = q.value.trim().toLowerCase();
+    const hits = db.books.filter(b => b.schoolId === me().schoolId &&
+      (!t || b.title.toLowerCase().includes(t) || (b.author || '').toLowerCase().includes(t))).slice(0, 12);
+    box.innerHTML = hits.length ? hits.map(b => {
+      const who = rcHolders(b.id);
+      return `<div class="assign-row" style="cursor:default">
+        <span class="assign-ico">${ic('i-book')}</span>
+        <span class="assign-body"><b>${esc(b.title)}</b><small>${esc(b.author || '')} · ${esc(b.isbn)}</small></span>
+        <span class="assign-side">${who.length
+          ? `<span class="chip amber">${who.map(s => esc(user(s).name.split(' ')[0])).join(', ')}</span>`
+          : `<span class="chip green">${ic('i-tick')} on the shelf</span>`}</span>
+      </div>`;
+    }).join('') : `<p class="muted small" style="padding:8px">No books match “${esc(q.value.trim())}”.</p>`;
+  };
+  q.addEventListener('input', run); run(); q.focus();
+}
 /* ---------- class screen ----------
    The board at the front of the room. Everything here that needs a class list
    reads the real one — the name picker draws from the register, and the group
