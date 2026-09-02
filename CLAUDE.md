@@ -3,7 +3,8 @@
 Primary Coding League web product, published at https://classdrop.co.uk via GitHub Pages (CNAME file in repo root).
 
 - `app/index.html` — the whole ClassDrop app, single-file; served at classdrop.co.uk/app (`app.html` is a redirect stub for old links).
-- Teacher "Tools" page (page id `tools`, legacy alias `library`): tabs for canvases, visual timetables, seating plans, shared tasks.
+- Teacher "Tools" page (page id `tools`, legacy alias `library`): tabs for class screen (the default), canvases, visual timetables, seating plans, shared tasks.
+- Class screen (feature key `classscreen`, code prefixed `cs`): a full-screen widget board saved in `db.screens`. Widgets are declared in `CS_WIDGETS`; each gets a `bodyHTML` case and a `wire` case. Anything needing the register reads the real class — the group maker honours keep-apart pairs from that class's seating plans. Live widgets update their own nodes; `paint()` clears every interval in `loops` first.
 - School feature switches: `school.features[key]` (default on unless explicitly `false`); gate UI with `feat(key)` and keep router guards in step. Add new modules to the `FEATURES` list so the office can switch them.
 - Times tables (feature key `tables`, code prefixed `xt`): teacher class tab + pupil/parent page `tables`. Every answer is stored with its recall time in `db.tablesRuns`; fluency is derived, never stored. Per-class settings live in `db.tablesSettings`.
 - Year 4 MTC mock (`s.mtc` per class, code prefixed `mtc`): 25 questions, 6s each, 3s gap, question spread per DfE in `MTC_PLAN` — keep it faithful to the published proportions, and never adapt it to the child. Per-pupil access arrangements in `db.tablesAccess`. Predicted scores are estimates from recall data and must always be shown with their coverage caveat.

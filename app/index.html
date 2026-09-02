@@ -458,6 +458,146 @@ tr:last-child td{border-bottom:none}
 .gb-cell{text-align:center; font-weight:800; white-space:nowrap}
 .gb-cell .chip{font-size:.68rem}
 
+/* ---------- class screen (the board at the front of the room) ---------- */
+.cs-wrap{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; font-family:var(--font)}
+.cs-wrap.bg-dark{background:var(--shell); color:#f3ede1}
+.cs-wrap.bg-light{background:#f7f4ec; color:#2b2723}
+.cs-bar{display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--shell-line);
+  flex:none; flex-wrap:wrap}
+.cs-wrap.bg-light .cs-bar{border-color:#e0d9c9}
+.cs-bar .mark{width:26px; height:26px}
+.cs-bar .spacer{flex:1}
+.cs-name{background:none; border:1px solid transparent; color:inherit; font-family:var(--font); font-weight:800;
+  font-size:.98rem; padding:4px 8px; border-radius:8px; width:min(280px,34vw)}
+.cs-name:hover,.cs-name:focus{border-color:currentColor; outline:none}
+.cs-bar .btn.ghost{border-color:rgba(128,128,128,.45); color:inherit}
+.cs-bar .btn.ghost:hover{background:rgba(128,128,128,.18)}
+
+/* min-content rows, not auto: with auto rows the tiles' min-height fights the board's
+   own flex-resolved height and rows come out too short, clipping any widget that wraps */
+.cs-board{flex:1; overflow:auto; padding:16px; display:grid; gap:14px; align-content:start;
+  grid-auto-rows:min-content; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr))}
+.cs-tile{background:rgba(243,237,225,.06); border:1px solid var(--shell-line); border-radius:18px; padding:12px 14px 14px;
+  display:flex; flex-direction:column; min-height:190px; position:relative}
+.cs-wrap.bg-light .cs-tile{background:#fff; border-color:#e4ddcc; box-shadow:0 6px 18px rgba(70,58,32,.07)}
+.cs-tile.w-wide{grid-column:span 2}
+.cs-tile.w-full{grid-column:1/-1}
+@media (max-width:720px){ .cs-tile.w-wide,.cs-tile.w-full{grid-column:1/-1} }
+.cs-head{display:flex; align-items:center; gap:6px; font-size:.68rem; font-weight:800; letter-spacing:.1em;
+  text-transform:uppercase; opacity:.5; margin-bottom:8px; flex:none}
+.cs-head .spacer{flex:1}
+.cs-head button{background:none; border:none; color:inherit; cursor:pointer; opacity:.7; padding:2px; line-height:0}
+.cs-head button:hover{opacity:1}
+.cs-head .ic{width:15px; height:15px}
+/* The body must not grow: a growing flex child sizes itself from the row height, so
+   the tile ends up as tall as its min-height and a widget that wraps onto several
+   rows spills out over the tile below. Sizing to content and centring with auto
+   margins gives the same look, and the tile grows to fit. */
+.cs-body{flex:0 0 auto; margin:auto 0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:10px; width:100%}
+
+/* focus mode — one widget, whole board */
+.cs-wrap.focused .cs-board{grid-template-columns:1fr}
+.cs-wrap.focused .cs-tile{min-height:calc(100vh - 120px)}
+.cs-wrap.focused .cs-tile{grid-column:1/-1}
+
+/* shared widget bits */
+.cs-big{font-weight:800; letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums}
+.cs-row{display:flex; gap:7px; flex-wrap:wrap; justify-content:center}
+.cs-btn{border:1px solid rgba(128,128,128,.45); background:rgba(128,128,128,.12); color:inherit; cursor:pointer;
+  font-family:var(--font); font-weight:800; font-size:.82rem; border-radius:99px; padding:6px 14px}
+.cs-btn:hover{background:rgba(128,128,128,.26)}
+.cs-btn.on{background:var(--gold); border-color:var(--gold); color:#2b2211}
+.cs-btn.lg{font-size:1rem; padding:9px 20px}
+
+/* timer */
+.cs-timer .cs-big{font-size:clamp(2.6rem, 9vw, 6rem)}
+.cs-timer.done .cs-big{color:#e08a68; animation:csFlash 1s steps(2) infinite}
+@keyframes csFlash{50%{opacity:.25}}
+.cs-bar-track{width:100%; height:7px; border-radius:99px; background:rgba(128,128,128,.28); overflow:hidden}
+.cs-bar-track i{display:block; height:100%; background:var(--gold)}
+
+/* clock */
+.cs-clock-face{width:min(160px,42vw); aspect-ratio:1}
+.cs-clock-face circle{fill:none; stroke:currentColor}
+.cs-clock-face line{stroke:currentColor; stroke-linecap:round}
+.cs-clock-digital{font-weight:800; font-size:1.5rem; font-variant-numeric:tabular-nums}
+.cs-clock-date{font-size:.82rem; opacity:.6; font-weight:700}
+
+/* name picker */
+.cs-pick{font-size:clamp(1.8rem, 6vw, 3.6rem); font-weight:800; text-align:center; line-height:1.1; min-height:1.2em}
+.cs-pick.spin{opacity:.45}
+.cs-left{font-size:.78rem; opacity:.6; font-weight:700}
+
+/* groups */
+.cs-groups{display:grid; gap:9px; width:100%; grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.cs-group{border:1px solid rgba(128,128,128,.35); border-radius:12px; padding:9px 11px}
+.cs-group b{display:block; font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; opacity:.55; margin-bottom:5px}
+.cs-group span{display:block; font-weight:700; font-size:.92rem}
+
+/* work symbols */
+.cs-sym{font-size:clamp(1.5rem,5vw,2.6rem); font-weight:800; text-align:center}
+.cs-sym .em{font-size:1.4em; display:block; margin-bottom:6px}
+
+/* traffic light */
+.cs-lights{display:flex; flex-direction:column; gap:9px; align-items:center}
+.cs-lights button{width:52px; height:52px; border-radius:50%; border:2px solid rgba(128,128,128,.4);
+  background:rgba(128,128,128,.15); cursor:pointer}
+.cs-lights button.on.red{background:#c9503a; border-color:#c9503a}
+.cs-lights button.on.amber{background:#d8a13c; border-color:#d8a13c}
+.cs-lights button.on.green{background:#4b8a5e; border-color:#4b8a5e}
+
+/* scoreboard */
+.cs-score{width:100%; display:flex; flex-direction:column; gap:7px}
+.cs-score-row{display:flex; align-items:center; gap:9px}
+.cs-score-row input{flex:1; background:none; border:1px solid transparent; color:inherit; font-family:var(--font);
+  font-weight:800; font-size:.95rem; padding:4px 7px; border-radius:7px; min-width:0}
+.cs-score-row input:hover,.cs-score-row input:focus{border-color:rgba(128,128,128,.45); outline:none}
+.cs-score-row .n{font-weight:800; font-size:1.5rem; min-width:2ch; text-align:center; font-variant-numeric:tabular-nums}
+.cs-score-row button{width:30px; height:30px; border-radius:9px; border:1px solid rgba(128,128,128,.45);
+  background:rgba(128,128,128,.12); color:inherit; font-weight:800; cursor:pointer; flex:none}
+
+/* dice */
+.cs-dice{display:flex; gap:12px; justify-content:center}
+.cs-die{width:clamp(56px,15vw,88px); aspect-ratio:1; border-radius:16px; background:#f3ede1; color:#242220;
+  display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:12%;
+  box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.cs-die i{width:100%; aspect-ratio:1; border-radius:50%; background:#242220; align-self:center; justify-self:center}
+.cs-die.roll{animation:csRoll .5s ease}
+@keyframes csRoll{40%{transform:rotate(-14deg) scale(.9)} 70%{transform:rotate(9deg) scale(1.04)}}
+.cs-die-n{font-size:clamp(2rem,8vw,3.4rem); font-weight:800; display:flex; align-items:center; justify-content:center}
+
+/* noise meter */
+.cs-noise{width:100%; display:flex; flex-direction:column; gap:9px; align-items:center}
+.cs-noise-track{width:100%; height:26px; border-radius:99px; background:rgba(128,128,128,.24); overflow:hidden}
+.cs-noise-track i{display:block; height:100%; background:#4b8a5e; transition:width .1s linear, background .3s}
+.cs-noise-track i.warn{background:#d8a13c}
+.cs-noise-track i.over{background:#c9503a}
+.cs-noise-face{font-size:2.4rem}
+
+/* note */
+.cs-note{width:100%; flex:1; background:none; border:1px dashed rgba(128,128,128,.35); border-radius:12px; color:inherit;
+  font-family:var(--font); font-weight:700; font-size:clamp(1rem,2.4vw,1.5rem); line-height:1.4; padding:12px 14px;
+  resize:none; outline:none}
+.cs-note:focus{border-style:solid; border-color:var(--gold)}
+
+/* today's timetable inside the board */
+.cs-today{display:flex; gap:9px; flex-wrap:wrap; width:100%; justify-content:center}
+.cs-today .it{border:1px solid rgba(128,128,128,.35); border-radius:14px; padding:9px 13px; text-align:center; min-width:96px}
+.cs-today .it.now{background:var(--gold); border-color:var(--gold); color:#2b2211}
+.cs-today .it .em{font-size:1.7rem; display:block; line-height:1.1}
+.cs-today .it b{display:block; font-size:.82rem; margin-top:3px}
+.cs-today .it small{opacity:.65; font-size:.7rem; font-weight:700}
+.cs-empty{opacity:.55; font-size:.9rem; text-align:center; font-weight:600; max-width:32ch}
+
+/* the add-widget picker */
+.cs-add{display:grid; gap:9px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.cs-add button{display:flex; align-items:center; gap:9px; text-align:left; border:1px solid var(--line); background:#fff;
+  border-radius:12px; padding:11px 13px; cursor:pointer; font-family:var(--font); font-weight:800; font-size:.86rem; color:var(--ink)}
+.cs-add button:hover{border-color:var(--gold); background:var(--gold-soft)}
+.cs-add button .ic{width:17px; height:17px; flex:none; color:var(--gold-dk)}
+.cs-add button small{display:block; font-weight:600; font-size:.72rem; color:var(--muted); margin-top:1px}
+
 /* ---------- times tables ---------- */
 .xt-hero{background:linear-gradient(135deg, var(--shell) 0%, #35312b 100%); color:#f3ede1; border-radius:var(--radius);
   padding:24px 26px; box-shadow:var(--shadow); margin-bottom:16px}
@@ -933,6 +1073,9 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
   <symbol id="i-markbook" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" opacity=".4"/><path d="M3 9.5h18M9 9.5V20M3 14.75h18" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.2 6.6l1.1 1.1 2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-tools" viewBox="0 0 24 24"><path d="M21.6 6.1a5.4 5.4 0 01-7 6.9L7.4 20.2a2.2 2.2 0 11-3.1-3.1l7.2-7.2a5.4 5.4 0 016.9-7l-3 3 .5 2.7 2.7.5z"/></symbol>
+  <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2" y="3.5" width="20" height="14" rx="2.5" opacity=".35"/><path d="M4 5.5h16v10H4z"/><path d="M8 20.5h8v1.6H8z"/><path d="M11.2 17.5h1.6v3h-1.6z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a1.2 1.2 0 011.2 1.2v5.3l3.6 2.1a1.2 1.2 0 01-1.2 2.1l-4.2-2.4a1.2 1.2 0 01-.6-1V6.2A1.2 1.2 0 0112 5z"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" opacity=".35"/><circle cx="8.5" cy="8.5" r="1.9"/><circle cx="15.5" cy="8.5" r="1.9"/><circle cx="8.5" cy="15.5" r="1.9"/><circle cx="15.5" cy="15.5" r="1.9"/><circle cx="12" cy="12" r="1.9"/></symbol>
   <symbol id="i-tables" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="3.5" opacity=".3"/><path d="M8.1 7.4L12 11.3l3.9-3.9 1.7 1.7-3.9 3.9 3.9 3.9-1.7 1.7-3.9-3.9-3.9 3.9-1.7-1.7 3.9-3.9-3.9-3.9z"/></symbol>
   <symbol id="i-seating" viewBox="0 0 24 24"><path d="M2 3.5h20v2.2H2z"/><rect x="3" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="9" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="3" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><rect x="14" y="16.4" width="7" height="4.6" rx="1.3" opacity=".45"/><circle cx="6.5" cy="11.3" r="1.5"/><circle cx="17.5" cy="11.3" r="1.5"/><circle cx="6.5" cy="18.7" r="1.5"/><circle cx="17.5" cy="18.7" r="1.5"/></symbol>
   <symbol id="i-timetable" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2.5" opacity=".35"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6"/><path d="M12 11h7v2h-7z"/><circle cx="8.5" cy="17" r="1.6"/><path d="M12 16h7v2h-7z"/></symbol>
@@ -1402,6 +1545,25 @@ function migrateDB() {
   }
   // seating plans
   if (!db.seating) { db.seating = []; changed = true; }
+  // class screen
+  if (!db.screens) { db.screens = []; changed = true; }
+  if (!db.screensSeeded) {
+    if (db.users.some(u => u.id === 'u-tay') && db.classes.some(c => c.id === 'c1')) {
+      db.screens.push({
+        id: 'sc-demo', ownerId: 'u-tay', schoolId: 'sch1', classId: 'c1', name: 'Morning board', bg: 'dark',
+        widgets: [
+          { id: 'w1', type: 'today', cfg: {} },
+          { id: 'w2', type: 'timer', cfg: { mins: 5 } },
+          { id: 'w3', type: 'clock', cfg: {} },
+          { id: 'w4', type: 'symbols', cfg: { on: 'partner' } },
+          { id: 'w5', type: 'picker', cfg: { noRepeat: true } },
+          { id: 'w6', type: 'note', cfg: { text: 'Good morning Year 5 — book bags away, reading books out.' } },
+        ],
+        ts: Date.now() - 5 * DAY, updated: Date.now() - 1 * DAY,
+      });
+    }
+    db.screensSeeded = true; changed = true;
+  }
   // times tables
   if (!db.tablesSettings) { db.tablesSettings = []; changed = true; }
   if (!db.tablesRuns) { db.tablesRuns = []; changed = true; }
@@ -1678,6 +1840,7 @@ const FEATURES = [
   ['timetables', 'i-timetable', 'Visual timetables', 'Picture timetables for the board, print and pupil dashboards.'],
   ['seating', 'i-seating', 'Seating plans', 'Drag-and-drop plans built from the real class list, with keep-apart pairs.'],
   ['tables', 'i-tables', 'Times tables', 'Recall assessment: what every child knows, how fast, and who is ready for the Year 4 check. Practice included.'],
+  ['classscreen', 'i-screen', 'Class screen', 'The board at the front: timer, name picker, group maker, noise meter and more, built from the real class list.'],
   ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
   ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
   ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
@@ -1895,7 +2058,7 @@ function renderShell() {
       ${feat('reports') ? `<button class="nav-item ${view.page === 'areports' || view.page === 'rbuild' ? 'active' : ''}" data-nav="areports"><span class="nico">${ic('i-report')}</span>Report builder</button>` : ''}
       ${feat('safeguarding') ? `<button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding"><span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}</button>` : ''}
       <button class="nav-item ${view.page === 'afeatures' ? 'active' : ''}" data-nav="afeatures"><span class="nico">${ic('i-gear')}</span>Features</button>` : `
-      ${isTeacher() && (feat('canvases') || feat('timetables') || feat('staffshare')) ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
+      ${isTeacher() && (feat('canvases') || feat('timetables') || feat('staffshare') || feat('seating') || feat('classscreen')) ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
         <span class="nico">${ic('i-tools')}</span>Tools
       </button>` : ''}
       ${isTeacher() && feat('safeguarding') ? `<button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding">
@@ -1938,7 +2101,7 @@ function renderShell() {
     const n = b.dataset.nav;
     if (n === 'dash') go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'activity') go({ page: 'activity' });
-    if (n === 'tools') go({ page: 'tools', tab: 'canvases', classId: null, assignmentId: null, studentId: null, discussionId: null });
+    if (n === 'tools') go({ page: 'tools', tab: null, classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'safeguarding') go({ page: 'safeguarding', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
@@ -4646,6 +4809,7 @@ function useCanvasInTask(cv) {
 /* ---------- Tools: canvases, visual timetables, and the staff library ---------- */
 function renderTools(main) {
   const toolTabs = [];
+  if (feat('classscreen')) toolTabs.push(['classscreen', 'i-screen', 'Class screen']);
   if (feat('canvases')) toolTabs.push(['canvases', 'i-canvas', 'Canvases']);
   if (feat('timetables')) toolTabs.push(['timetables', 'i-timetable', 'Visual timetables']);
   if (feat('seating')) toolTabs.push(['seating', 'i-seating', 'Seating plans']);
@@ -4713,6 +4877,7 @@ function renderTools(main) {
     </div>`;
   };
   const bodies = {
+    classscreen: `<div id="cs-pane"></div>`,   // filled by renderScreens once the shell is in the DOM
     seating: mySPs.length ? mySPs.map(spRow).join('')
       : `<div class="card empty">${ic('i-seating', 'big')}Build a seating plan from your real class list — drag the desks, shuffle in a second, keep certain pupils apart, then put it on the board or print it. No more paper and PowerPoint.</div>`,
     canvases: `
@@ -4737,6 +4902,7 @@ function renderTools(main) {
       `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${ic(icn)} ${lbl}</button>`).join('')}</div>
     ${bodies[tab]}`;
   main.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go({ page: 'tools', tab: b.dataset.tab }));
+  if (tab === 'classscreen') renderScreens($('#cs-pane'));
   const ln = $('#lib-new'); if (ln) ln.onclick = () => openLibraryCanvas(null);
   const tn = $('#tt-new'); if (tn) tn.onclick = newTimetable;
   const spn = $('#sp-new'); if (spn) spn.onclick = newSeatingPlan;
@@ -5319,6 +5485,503 @@ function openSPDisplay(plan, opts) {
   if (opts.print) setTimeout(() => window.print(), 150);
 }
 
+/* ---------- class screen ----------
+   The board at the front of the room. Everything here that needs a class list
+   reads the real one — the name picker draws from the register, and the group
+   maker honours the keep-apart pairs already set on that class's seating plans. */
+const CS_WIDGETS = {
+  today:   { label: "Today's timetable", icon: 'i-timetable', size: 'full', needsClass: 1, blurb: 'The visual timetable for this class' },
+  timer:   { label: 'Timer',        icon: 'i-clock',    size: 'wide', blurb: 'Countdown with a chime' },
+  clock:   { label: 'Clock',        icon: 'i-clock',    size: 'sm',   blurb: 'Analogue and digital' },
+  picker:  { label: 'Name picker',  icon: 'i-people',   size: 'wide', needsClass: 1, blurb: 'From the real register' },
+  groups:  { label: 'Group maker',  icon: 'i-seating',  size: 'wide', needsClass: 1, blurb: 'Respects keep-apart pairs' },
+  symbols: { label: 'Work symbols', icon: 'i-chat',     size: 'wide', blurb: 'Silence, whisper, partner talk' },
+  lights:  { label: 'Traffic light', icon: 'i-flag',    size: 'sm',   blurb: 'Stop, thinking, go' },
+  score:   { label: 'Scoreboard',   icon: 'i-award',    size: 'wide', blurb: 'Table points for the lesson' },
+  dice:    { label: 'Dice',         icon: 'i-dice',     size: 'sm',   blurb: 'One or two, any number of sides' },
+  noise:   { label: 'Noise meter',  icon: 'i-mic',      size: 'sm',   blurb: 'Listens and shows the level' },
+  note:    { label: 'Note',         icon: 'i-note',     size: 'wide', blurb: 'Instructions on the board' },
+};
+const CS_SYMBOLS = [
+  ['silence', '🤫', 'Silence'], ['whisper', '🤐', 'Whisper'],
+  ['partner', '👥', 'Partner talk'], ['group', '🗣️', 'Group talk'], ['hands', '✋', 'Hands up'],
+];
+const csUid = () => 'w' + Math.random().toString(36).slice(2, 9);
+const csClass = s => s.classId ? klass(s.classId) : null;
+/* every keep-apart pair the teacher has set for this class, across all their plans */
+function csApart(classId) {
+  const out = [];
+  db.seating.filter(p => p.classId === classId && p.ownerId === db.session)
+    .forEach(p => (p.apart || []).forEach(pair => out.push(pair)));
+  return out;
+}
+
+function renderScreens(body) {
+  const mine = db.screens.filter(s => s.ownerId === db.session)
+    .sort((a, b) => (b.updated || b.ts) - (a.updated || a.ts));
+  body.innerHTML = `
+    <div class="mb-actions">
+      <span class="spacer"></span>
+      <button class="btn" id="cs-new">${ic('i-plus')} New screen</button>
+    </div>
+    <p class="page-sub" style="margin-top:-4px">Put a screen on the board and everything you reach for all day is on it —
+      the timer, the register, today's timetable. Built once, opened every morning.</p>
+    ${mine.length ? mine.map(s => `
+      <div class="assign-row" style="cursor:default">
+        <span class="assign-ico">${ic('i-screen')}</span>
+        <span class="assign-body"><b>${esc(s.name)}</b>
+          <small>${s.widgets.length} widget${s.widgets.length === 1 ? '' : 's'}${
+            csClass(s) ? ' · ' + esc(csClass(s).name) : ' · no class linked'} · ${fmtWhen(s.updated || s.ts)}</small></span>
+        <span class="assign-side">
+          <button class="btn small" data-sc-open="${s.id}">${ic('i-laser')} Open</button>
+          <button class="btn ghost small" data-sc-del="${s.id}" aria-label="Delete">${ic('i-trash')}</button>
+        </span>
+      </div>`).join('')
+      : `<div class="card empty">${ic('i-screen', 'big')}Build the board you put up every morning — a timer, today's
+          timetable, a name picker that knows your class, and the work symbols. Nothing to retype each day.</div>`}`;
+
+  $('#cs-new').onclick = () => {
+    pickClass('New class screen', 'The name picker, group maker and timetable will use this class.', cid => {
+      const s = {
+        id: uid(), ownerId: db.session, schoolId: me().schoolId, classId: cid,
+        name: (klass(cid) ? klass(cid).name : 'Class') + ' — screen', bg: 'dark',
+        widgets: [
+          { id: csUid(), type: 'today', cfg: {} },
+          { id: csUid(), type: 'timer', cfg: { mins: 5 } },
+          { id: csUid(), type: 'clock', cfg: {} },
+          { id: csUid(), type: 'picker', cfg: { noRepeat: true } },
+        ],
+        ts: Date.now(), updated: Date.now(),
+      };
+      db.screens.push(s); saveDB(); openClassScreen(s);
+    });
+  };
+  document.querySelectorAll('[data-sc-open]').forEach(b => b.onclick = () =>
+    openClassScreen(db.screens.find(s => s.id === b.dataset.scOpen)));
+  document.querySelectorAll('[data-sc-del]').forEach(b => b.onclick = () => {
+    const s = db.screens.find(x => x.id === b.dataset.scDel);
+    openConfirm('Delete this screen?', `“${s.name}” will be removed.`, () => {
+      db.screens = db.screens.filter(x => x.id !== s.id); saveDB(); render(); toast('Deleted');
+    });
+  });
+}
+
+function openClassScreen(screen) {
+  if (!screen) return;
+  const wrap = document.createElement('div');
+  let focus = null;
+  const loops = [];                                  // per-widget intervals, cleared on every repaint
+  const rt = {};                                     // runtime state that shouldn't persist
+  let noiseStream = null;
+  document.body.appendChild(wrap);
+
+  const touch = () => { screen.updated = Date.now(); saveDB(); };
+  const stopLoops = () => { while (loops.length) clearInterval(loops.pop()); };
+  const stopNoise = () => {
+    if (noiseStream) { noiseStream.getTracks().forEach(t => t.stop()); noiseStream = null; }
+  };
+  const close = () => { stopLoops(); stopNoise(); wrap.remove(); render(); };
+  const chime = () => {
+    try {
+      const ctx = chime.ctx || (chime.ctx = new (window.AudioContext || window.webkitAudioContext)());
+      [0, 0.18, 0.36].forEach((t, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = [660, 880, 1320][i]; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.3);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.32);
+      });
+    } catch (e) { /* audio blocked — the flashing timer still says it's up */ }
+  };
+
+  /* ---------- widget bodies ---------- */
+  function bodyHTML(w) {
+    const c = csClass(screen);
+    if (CS_WIDGETS[w.type].needsClass && !c) {
+      return `<div class="cs-empty">Link a class to this screen to use ${esc(CS_WIDGETS[w.type].label.toLowerCase())}.</div>`;
+    }
+    switch (w.type) {
+      case 'timer': {
+        const st = rt[w.id] || (rt[w.id] = { left: (w.cfg.mins || 5) * 60000, running: false, done: false });
+        const total = (w.cfg.mins || 5) * 60000;
+        const ms = Math.max(0, st.left);
+        return `
+          <div class="cs-big" data-t-face>${Math.floor(ms / 60000)}:${('0' + Math.floor((ms % 60000) / 1000)).slice(-2)}</div>
+          <div class="cs-bar-track"><i data-t-bar style="width:${ms / total * 100}%"></i></div>
+          <div class="cs-row">
+            <button class="cs-btn lg" data-t-go>${st.running ? 'Pause' : 'Start'}</button>
+            <button class="cs-btn" data-t-reset>Reset</button>
+          </div>
+          <div class="cs-row">${[1, 2, 5, 10, 15, 20].map(m =>
+            `<button class="cs-btn ${(w.cfg.mins || 5) === m ? 'on' : ''}" data-t-set="${m}">${m}m</button>`).join('')}</div>`;
+      }
+      case 'clock':
+        return `<svg class="cs-clock-face" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" stroke-width="2.5" opacity=".4"></circle>
+            ${[...Array(12)].map((_, i) => {
+              const a = i * 30 * Math.PI / 180;
+              return `<line x1="${(50 + 40 * Math.sin(a)).toFixed(2)}" y1="${(50 - 40 * Math.cos(a)).toFixed(2)}"
+                x2="${(50 + 44 * Math.sin(a)).toFixed(2)}" y2="${(50 - 44 * Math.cos(a)).toFixed(2)}"
+                stroke-width="${i % 3 ? 1.6 : 3}" opacity=".6"></line>`;
+            }).join('')}
+            <line data-c-h x1="50" y1="50" x2="50" y2="26" stroke-width="4.5"></line>
+            <line data-c-m x1="50" y1="50" x2="50" y2="14" stroke-width="3"></line>
+            <line data-c-s x1="50" y1="50" x2="50" y2="12" stroke-width="1.4" opacity=".65"></line>
+          </svg>
+          <div class="cs-clock-digital" data-c-dig>--:--</div>
+          <div class="cs-clock-date" data-c-date></div>`;
+      case 'picker': {
+        const st = rt[w.id] || (rt[w.id] = { picked: [], name: null });
+        const left = c.students.length - st.picked.length;
+        return `
+          <div class="cs-pick" data-p-face>${st.name ? esc(st.name) : 'Ready'}</div>
+          <div class="cs-row">
+            <button class="cs-btn lg" data-p-go>Pick someone</button>
+            ${w.cfg.noRepeat ? `<button class="cs-btn" data-p-reset>Start again</button>` : ''}
+          </div>
+          <div class="cs-row">
+            <button class="cs-btn ${w.cfg.noRepeat ? 'on' : ''}" data-p-rep>Everyone gets a turn</button>
+          </div>
+          ${w.cfg.noRepeat ? `<div class="cs-left">${left} of ${c.students.length} still to be picked</div>` : ''}`;
+      }
+      case 'groups': {
+        const st = rt[w.id] || (rt[w.id] = { groups: null, warned: 0 });
+        const size = w.cfg.size || 2;
+        const names = { 2: 'Pairs', 3: 'Threes', 4: 'Fours', 5: 'Fives' };
+        return `
+          <div class="cs-row">${[2, 3, 4, 5].map(n =>
+            `<button class="cs-btn ${size === n ? 'on' : ''}" data-g-size="${n}">${names[n]}</button>`).join('')}
+            <button class="cs-btn lg" data-g-go>Shuffle</button></div>
+          ${st.groups ? `<div class="cs-groups">${st.groups.map((g, i) => `
+            <div class="cs-group"><b>Group ${i + 1}</b>${g.map(sid => `<span>${esc(user(sid).name)}</span>`).join('')}</div>`).join('')}</div>
+            ${st.warned ? `<div class="cs-left">${st.warned} keep-apart pair${st.warned === 1 ? '' : 's'} couldn't be separated</div>`
+              : (csApart(screen.classId).length ? `<div class="cs-left">${ic('i-tick')} keep-apart pairs respected</div>` : '')}`
+            : `<div class="cs-empty">Press shuffle to make groups from the register.</div>`}`;
+      }
+      case 'symbols': {
+        const on = w.cfg.on || 'silence';
+        const cur = CS_SYMBOLS.find(s => s[0] === on) || CS_SYMBOLS[0];
+        return `<div class="cs-sym"><span class="em">${cur[1]}</span>${cur[2]}</div>
+          <div class="cs-row">${CS_SYMBOLS.map(([k, em, lbl]) =>
+            `<button class="cs-btn ${on === k ? 'on' : ''}" data-sym="${k}">${em} ${lbl}</button>`).join('')}</div>`;
+      }
+      case 'lights': {
+        const on = w.cfg.on || 'red';
+        return `<div class="cs-lights">${['red', 'amber', 'green'].map(k =>
+          `<button class="${k} ${on === k ? 'on' : ''}" data-light="${k}" aria-label="${k}"></button>`).join('')}</div>`;
+      }
+      case 'score': {
+        if (!w.cfg.teams) w.cfg.teams = [
+          { name: 'Red', n: 0 }, { name: 'Blue', n: 0 }, { name: 'Green', n: 0 }, { name: 'Yellow', n: 0 }];
+        return `<div class="cs-score">${w.cfg.teams.map((t, i) => `
+          <div class="cs-score-row">
+            <input value="${esc(t.name)}" data-s-name="${i}" maxlength="18">
+            <button data-s-down="${i}" aria-label="Take one off">−</button>
+            <span class="n">${t.n}</span>
+            <button data-s-up="${i}" aria-label="Add one">+</button>
+          </div>`).join('')}</div>
+          <div class="cs-row"><button class="cs-btn" data-s-reset>Reset scores</button></div>`;
+      }
+      case 'dice': {
+        const st = rt[w.id] || (rt[w.id] = { vals: null });
+        const sides = w.cfg.sides || 6, count = w.cfg.count || 1;
+        const pips = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+        const face = v => sides === 6
+          ? `<span class="cs-die roll">${[...Array(9)].map((_, i) => pips[v].includes(i) ? '<i></i>' : '<span></span>').join('')}</span>`
+          : `<span class="cs-die roll cs-die-n">${v}</span>`;
+        return `
+          <div class="cs-dice">${(st.vals || [sides === 6 ? 6 : sides]).slice(0, count).map(face).join('')}</div>
+          <div class="cs-row"><button class="cs-btn lg" data-d-go>Roll</button></div>
+          <div class="cs-row">
+            ${[1, 2].map(n => `<button class="cs-btn ${count === n ? 'on' : ''}" data-d-count="${n}">${n === 1 ? '1 die' : '2 dice'}</button>`).join('')}
+            ${[6, 10, 20].map(n => `<button class="cs-btn ${sides === n ? 'on' : ''}" data-d-sides="${n}">d${n}</button>`).join('')}
+          </div>`;
+      }
+      case 'noise': {
+        const st = rt[w.id] || (rt[w.id] = { on: false, level: 0 });
+        return `
+          <div class="cs-noise">
+            <div class="cs-noise-face" data-n-face>${st.on ? '🙂' : '🎤'}</div>
+            <div class="cs-noise-track"><i data-n-bar style="width:0%"></i></div>
+            <button class="cs-btn" data-n-go>${st.on ? 'Stop listening' : 'Start listening'}</button>
+          </div>`;
+      }
+      case 'note':
+        return `<textarea class="cs-note" data-note placeholder="Type what the class needs to see…">${esc(w.cfg.text || '')}</textarea>`;
+      case 'today': {
+        const tt = db.timetables.find(t => (t.classIds || []).includes(screen.classId));
+        if (!tt) return `<div class="cs-empty">No visual timetable is sent to this class yet — build one in Tools.</div>`;
+        const items = tt.days[todayKey()] || [];
+        if (!items.length) return `<div class="cs-empty">Nothing on the timetable for today.</div>`;
+        const now = new Date();
+        const hhmm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        let nowIdx = -1;
+        items.forEach((it, i) => { if (it.time && it.time <= hhmm) nowIdx = i; });
+        return `<div class="cs-today">${items.map((it, i) => `
+          <span class="it ${i === nowIdx ? 'now' : ''}"><span class="em">${esc(it.emoji || '📘')}</span>
+            <b>${esc(it.label)}</b>${it.time ? `<small>${esc(it.time)}</small>` : ''}</span>`).join('')}</div>`;
+      }
+      default: return '';
+    }
+  }
+
+  /* ---------- wiring ---------- */
+  function wire(tile, w) {
+    const q = sel => tile.querySelector(sel);
+    const c = csClass(screen);
+    const repaint = () => { touch(); paint(); };
+    if (CS_WIDGETS[w.type].needsClass && !c) return;
+    switch (w.type) {
+      case 'timer': {
+        const st = rt[w.id];
+        const total = (w.cfg.mins || 5) * 60000;
+        if (st.running) {
+          const iv = setInterval(() => {
+            st.left -= 250;
+            const face = q('[data-t-face]'), bar = q('[data-t-bar]');
+            if (st.left <= 0) {
+              st.left = 0; st.running = false; st.done = true;
+              clearInterval(iv); chime(); paint(); return;
+            }
+            if (face) {
+              face.textContent = Math.floor(st.left / 60000) + ':' + ('0' + Math.floor((st.left % 60000) / 1000)).slice(-2);
+              bar.style.width = (st.left / total * 100) + '%';
+            }
+          }, 250);
+          loops.push(iv);
+        }
+        tile.classList.toggle('done', !!st.done);
+        tile.classList.add('cs-timer');
+        q('[data-t-go]').onclick = () => {
+          if (st.done) { st.left = total; st.done = false; }
+          st.running = !st.running; paint();
+        };
+        q('[data-t-reset]').onclick = () => { st.left = total; st.running = false; st.done = false; paint(); };
+        tile.querySelectorAll('[data-t-set]').forEach(b => b.onclick = () => {
+          w.cfg.mins = +b.dataset.tSet;
+          st.left = w.cfg.mins * 60000; st.running = false; st.done = false;
+          repaint();
+        });
+        break;
+      }
+      case 'clock': {
+        const paintClock = () => {
+          const d = new Date();
+          const h = q('[data-c-h]'), m = q('[data-c-m]'), s = q('[data-c-s]');
+          if (!h) return;
+          const set = (el, deg) => el.setAttribute('transform', `rotate(${deg} 50 50)`);
+          set(h, (d.getHours() % 12) * 30 + d.getMinutes() * 0.5);
+          set(m, d.getMinutes() * 6 + d.getSeconds() * 0.1);
+          set(s, d.getSeconds() * 6);
+          q('[data-c-dig]').textContent = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+          q('[data-c-date]').textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+        };
+        paintClock();
+        loops.push(setInterval(paintClock, 1000));
+        break;
+      }
+      case 'picker': {
+        const st = rt[w.id];
+        q('[data-p-go]').onclick = () => {
+          const pool = c.students.filter(s => !w.cfg.noRepeat || !st.picked.includes(s));
+          if (!pool.length) { toast('Everyone has had a turn — press start again.'); return; }
+          const face = q('[data-p-face]');
+          face.classList.add('spin');
+          let n = 0;
+          const iv = setInterval(() => {
+            face.textContent = user(pool[Math.floor(Math.random() * pool.length)]).name;
+            if (++n > 12) {
+              clearInterval(iv);
+              const win = pool[Math.floor(Math.random() * pool.length)];
+              st.name = user(win).name;
+              if (w.cfg.noRepeat) st.picked.push(win);
+              paint();
+            }
+          }, 70);
+          loops.push(iv);
+        };
+        const rs = q('[data-p-reset]'); if (rs) rs.onclick = () => { st.picked = []; st.name = null; paint(); };
+        q('[data-p-rep]').onclick = () => { w.cfg.noRepeat = !w.cfg.noRepeat; st.picked = []; repaint(); };
+        break;
+      }
+      case 'groups': {
+        const st = rt[w.id];
+        tile.querySelectorAll('[data-g-size]').forEach(b => b.onclick = () => {
+          w.cfg.size = +b.dataset.gSize; st.groups = null; repaint();
+        });
+        q('[data-g-go]').onclick = () => {
+          const apart = csApart(screen.classId);
+          const clash = (g, sid) => apart.some(([a, b]) =>
+            (a === sid && g.includes(b)) || (b === sid && g.includes(a)));
+          const size = w.cfg.size || 2;
+          let best = null, bestBad = Infinity;
+          for (let attempt = 0; attempt < 40 && bestBad > 0; attempt++) {
+            const pool = c.students.slice();
+            for (let i = pool.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const groups = [];
+            for (let i = 0; i < pool.length; i += size) groups.push(pool.slice(i, i + size));
+            // a trailing group of one joins the previous group rather than standing alone
+            if (groups.length > 1 && groups[groups.length - 1].length === 1) {
+              groups[groups.length - 2].push(groups.pop()[0]);
+            }
+            const bad = groups.reduce((n, g) =>
+              n + g.filter((sid, i) => clash(g.slice(0, i), sid)).length, 0);
+            if (bad < bestBad) { bestBad = bad; best = groups; }
+          }
+          st.groups = best; st.warned = bestBad === Infinity ? 0 : bestBad;
+          paint();
+        };
+        break;
+      }
+      case 'symbols':
+        tile.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { w.cfg.on = b.dataset.sym; repaint(); });
+        break;
+      case 'lights':
+        tile.querySelectorAll('[data-light]').forEach(b => b.onclick = () => { w.cfg.on = b.dataset.light; repaint(); });
+        break;
+      case 'score': {
+        const teams = w.cfg.teams;
+        tile.querySelectorAll('[data-s-up]').forEach(b => b.onclick = () => { teams[+b.dataset.sUp].n++; repaint(); });
+        tile.querySelectorAll('[data-s-down]').forEach(b => b.onclick = () => { teams[+b.dataset.sDown].n--; repaint(); });
+        tile.querySelectorAll('[data-s-name]').forEach(el => el.onchange = () => {
+          teams[+el.dataset.sName].name = el.value.trim() || 'Team'; touch();
+        });
+        q('[data-s-reset]').onclick = () => { teams.forEach(t => t.n = 0); repaint(); };
+        break;
+      }
+      case 'dice': {
+        const st = rt[w.id];
+        q('[data-d-go]').onclick = () => {
+          const sides = w.cfg.sides || 6, count = w.cfg.count || 1;
+          st.vals = [...Array(count)].map(() => 1 + Math.floor(Math.random() * sides));
+          paint();
+        };
+        tile.querySelectorAll('[data-d-count]').forEach(b => b.onclick = () => {
+          w.cfg.count = +b.dataset.dCount; st.vals = null; repaint();
+        });
+        tile.querySelectorAll('[data-d-sides]').forEach(b => b.onclick = () => {
+          w.cfg.sides = +b.dataset.dSides; st.vals = null; repaint();
+        });
+        break;
+      }
+      case 'noise': {
+        const st = rt[w.id];
+        q('[data-n-go]').onclick = async () => {
+          if (st.on) { st.on = false; stopNoise(); paint(); return; }
+          const stream = await getMedia({ audio: true });
+          if (!stream) return;
+          stopNoise();
+          noiseStream = stream;
+          st.on = true;
+          paint();
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const src = ctx.createMediaStreamSource(stream);
+            const an = ctx.createAnalyser();
+            an.fftSize = 512;
+            src.connect(an);
+            const buf = new Uint8Array(an.fftSize);
+            loops.push(setInterval(() => {
+              const bar = wrap.querySelector(`[data-w="${w.id}"] [data-n-bar]`);
+              const face = wrap.querySelector(`[data-w="${w.id}"] [data-n-face]`);
+              if (!bar) return;
+              an.getByteTimeDomainData(buf);
+              let sum = 0;
+              for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+              const pct = Math.min(100, Math.round(Math.sqrt(sum / buf.length) * 320));
+              st.level = st.level * 0.6 + pct * 0.4;          // smoothed, so it isn't twitchy
+              bar.style.width = st.level + '%';
+              bar.className = st.level > 66 ? 'over' : st.level > 38 ? 'warn' : '';
+              face.textContent = st.level > 66 ? '🙉' : st.level > 38 ? '😐' : '🙂';
+            }, 100));
+          } catch (e) { toast("This browser can't measure the sound level here.", true); }
+        };
+        break;
+      }
+      case 'note': {
+        const ta = q('[data-note]');
+        ta.oninput = () => { w.cfg.text = ta.value; };
+        ta.onblur = touch;
+        break;
+      }
+      case 'today':
+        loops.push(setInterval(paint, 60000));         // keep "now" on the right activity
+        break;
+    }
+  }
+
+  /* ---------- the board ---------- */
+  function paint() {
+    stopLoops();
+    const shown = focus ? screen.widgets.filter(w => w.id === focus) : screen.widgets;
+    wrap.className = 'cs-wrap bg-' + (screen.bg || 'dark') + (focus ? ' focused' : '');
+    wrap.innerHTML = `
+      <div class="cs-bar">
+        <span class="mark">${MARK}</span>
+        <input class="cs-name" id="cs-title" value="${esc(screen.name)}" maxlength="60">
+        <span class="spacer"></span>
+        ${focus ? `<button class="btn ghost small" id="cs-unfocus">${ic('i-fit')} All widgets</button>` : `
+          <button class="btn ghost small" id="cs-add">${ic('i-plus')} Add widget</button>
+          <button class="btn ghost small" id="cs-bg">${ic('i-bg')} ${screen.bg === 'light' ? 'Light' : 'Dark'}</button>`}
+        <button class="btn ghost small" id="cs-close">${ic('i-x')} Close</button>
+      </div>
+      <div class="cs-board">
+        ${shown.length ? shown.map(w => {
+          const def = CS_WIDGETS[w.type];
+          if (!def) return '';
+          return `<div class="cs-tile ${focus ? '' : 'w-' + def.size}" data-w="${w.id}">
+            <div class="cs-head"><span>${esc(def.label)}</span><span class="spacer"></span>
+              <button data-focus="${w.id}" aria-label="${focus ? 'Show every widget' : 'Fill the board'}">${ic(focus ? 'i-fit' : 'i-laser')}</button>
+              ${focus ? '' : `<button data-rm="${w.id}" aria-label="Remove">${ic('i-x')}</button>`}
+            </div>
+            <div class="cs-body">${bodyHTML(w)}</div>
+          </div>`;
+        }).join('')
+        : `<div class="cs-empty" style="grid-column:1/-1; padding:60px 20px">This screen is empty — press
+             <b>Add widget</b> to put something on the board.</div>`}
+      </div>`;
+
+    $('#cs-title').onchange = e => { screen.name = e.target.value.trim() || 'Class screen'; touch(); };
+    $('#cs-close').onclick = close;
+    const addBtn = $('#cs-add'); if (addBtn) addBtn.onclick = openAdd;
+    const bgBtn = $('#cs-bg'); if (bgBtn) bgBtn.onclick = () => {
+      screen.bg = screen.bg === 'light' ? 'dark' : 'light'; touch(); paint();
+    };
+    const un = $('#cs-unfocus'); if (un) un.onclick = () => { focus = null; paint(); };
+    wrap.querySelectorAll('[data-focus]').forEach(b => b.onclick = () => {
+      focus = focus ? null : b.dataset.focus; paint();
+    });
+    wrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+      screen.widgets = screen.widgets.filter(x => x.id !== b.dataset.rm); touch(); paint();
+    });
+    shown.forEach(w => {
+      const tile = wrap.querySelector(`[data-w="${w.id}"]`);
+      if (tile && CS_WIDGETS[w.type]) { try { wire(tile, w); } catch (e) { console.warn('widget', w.type, e); } }
+    });
+  }
+
+  function openAdd() {
+    const m = openModal(`
+      <h3>${ic('i-plus')} Add to the board</h3>
+      <p class="m-sub">Everything that needs your class list uses the real register for
+        ${csClass(screen) ? esc(csClass(screen).name) : 'this class'}.</p>
+      <div class="cs-add">${Object.entries(CS_WIDGETS).map(([k, d]) =>
+        `<button data-add="${k}">${ic(d.icon)}<span>${esc(d.label)}<small>${esc(d.blurb)}</small></span></button>`).join('')}</div>
+      <div class="m-actions"><button class="btn ghost" data-x>Done</button></div>`);
+    m.querySelector('.modal').classList.add('wide');
+    m.querySelector('[data-x]').onclick = () => m.remove();
+    m.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+      screen.widgets.push({ id: csUid(), type: b.dataset.add, cfg: {} });
+      touch(); m.remove(); paint();
+      toast(CS_WIDGETS[b.dataset.add].label + ' added');
+    });
+  }
+
+  paint();
+}
 /* ---------- times tables ----------
    Timed recall practice, scored per fact rather than per quiz. Every answer is
    kept with the milliseconds it took, so a fact moves from "learning" to
