@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- ClassDrop mark: gold folder with the drop-in arrow, on a white tile -->
+  <rect width="64" height="64" rx="14" fill="#fff"/>
+  <g transform="translate(6 6) scale(.8125)">
+    <path d="M8 20a5 5 0 015-5h13l5 6h20a5 5 0 015 5v25a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#8a6a2f"/>
+    <path d="M8 27h48v24a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#ae853e"/>
+    <path d="M32 4v20" stroke="#33302b" stroke-width="6" stroke-linecap="round"/>
+    <path d="M22 16l10 11 10-11" fill="none" stroke="#33302b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M32 6v18" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M24 17l8 9 8-9" fill="none" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

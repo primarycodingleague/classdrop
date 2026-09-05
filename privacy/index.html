@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
+<title>Privacy — ClassDrop | Primary Coding League</title>
+<meta name="description" content="How ClassDrop handles personal data: what the app stores, where it stays, what leaves the device (nothing), and what we will and will not do with children's data.">
+<link rel="canonical" href="https://classdrop.co.uk/privacy/">
+<meta property="og:title" content="ClassDrop privacy notice">
+<meta property="og:description" content="What ClassDrop stores, where it stays, and what leaves the device: nothing.">
+<meta property="og:url" content="https://classdrop.co.uk/privacy/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://classdrop.co.uk/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#242220">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>
+@font-face{font-family:'Montserrat';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/montserrat-400.woff2) format('woff2')}
+@font-face{font-family:'Montserrat';font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/montserrat-600.woff2) format('woff2')}
+@font-face{font-family:'Montserrat';font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/montserrat-700.woff2) format('woff2')}
+@font-face{font-family:'Montserrat';font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/montserrat-800.woff2) format('woff2')}
+:root{
+  --gold:#ae853e; --gold-hi:#c99a4a; --gold-dk:#8a6a2f; --gold-soft:#f4ecdc; --gold-line:#e6d7b8;
+  --gold-text:#7d5f27; --shell:#242220; --shell-muted:#bfb7a8; --shell-line:#3a3631;
+  --ink:#33302b; --muted:#6b655b; --line:#e7e2d8; --paper:#fbf9f5; --card:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font-family:Montserrat,system-ui,sans-serif; line-height:1.6; font-size:1rem}
+a{color:var(--gold-text); text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--gold-dk); outline-offset:2px}
+.skip{position:absolute; left:-999px; top:8px; background:#fff; color:var(--ink); padding:8px 12px; border-radius:8px; z-index:9}
+.skip:focus{left:8px}
+header.top{background:var(--shell); color:#fff; padding:16px 0}
+.wrap{max-width:880px; margin:0 auto; padding:0 20px}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit}
+.brand .mark{width:38px; height:38px; background:#fff; border-radius:10px; padding:5px; display:flex}
+.brand .mark svg{width:100%; height:100%}
+.brand b{font-size:1.15rem; font-weight:800; display:block; line-height:1.05}
+.brand small{display:block; color:var(--gold-hi); font-size:.6rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase}
+.hero{background:var(--shell); color:#fff; padding:30px 0 40px; border-bottom:4px solid var(--gold)}
+.eyebrow{color:var(--gold-hi); font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:.72rem; margin:0 0 10px}
+h1{font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; line-height:1.12; margin:0 0 12px; letter-spacing:-.01em}
+.hero p{color:#e8e2d6; max-width:640px; margin:0; font-size:1.05rem}
+.hero .meta{margin-top:18px; color:var(--shell-muted); font-size:.85rem}
+main{padding:34px 0 60px}
+.summary{background:var(--card); border:1.5px solid var(--gold-line); border-radius:16px; padding:20px 22px; margin:0 0 30px}
+.summary h2{margin:0 0 10px; font-size:1.1rem}
+.summary ul{margin:0; padding-left:20px}
+.summary li{margin:6px 0}
+h2{font-size:1.35rem; font-weight:800; margin:34px 0 10px; line-height:1.25}
+h3{font-size:1.02rem; font-weight:700; margin:20px 0 6px}
+p{margin:0 0 12px}
+ul{margin:0 0 14px; padding-left:22px}
+li{margin:4px 0}
+table{border-collapse:collapse; width:100%; margin:8px 0 18px; font-size:.93rem}
+th,td{text-align:left; vertical-align:top; padding:9px 10px; border-bottom:1px solid var(--line)}
+th{font-weight:700; color:var(--muted); font-size:.8rem; letter-spacing:.04em; text-transform:uppercase}
+.scroll{overflow-x:auto}
+.kids{background:var(--gold-soft); border:1.5px dashed var(--gold-line); border-radius:16px; padding:18px 22px; margin:20px 0}
+.kids h2{margin-top:0; font-size:1.2rem}
+.kids p{font-size:1.05rem}
+.note{background:#fff; border-left:4px solid var(--gold); padding:12px 16px; border-radius:0 12px 12px 0; margin:14px 0 18px; font-size:.95rem}
+.open{display:inline-block; background:#f1e6cf; color:#5c4519; border-radius:999px; padding:1px 9px; font-size:.75rem; font-weight:700; vertical-align:middle}
+footer{background:var(--shell); color:var(--shell-muted); border-top:1px solid var(--shell-line); padding:26px 0; font-size:.85rem}
+footer .wrap{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+footer b{color:var(--gold-hi)}
+footer a{color:inherit}
+footer .sp{margin-left:auto}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="ClassDrop home">
+      <span class="mark"><svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M8 20a5 5 0 015-5h13l5 6h20a5 5 0 015 5v25a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#8a6a2f"/>
+        <path d="M8 27h48v24a6 6 0 01-6 6H14a6 6 0 01-6-6z" fill="#ae853e"/>
+        <path d="M32 4v20" stroke="#33302b" stroke-width="6" stroke-linecap="round"/>
+        <path d="M22 16l10 11 10-11" fill="none" stroke="#33302b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 6v18" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M24 17l8 9 8-9" fill="none" stroke="#c99a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg></span>
+      <span><b>ClassDrop</b><small>Primary Coding League</small></span>
+    </a>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="pt">
+  <div class="wrap">
+    <p class="eyebrow">Privacy notice</p>
+    <h1 id="pt">What ClassDrop does with personal data</h1>
+    <p>Written to be checked, not skimmed. Every claim about the app below was verified against the application's source code, and where something is not yet settled we say so.</p>
+    <p class="meta">Primary Coding League CIC · applies to classdrop.co.uk and the ClassDrop app · last updated 5 September 2026</p>
+  </div>
+</section>
+
+<main id="content">
+  <div class="wrap">
+
+    <div class="summary">
+      <h2>The short version</h2>
+      <ul>
+        <li><strong>Everything entered into the app stays on the device it was entered on.</strong> There is no ClassDrop server. Nothing is uploaded to us.</li>
+        <li><strong>The app contacts no third party.</strong> No analytics, no advertising, no tracking, no AI service, no fonts or code loaded from anyone else. The browser is told to enforce this.</li>
+        <li><strong>The school is the data controller</strong> for anything about its pupils and staff. We are a supplier, and would be a processor under written contract before any hosted use.</li>
+        <li><strong>This website</strong> (the pages about ClassDrop, not the app) uses cookieless Cloudflare Web Analytics to count visits. No cookies are set anywhere.</li>
+        <li><strong>We do not sell, share, or reuse children's data</strong> for product development, advertising or AI training, and will commit to that in writing with every school.</li>
+      </ul>
+    </div>
+
+    <h2>1. Who we are and what this covers</h2>
+    <p>ClassDrop is made by <strong>Primary Coding League CIC</strong>, a community interest company in the UK. This notice covers two things: the website at classdrop.co.uk, which describes the product, and the ClassDrop app at classdrop.co.uk/app, which teachers, pupils and parents use.</p>
+    <p>It is written for the adults who decide whether a school uses ClassDrop, for the parents and staff whose data a school might enter into it, and (in section 8) for the children who use it.</p>
+
+    <h2>2. Roles: who is responsible for what</h2>
+    <p>A school decides why and how its pupils' data is processed, so for anything entered into ClassDrop by a school, <strong>the school is the controller</strong> under UK GDPR. If you are a parent or pupil with a question about your own data in ClassDrop, your school is the right first contact, and this notice is written to help the school answer you.</p>
+    <p>In a normal hosted arrangement Primary Coding League would be a <strong>processor</strong>, acting only on the school's written instructions under Article 28 UK GDPR. In the current build that relationship does not yet exist, because no pupil data reaches us at all (section 3). Before any hosted deployment we will put a data processing agreement in place with each school. <span class="open">not yet in place</span></p>
+    <p>For the website itself, and for any enquiry you send us, Primary Coding League CIC is the controller.</p>
+
+    <h2>3. Where the data actually is</h2>
+    <p>ClassDrop is currently a single-page application served as static files. Everything a teacher, pupil or parent enters is stored in that browser's own storage on that device (IndexedDB, falling back to localStorage). There is no ClassDrop server and no account system.</p>
+    <p>We checked this rather than claiming it: the source contains no <code>fetch</code>, <code>XMLHttpRequest</code> or <code>sendBeacon</code> call that transmits user-entered data anywhere, and the page carries a Content Security Policy that tells the browser to refuse any connection except to classdrop.co.uk itself.</p>
+    <div class="scroll"><table>
+      <tr><th>Data at rest</th><td>In the browser profile on the device used</td></tr>
+      <tr><th>Data in transit</th><td>No personal data is transmitted</td></tr>
+      <tr><th>Backups</th><td>None. Clearing the browser's site data erases everything. The app has a manual export</td></tr>
+      <tr><th>Shared devices</th><td>Anyone using that browser profile can open the data. Sign-in is a demonstration account picker, not authentication</td></tr>
+    </table></div>
+    <div class="note">The practical consequence: in this build a school is processing pupil data on its own equipment, with no transfer to a third party and no authentication controlling access. It is suitable for evaluation with sample or anonymised data. <strong>We do not recommend entering real pupil records, and particularly not safeguarding records, into the demonstration build.</strong></div>
+
+    <h2>4. What personal data ClassDrop can hold</h2>
+    <p>Taken from the application's own data structures. A school controls which modules are switched on, so a school that does not use a module collects none of that module's data.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Module</th><th>Personal data</th><th>About whom</th></tr></thead>
+      <tbody>
+        <tr><td>Accounts and classes</td><td>Names, role, school, class membership, parent–child links, join codes</td><td>Staff, pupils, parents</td></tr>
+        <tr><td>Work and hand-ins</td><td>Pupil work: text, photographs, video, voice recordings, drawings. Images and voice often identify a child directly</td><td>Pupils</td></tr>
+        <tr><td>Feedback and discussions</td><td>Teacher comments, stickers, voice notes, pupil discussion posts and the moderation log</td><td>Pupils, staff</td></tr>
+        <tr><td>Gradebook, markbook, reports</td><td>Grades, levels, comments, attainment, end-of-year report content, attendance figures</td><td>Pupils</td></tr>
+        <tr><td>Behaviour points</td><td>Awards and totals per child, awarding staff member, timestamps</td><td>Pupils, staff</td></tr>
+        <tr><td>Reading</td><td>Reading log entries, books borrowed and returned, ratings, dates</td><td>Pupils</td></tr>
+        <tr><td>Times tables</td><td>Every answer with the time taken, derived fluency, predicted check scores, and per-pupil access arrangements (which may indicate a special educational need)</td><td>Pupils</td></tr>
+        <tr><td>Seating and class screen</td><td>Seating positions, keep-apart pairs, group arrangements</td><td>Pupils</td></tr>
+        <tr><td>Safeguarding</td><td>Concern records: category, narrative, body map, actions, decisions, outcome, case notes and audit trail. This is <strong>special category data</strong> and may include data about criminal offences</td><td>Pupils, family members named, reporting staff</td></tr>
+      </tbody>
+    </table></div>
+    <p>ClassDrop does <strong>no automated decision-making</strong> with legal or similarly significant effects. Predicted multiplication-check scores are an estimate shown to a teacher alongside the amount of practice behind them, never used to place, group or assess a child automatically.</p>
+
+    <h2>5. What leaves the device</h2>
+    <p><strong>Nothing.</strong> The app makes no request to any third party: not for fonts, not for analytics, not for the libraries that render a PDF or Word document. All of it is served from our own domain. A child using ClassDrop discloses their IP address to nobody but the site itself.</p>
+    <p>This was not always true. Until September 2026 the app fetched its typeface from Google Fonts, carried a Cloudflare analytics beacon, and pulled document-preview libraries from a content delivery network when a pupil opened a file. We removed all three.</p>
+    <h3>The website</h3>
+    <p>The pages about ClassDrop (this page and the front page, not the app) use <strong>Cloudflare Web Analytics</strong> to count visits. It is cookieless, sets no identifier, and does not track individuals across sites. Visitors to those pages are adults reading about the product, not children using it. Cloudflare receives the visitor's IP address in the course of serving the beacon, as any web server does.</p>
+    <h3>Cookies</h3>
+    <p>Neither the app nor the website sets cookies. The app stores its data in the browser's IndexedDB and localStorage, which are not cookies and are never sent to a server.</p>
+
+    <h2>6. Children</h2>
+    <p>ClassDrop is designed for primary-aged children, so the ICO's Age Appropriate Design Code applies to it. In plain terms:</p>
+    <ul>
+      <li><strong>No advertising</strong>, anywhere in the product.</li>
+      <li><strong>No third-party tracking or profiling.</strong></li>
+      <li><strong>No AI features.</strong> No pupil data is sent to any AI service. If that ever changed it would be a material change needing the school's prior agreement and a fresh data protection impact assessment.</li>
+      <li><strong>No selling or sharing of data</strong>, and no reuse of children's data for product development, analytics or AI training. We will state this in writing to every school.</li>
+      <li><strong>No nudge design.</strong> Leaderboards can be switched off per class; there are no streaks, coins or collectables designed to extend use.</li>
+    </ul>
+
+    <h2>7. Retention, access and deletion</h2>
+    <ul>
+      <li><strong>Retention today:</strong> data stays in the browser until someone clears it. There is no automatic retention rule. The school's own retention schedule governs.</li>
+      <li><strong>Safeguarding records</strong> cannot be deleted from within the product, by design, because they must usually be retained for many years. They are visible only to the designated safeguarding lead and the member of staff who reported them, and every sensitive action is written to an audit trail.</li>
+      <li><strong>Deleting everything:</strong> the "Reset demo data" button on the sign-in screen, or clearing the browser's site data for classdrop.co.uk, erases all ClassDrop data on that device.</li>
+      <li><strong>Subject access:</strong> the school can export its data from the app. There is no per-pupil extraction tool yet. <span class="open">we must confirm</span></li>
+      <li><strong>Leaving:</strong> what happens to a school's data when it stops using a hosted ClassDrop, and within what period, will be set out in the data processing agreement. <span class="open">we must confirm</span></li>
+    </ul>
+
+    <div class="kids">
+      <h2>8. For children: what happens to your work</h2>
+      <p>When you use ClassDrop, your work, your answers and your reading log are saved <strong>on the computer or iPad you are using</strong>. They are not sent to us, and they are not sent to any other company.</p>
+      <p>Your teacher can see your work, because it is their job to help you. Your parents may be able to see it too. Nobody else can.</p>
+      <p>ClassDrop has no adverts, and it never tries to keep you playing longer than your teacher wants. If something in ClassDrop worries you, tell your teacher.</p>
+    </div>
+
+    <h2>9. Your rights</h2>
+    <p>Under UK GDPR you can ask to see the personal data held about you, have it corrected, have it erased, and object to or restrict its processing. For data a school has entered into ClassDrop, make your request to the school, which is the controller and holds the data. For anything we hold about you as a website visitor or correspondent, contact us (section 11). You can also complain to the Information Commissioner's Office at ico.org.uk.</p>
+
+    <h2>10. Security</h2>
+    <p>The site is served over HTTPS only. The app carries a browser-enforced Content Security Policy that blocks connections to any other domain. The libraries the app uses are served from our own domain and kept patched. If you find a security problem, please tell us first: our contact details are published at <a href="/.well-known/security.txt">/.well-known/security.txt</a>.</p>
+    <p>Before any hosted deployment we will set out encryption at rest and in transit, authentication, access control, logging, breach notification within the timescale that lets a school meet its own 72-hour duty, and the status of our ICO registration, insurance and Cyber Essentials. <span class="open">we must confirm</span></p>
+
+    <h2>11. Contact and changes</h2>
+    <p>Primary Coding League CIC. Contact us through <a href="https://primarycodingleague.co.uk/">primarycodingleague.co.uk</a>. We will name a data protection contact for schools and for breach notification before any hosted deployment. <span class="open">we must confirm</span></p>
+    <p>We will update this notice when ClassDrop changes in a way that affects personal data, and the date at the top will change with it. Items marked <span class="open">we must confirm</span> are genuinely unresolved; please treat them as open until they are settled in writing.</p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span><b>ClassDrop</b> · a Primary Coding League project</span>
+    <a href="/">About ClassDrop</a>
+    <a href="/app/">Open the app</a>
+    <span class="sp">Hand out work. Hand it in. Give feedback.</span>
+  </div>
+</footer>
+
+<!-- Cloudflare Web Analytics (privacy-first, no cookies) -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "82eba600daf243b5a0d3bdf65dee3647"}'></script>
+</body>
+</html>
