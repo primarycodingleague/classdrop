@@ -8306,11 +8306,19 @@ function annotateImageToCanvas(data, name, onSave, extraOpts) {
    Libraries lazy-load from a CDN on first use (needs the internet once).
    ========================================================================== */
 /* Served from our own domain, not a CDN: opening a PDF in a pupil's browser must not
-   announce that child's IP address to a third party. Files vendored in app/vendor. */
-const PDFJS_URL = 'vendor/pdf.min.js';                 // pdfjs-dist 3.11.174
-const PDFJS_WORKER = 'vendor/pdf.worker.min.js';
+   announce that child's IP address to a third party. Files vendored in app/vendor.
+   PDF.js must stay at 4.2.67 or later — earlier releases (CVE-2024-4367) let a crafted
+   PDF run JavaScript in whoever previews it, and a hand-in is exactly that. The legacy
+   build is used for older classroom iPads; it is an ES module, hence import() below. */
+/* './' is required: import() treats a bare 'vendor/…' as a package name and refuses it */
+const PDFJS_URL = './vendor/pdf.min.mjs';              // pdfjs-dist 6.3.289 (legacy build)
+const PDFJS_WORKER = './vendor/pdf.worker.min.mjs';
 const MAMMOTH_URL = 'vendor/mammoth.browser.min.js';   // mammoth 1.8.0
 const JSZIP_URL = 'vendor/jszip.min.js';               // jszip 3.10.1
+let _pdfjs = null;
+const loadPdfjs = () => _pdfjs || (_pdfjs = import(PDFJS_URL).catch(e => {
+  _pdfjs = null; throw new Error('could not load the PDF viewer — try reloading the page');
+}));
 
 const _scriptCache = {};
 function loadScript(src) {
@@ -8345,7 +8353,7 @@ function pageFromImage(data, w, h) {
 }
 
 async function pdfToPages(buf) {
-  await loadScript(PDFJS_URL);
+  const pdfjsLib = await loadPdfjs();
   pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   const n = Math.min(pdf.numPages, 15);
@@ -8360,7 +8368,7 @@ async function pdfToPages(buf) {
     cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
     // 'print' intent renders synchronously (no requestAnimationFrame loop),
     // which also survives throttled/background tabs
-    await page.render({ canvasContext: cx, viewport: vp, intent: 'print' }).promise;
+    await page.render({ canvas: c, viewport: vp, intent: 'print' }).promise;
     pages.push(pageFromImage(c.toDataURL('image/jpeg', .85), c.width, c.height));
   }
   if (pdf.numPages > n) toast(`Long document — showing the first ${n} pages`);
