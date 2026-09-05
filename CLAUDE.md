@@ -12,7 +12,11 @@ Primary Coding League web product, published at https://classdrop.co.uk via GitH
 - Staff can hold two roles: `role` plus `alsoAdmin`/`alsoTeacher`. Use `canTeach()`/`canOffice()` for capability, `isTeacher()`/`isAdmin()` for the currently worn hat (`db.hat`).
 - `index.html` — the public landing page; its CTAs link to `/app/`.
 - Local preview: any static server (on the original Mac: launch config "classdrop", port 8641).
-- Follow the PCL house style (gold #ae853e on charcoal, Montserrat) for any UI work.
+- Follow the PCL house style (gold #ae853e on charcoal, Montserrat) for any UI work. Text colours are AA-checked: body text on gold uses `#2b2211`, never white; `--gold-dk`, `--muted`, `--amber`, `--green` are the darkened text-safe values, and the times-tables cell colours have their own set. Re-run axe (scratchpad `a11y-detail.js`) after palette changes.
+- Both pages carry a `Content-Security-Policy` meta: the app may only talk to its own origin (plus `data:`/`blob:` for stored media); the landing and privacy pages additionally allow the Cloudflare beacon. Any new external resource will be silently blocked until the policy names it — that is the point.
+- Montserrat is served from `/fonts/*.woff2` (not Google Fonts, not base64). Site files at the root: `favicon.svg/.ico`, `icons/`, `manifest.webmanifest` (scoped to `/app/`), `og-image.png`, `robots.txt` (disallows `/app/`), `sitemap.xml`, `404.html`, `.well-known/security.txt`, and the privacy notice at `privacy/index.html`, which mirrors the DPIA supplier pack and must be updated when data handling changes.
+- Every app page has one `h1` (the `.page-head` heading); icon-only buttons need an `aria-label`.
+- iPad/Safari: no WebKit here, so run the scratchpad `test-ipad.js` sweep (Chromium at iPad sizes) and keep the iOS rules: create/resume `AudioContext` inside a tap, use `100dvh` after `100vh`, and keep media on `blob:` URLs.
 - Landing-page parity: whenever a user-facing feature is added or changed in the app, updating the landing page (`index.html` — features grid / copy) is part of the same task and the same PR. The work is not done until the landing page tells the story.
 - Verify changes in a browser before calling them done.
 - Standing instruction: always commit + push as part of the task.

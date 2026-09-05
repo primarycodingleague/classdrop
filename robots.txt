@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+# The app is a workspace, not a page worth indexing; the landing page tells the story.
+Disallow: /app/
+Disallow: /app.html
+
+Sitemap: https://classdrop.co.uk/sitemap.xml
