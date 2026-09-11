@@ -46,6 +46,7 @@ export async function createApp(env = process.env) {
     // --- sign-in, no token needed ---
     if (m === 'POST' && p === '/schools') return send(res, 201, await auth.createSchool(await readJSON(req), env, ip));
     if (m === 'POST' && p === '/auth/staff') return send(res, 200, await auth.loginStaff(await readJSON(req), ip));
+    if (m === 'POST' && p === '/auth/staff/mfa') return send(res, 200, await auth.loginStaffMfa(await readJSON(req), ip));
     if (m === 'POST' && p === '/auth/class') return send(res, 200, await auth.lookupClass(await readJSON(req), ip));
     if (m === 'POST' && p === '/auth/pupil') return send(res, 200, await auth.loginPupil(await readJSON(req), ip));
     if (m === 'POST' && p === '/auth/parent') return send(res, 200, await auth.loginParent(await readJSON(req), ip));
@@ -55,7 +56,11 @@ export async function createApp(env = process.env) {
     if (m === 'GET' && p === '/me') return send(res, 200, await auth.whoami(user));
     if (m === 'POST' && p === '/auth/logout') return send(res, 200, await auth.logout(user));
     if (m === 'POST' && p === '/staff') return send(res, 201, await auth.createStaff(user, await readJSON(req)));
+    if (m === 'POST' && p === '/auth/mfa/setup') return send(res, 200, await auth.mfaSetup(user));
+    if (m === 'POST' && p === '/auth/mfa/enable') return send(res, 200, await auth.mfaEnable(user, await readJSON(req)));
+    if (m === 'POST' && p === '/auth/mfa/disable') return send(res, 200, await auth.mfaDisable(user, await readJSON(req)));
     let mm;
+    if (m === 'DELETE' && (mm = p.match(/^\/staff\/([^/]+)\/mfa$/))) return send(res, 200, await auth.mfaReset(user, decodeURIComponent(mm[1])));
     if (m === 'PUT' && (mm = p.match(/^\/pupils\/([^/]+)\/pin$/))) return send(res, 200, await auth.setPin(user, decodeURIComponent(mm[1]), await readJSON(req)));
 
     if (m === 'POST' && p === '/sync/push') return send(res, 200, await sync.push(user, await readJSON(req)));
@@ -67,7 +72,7 @@ export async function createApp(env = process.env) {
     if (m === 'GET' && (mm = p.match(/^\/media\/([a-f0-9]+)$/))) return media.download(user, mm[1], res);
 
     if (m === 'GET' && (mm = p.match(/^\/export\/pupil\/([^/]+)$/))) return send(res, 200, await admin.exportPupil(user, decodeURIComponent(mm[1])));
-    if (m === 'DELETE' && (mm = p.match(/^\/pupils\/([^/]+)$/))) return send(res, 200, await admin.erasePupil(user, decodeURIComponent(mm[1])));
+    if (m === 'DELETE' && (mm = p.match(/^\/pupils\/([^/]+)$/))) return send(res, 200, await admin.erasePupil(user, decodeURIComponent(mm[1]), storage));
     if (m === 'DELETE' && p === '/schools/me') return send(res, 200, await admin.deleteSchool(user, await readJSON(req), storage));
     if (m === 'GET' && p === '/access-log') return send(res, 200, await admin.accessLog(user));
 
@@ -84,12 +89,14 @@ export async function createApp(env = process.env) {
   });
   server.keepAliveTimeout = 65000;
 
-  const sweep = setInterval(() => auth.sweepSessions().catch(() => {}), 6 * 3600 * 1000);
+  // housekeeping every six hours: expired sessions, unreferenced media, old tombstones
+  const sweep = setInterval(() => admin.maintenance(storage).catch(e => console.error('maintenance: ' + (e && e.message))), 6 * 3600 * 1000);
   sweep.unref();
 
   return {
     server,
     listen: port => new Promise(r => server.listen(port, () => r(server.address().port))),
+    maintenance: () => admin.maintenance(storage),
     close: async () => { clearInterval(sweep); await new Promise(r => server.close(r)); await closeDB(); },
   };
 }

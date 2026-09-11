@@ -318,3 +318,60 @@ test('a school can be deleted by the office with its name typed as confirmation,
   const again = await api('POST', '/auth/staff', { email: 'a@closing.sch.uk', password: 'a long password' });
   assert.equal(again.status, 401, 'account gone');
 });
+
+test('two-step sign-in: setup, enable with a live code, then login needs the code; office can reset', async () => {
+  const { totp } = await import('../src/auth.js');
+  const login = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
+  const tok = login.body.token;
+  const setup = await api('POST', '/auth/mfa/setup', {}, tok);
+  assert.equal(setup.status, 200);
+  assert.match(setup.body.secret, /^[A-Z2-7]{32}$/);
+  assert.match(setup.body.otpauth, /^otpauth:\/\/totp\/ClassDrop/);
+  const bad = await api('POST', '/auth/mfa/enable', { code: '000000' }, tok);
+  assert.equal(bad.status, 400);
+  const ok = await api('POST', '/auth/mfa/enable', { code: totp(setup.body.secret) }, tok);
+  assert.equal(ok.status, 200);
+  assert.equal((await api('GET', '/me', undefined, tok)).body.mfa, true);
+  // password alone is no longer enough
+  const step1 = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
+  assert.equal(step1.status, 200);
+  assert.equal(step1.body.mfa, true);
+  assert.ok(step1.body.pending && !step1.body.token);
+  const wrong = await api('POST', '/auth/staff/mfa', { pending: step1.body.pending, code: '123456' });
+  assert.equal(wrong.status, 401);
+  const pendingAsToken = await api('GET', '/me', undefined, step1.body.pending);
+  assert.equal(pendingAsToken.status, 401, 'a pending challenge is not a session');
+  const step2 = await api('POST', '/auth/staff/mfa', { pending: step1.body.pending, code: totp(setup.body.secret) });
+  assert.equal(step2.status, 200, JSON.stringify(step2.body));
+  assert.ok(step2.body.token);
+  const reused = await api('POST', '/auth/staff/mfa', { pending: step1.body.pending, code: totp(setup.body.secret) });
+  assert.equal(reused.status, 401, 'a challenge is single-use');
+  // turning it off needs the password; a wrong one is 403, never 401 (401 would sign the device out)
+  const offWrong = await api('POST', '/auth/mfa/disable', { password: 'not it' }, step2.body.token);
+  assert.equal(offWrong.status, 403);
+  assert.equal((await api('GET', '/me', undefined, step2.body.token)).body.mfa, true, 'still on');
+  // lost phone: the office resets it
+  const denied = await api('DELETE', `/staff/${teacher.userId}/mfa`, undefined, step2.body.token);
+  assert.equal(denied.status, 403);
+  const reset = await api('DELETE', `/staff/${teacher.userId}/mfa`, undefined, office.token);
+  assert.equal(reset.status, 200);
+  const plain = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
+  assert.ok(plain.body.token, 'password alone works again after the reset');
+});
+
+test('media garbage collection removes objects no live record references', async () => {
+  const bytes = Buffer.from('orphan-bytes-' + Date.now());
+  const up = await api('POST', '/media', undefined, office.token, { mime: 'image/png', bytes });
+  assert.equal(up.status, 201);
+  const id = up.body.id;
+  // referenced by a record: survives; then the record is deleted: goes (age gate bypassed by backdating)
+  await push(office.token, [{ c: 'notifications', k: 'n-media', doc: { id: 'n-media', userId: office.userId, text: 'x', ts: 1, pic: 'media:' + id } }]);
+  const { query } = await import('../src/db.js');
+  await query(`update media set created_at = now() - interval '2 hours' where id=$1`, [id]);
+  let m = await app.maintenance();
+  assert.equal((await api('GET', '/media/' + id, undefined, office.token)).status, 200, 'still referenced, still there');
+  await push(office.token, [{ c: 'notifications', k: 'n-media', doc: null }]);
+  m = await app.maintenance();
+  assert.ok(m.media >= 1, 'collected: ' + JSON.stringify(m));
+  assert.equal((await api('GET', '/media/' + id, undefined, office.token)).status, 404, 'gone from storage and the table');
+});
