@@ -486,3 +486,40 @@ test('a new parent code signs out whoever used the old one, and the new one work
   assert.equal(p2.status, 200);
   assert.equal(p2.body.childId, may);
 });
+
+test('a pupil receives their own work and the shared folder, never a classmate\'s private hand-in', async () => {
+  const zed = 'u-zed';
+  await push(teacher.token, [
+    { c: 'users', k: zed, doc: { id: zed, name: 'Zed Amin', role: 'student', schoolId: school } },
+    { c: 'classes', k: classId, doc: { id: classId, name: 'Year 5', code: 'Y5ABC', teacher: teacher.userId, students: [may, zed], schoolId: school } },
+    { c: 'items', k: 'it-zed', doc: { id: 'it-zed', assignmentId: 'a1', studentId: zed, authorId: zed, kind: 'text', text: 'Zed\'s private draft', ts: 10 } },
+    { c: 'items', k: 'it-sh', doc: { id: 'it-sh', assignmentId: 'a1', studentId: '__shared', authorId: zed, kind: 'text', text: 'Zed\'s shared post', ts: 11 } },
+    { c: 'items', k: 'it-pend', doc: { id: 'it-pend', assignmentId: 'a1', studentId: '__shared', authorId: zed, pending: true, kind: 'text', text: 'awaiting moderation', ts: 12 } },
+    { c: 'items', k: 'it-mine', doc: { id: 'it-mine', assignmentId: 'a1', studentId: may, authorId: may, kind: 'text', text: 'Maya\'s own', ts: 13 } },
+  ]);
+  const p = await pull(maya.token, 0);
+  assert.equal(p.status, 200);
+  const keys = p.body.records.filter(r => r.c === 'items' && r.doc).map(r => r.k);
+  assert.ok(keys.includes('it-mine'), 'own work');
+  assert.ok(keys.includes('it-sh'), 'the shared folder');
+  assert.ok(!keys.includes('it-zed'), 'not a classmate\'s private work');
+  assert.ok(!keys.includes('it-pend'), 'not a classmate\'s post still awaiting moderation');
+  assert.ok(!JSON.stringify(p.body).includes('private draft'));
+});
+
+test('a pupil sees classmates\' point totals but not why each point was given', async () => {
+  const zed = 'u-zed';
+  await push(teacher.token, [
+    { c: 'points', k: 'pt-may', doc: { id: 'pt-may', classId, studentId: may, behId: 'b1', label: 'Kind to others', emoji: '💛', points: 2, by: teacher.userId, ts: 20 } },
+    { c: 'points', k: 'pt-zed', doc: { id: 'pt-zed', classId, studentId: zed, behId: 'b9', label: 'Unkind to others', emoji: '⚠️', points: -1, by: teacher.userId, ts: 21 } },
+  ]);
+  const p = await pull(maya.token, 0);
+  const mine = p.body.records.find(r => r.c === 'points' && r.k === 'pt-may').doc;
+  const theirs = p.body.records.find(r => r.c === 'points' && r.k === 'pt-zed').doc;
+  assert.equal(mine.label, 'Kind to others', 'own entries in full');
+  assert.deepEqual(Object.keys(theirs).sort(), ['classId', 'id', 'points', 'studentId', 'ts'], 'a classmate\'s entry is just the number');
+  assert.equal(theirs.points, -1);
+  assert.ok(!JSON.stringify(p.body).includes('Unkind'));
+  const t = await pull(teacher.token, 0);
+  assert.equal(t.body.records.find(r => r.c === 'points' && r.k === 'pt-zed').doc.label, 'Unkind to others', 'staff see everything');
+});

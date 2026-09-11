@@ -43,6 +43,7 @@ export const MERGE_ARRAYS = { discussions: ['posts'], items: ['comments'] };
 
 const STAFF = new Set(['teacher', 'admin']);
 const isStaffDoc = u => u && STAFF.has(u.role);
+const SHARED = '__shared';   // the app's pseudo-pupil id for an assignment's shared folder
 const has = (arr, v) => Array.isArray(arr) && arr.includes(v);
 const keyIsFor = (key, uid) => typeof key === 'string' && key.endsWith('_' + uid);
 
@@ -86,7 +87,10 @@ export function visible(user, scope, c, key, doc) {
     case 'users': return doc.id === uid || doc.id === user.userId || isStaffDoc(doc) || scope.classmates.has(doc.id);
     case 'classes': return scope.classIds.includes(key);
     case 'assignments': return scope.classIds.includes(doc.classId);
-    case 'items': return scope.assignmentIds.includes(doc.assignmentId);
+    // a pupil's work is theirs: classmates and their parents see only the shared folder
+    // (and not posts still waiting for the teacher's moderation, unless they wrote them)
+    case 'items': return scope.assignmentIds.includes(doc.assignmentId)
+      && (doc.studentId === uid || (doc.studentId === SHARED && (!doc.pending || doc.authorId === uid)));
     case 'points': case 'discussions': return scope.classIds.includes(doc.classId);
     case 'notifications': return doc.userId === user.userId || doc.userId === uid;
     case 'timetables': return (doc.classIds || []).some(id => scope.classIds.includes(id));
@@ -97,6 +101,17 @@ export function visible(user, scope, c, key, doc) {
     case 'handins': case 'grades': case 'marks': return keyIsFor(key, uid);
     default: return false; // canvases, taskLibrary, safeguarding*, seating, screens, modLog, parentCodes
   }
+}
+
+/* What a non-staff user receives of a record they may see. The class points board needs
+   every classmate's totals, not why each point was given: another child's point entries
+   go out without their behaviour label, emoji or the member of staff who gave them. */
+export function redact(user, scope, c, doc) {
+  if (scope.staff || !doc) return doc;
+  if (c === 'points' && doc.studentId !== scope.subject) {
+    return { id: doc.id, classId: doc.classId, studentId: doc.studentId, points: doc.points, ts: doc.ts };
+  }
+  return doc;
 }
 
 /* May this user write (create, change or delete) this record? `existing` is the

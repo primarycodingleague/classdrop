@@ -91,6 +91,9 @@ Behind a reverse proxy, forward `X-Forwarded-For` so rate limiting sees real add
   the DSL, on the Safeguarding page.
 - Safeguarding records are only returned to the designated safeguarding lead and the
   member of staff who reported them; pupils and parents never receive them.
+- Pupils and parents receive only that child's own work plus the class's shared folder
+  (not posts still awaiting moderation), and classmates' point entries stripped to the
+  number, so the class board works without saying why a child lost a point.
 - Removing a person from the register removes them from the server: a tombstoned
   `users` record deletes their account, PIN and sessions (and any parent session for
   that child), and `authenticate()` refuses a token whose user record is tombstoned
