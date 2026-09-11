@@ -19,6 +19,9 @@ create table if not exists accounts (
   primary key (school_id, user_id)
 );
 
+alter table accounts add column if not exists mfa_secret text;
+alter table accounts add column if not exists mfa_enabled boolean not null default false;
+
 create table if not exists pupil_pins (
   school_id   text not null,
   user_id     text not null,

@@ -2135,7 +2135,8 @@ function renderShell() {
         </div>` : ''}
         <div class="who">${esc(u.name)}</div>
         <div class="role">${isAdmin() ? 'school office' : u.role}${dualRole(u) ? ' · dual role' : ''}${isParent() ? ' · ' + esc(user(u.childId).name.split(' ')[0]) : ''}</div>
-        <button class="btn ghost small" id="btn-out">${ic('i-logout')} Switch user</button>
+        <button class="btn ghost small" id="btn-out">${ic('i-logout')} ${CLOUD.on ? 'Sign out' : 'Switch user'}</button>
+        ${CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" id="btn-mfa" style="margin-top:6px">${ic('i-lock')} Two-step sign-in</button>` : ''}
       </div>
     </nav>
     <main class="main" id="main"></main>
@@ -8863,10 +8864,23 @@ function openCloudSignIn() {
     const btn = pane.querySelector('[data-go]'); if (btn) btn.disabled = true;
     try {
       const sess = await cloudFetch(path, { body, api, noAuth: true });
+      if (sess && sess.mfa && sess.pending) { secondStep(sess.pending); return; }
       m.remove();
       toast('Signing you in…');
       await cloudEnter(sess, api);
     } catch (e) { toast(e.message, true); if (btn) btn.disabled = false; }
+  };
+  /* password accepted; the account has two-step sign-in on, so now the code from their phone */
+  const secondStep = pending => {
+    pane.innerHTML = `
+      <p class="m-sub" style="margin:0 0 8px">Now the 6-digit code from your authenticator app.</p>
+      <label>Code</label><input id="cl-otp" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;text-align:center;font-size:1.4rem">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Sign in</button></div>
+      <p class="small muted" style="margin:14px 0 0">Lost your phone? Ask the school office to reset your two-step sign-in.</p>`;
+    pane.querySelector('[data-go]').onclick = () => go('/auth/staff/mfa', { pending, code: $('#cl-otp').value.trim() });
+    pane.querySelector('#cl-otp').addEventListener('keydown', e => { if (e.key === 'Enter') pane.querySelector('[data-go]').click(); });
+    pane.querySelector('[data-x]').onclick = () => m.remove();
+    $('#cl-otp').focus();
   };
   const staff = () => {
     pane.innerHTML = `
@@ -8966,6 +8980,17 @@ document.addEventListener('click', e => {
     };
     return;
   }
+  if (e.target.closest('#btn-mfa')) { openCloudMfa(); return; }
+  const rst = e.target.closest('[data-mfareset]');
+  if (rst) {
+    const t = user(rst.dataset.mfareset);
+    openConfirm(`Reset two-step sign-in for ${t.name}?`,
+      'Use this when they have lost the phone with their authenticator app. They can sign in with their password alone until they set it up again.', async () => {
+        try { await cloudFetch(`/staff/${encodeURIComponent(t.id)}/mfa`, { method: 'DELETE' }); toast(`Two-step sign-in reset for ${t.name}`); }
+        catch (err) { toast(err.message, true); }
+      });
+    return;
+  }
   if (e.target.closest('#cloud-import')) {
     openConfirm('Move this device\'s ClassDrop data to the school?',
       'Everything saved by the demo build on this device is copied to the school\'s account. Records with the same id are replaced.', async () => {
@@ -8988,7 +9013,62 @@ document.addEventListener('click', e => {
       });
   }
 });
-const cloudStaffButton = t => CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" data-account="${t.id}">${ic('i-key')} Sign-in</button> ` : '';
+const cloudStaffButton = t => CLOUD.on && CLOUD.role === 'staff'
+  ? `<button class="btn ghost small" data-account="${t.id}">${ic('i-key')} Sign-in</button> <button class="btn ghost small" data-mfareset="${t.id}">${ic('i-lock')} Reset two-step</button> ` : '';
+
+/* Two-step sign-in for the signed-in member of staff (DfE cyber security standards ask
+   for it on every staff cloud account). An authenticator app on their phone; no SMS. */
+async function openCloudMfa() {
+  let status;
+  try { status = await cloudFetch('/me'); } catch (e) { toast(e.message, true); return; }
+  const m = openModal(`<h3>${ic('i-lock')} Two-step sign-in</h3><div id="mfa-pane"></div>`);
+  const pane = m.querySelector('#mfa-pane');
+  const wireX = () => pane.querySelectorAll('[data-x]').forEach(b => b.onclick = () => m.remove());
+  const off = () => {
+    pane.innerHTML = `
+      <p class="m-sub">Off. With it on, signing in needs your password <em>and</em> a code from an authenticator app on your phone — so a leaked password alone gets nobody in. The DfE asks schools to use this on every staff account.</p>
+      <p class="m-sub">You need an authenticator app first: Microsoft Authenticator, Google Authenticator, or any app that does "one-time codes".</p>
+      <div class="m-actions"><button class="btn ghost" data-x>Close</button><button class="btn" data-setup>${ic('i-lock')} Turn on</button></div>`;
+    wireX();
+    pane.querySelector('[data-setup]').onclick = async () => {
+      try {
+        const r = await cloudFetch('/auth/mfa/setup', { body: {} });
+        const pretty = r.secret.match(/.{1,4}/g).join(' ');
+        pane.innerHTML = `
+          <p class="m-sub" style="margin-top:0">In your authenticator app choose <b>add account</b> then <b>enter a key manually</b>, and type this key (spaces don't matter):</p>
+          <div class="code-box" style="font-family:ui-monospace,Menlo,monospace;font-size:1.05rem;letter-spacing:.06em;word-break:break-all;user-select:all;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin:0 0 10px">${esc(pretty)}</div>
+          <p class="small muted" style="margin:0 0 12px">On this device? <a href="${esc(r.otpauth)}">Open in your authenticator app</a> instead.</p>
+          <label>Then type the 6-digit code it shows</label><input id="mfa-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;text-align:center;font-size:1.4rem">
+          <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Confirm</button></div>`;
+        wireX();
+        const confirm = async () => {
+          try {
+            await cloudFetch('/auth/mfa/enable', { body: { code: $('#mfa-code').value.trim() } });
+            m.remove(); toast('Two-step sign-in is on');
+          } catch (err) { toast(err.message, true); }
+        };
+        pane.querySelector('[data-go]').onclick = confirm;
+        pane.querySelector('#mfa-code').addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); });
+        $('#mfa-code').focus();
+      } catch (err) { toast(err.message, true); }
+    };
+  };
+  const on = () => {
+    pane.innerHTML = `
+      <p class="m-sub">On. Every sign-in asks for your password and then a code from your authenticator app.</p>
+      <p class="m-sub">New phone? Turn it off here, then turn it on again on the new phone. Lost the phone? The school office can reset it from their staff list.</p>
+      <label>Your password, to turn it off</label><input id="mfa-pass" type="password" autocomplete="current-password">
+      <div class="m-actions"><button class="btn ghost" data-x>Close</button><button class="btn danger" data-off>Turn off</button></div>`;
+    wireX();
+    pane.querySelector('[data-off]').onclick = async () => {
+      try {
+        await cloudFetch('/auth/mfa/disable', { body: { password: $('#mfa-pass').value } });
+        m.remove(); toast('Two-step sign-in is off');
+      } catch (err) { toast(err.message, true); }
+    };
+  };
+  (status.mfa ? on : off)();
+}
 const cloudPinButton = sid => CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" data-pin="${sid}">${ic('i-key')} PIN</button> ` : '';
 
 /* ---------- boot ---------- */

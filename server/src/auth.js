@@ -23,6 +23,38 @@ export function verifySecret(secret, stored) {
 }
 const tokenHash = t => crypto.createHash('sha256').update(t).digest('hex');
 
+/* Time-based one-time codes (RFC 6238, 30-second steps, six digits), the kind every
+   authenticator app produces. No dependency needed. */
+const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function base32(bytes) {
+  let bits = 0, val = 0, out = '';
+  for (const b of bytes) { val = (val << 8) | b; bits += 8; while (bits >= 5) { out += B32[(val >>> (bits - 5)) & 31]; bits -= 5; } }
+  if (bits > 0) out += B32[(val << (5 - bits)) & 31];
+  return out;
+}
+function unbase32(s) {
+  let bits = 0, val = 0; const out = [];
+  for (const ch of String(s).toUpperCase().replace(/=+$/, '')) {
+    const i = B32.indexOf(ch); if (i < 0) continue;
+    val = (val << 5) | i; bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
+  }
+  return Buffer.from(out);
+}
+export function totp(secretB32, step = Math.floor(Date.now() / 30000)) {
+  const msg = Buffer.alloc(8); msg.writeBigUInt64BE(BigInt(step));
+  const h = crypto.createHmac('sha1', unbase32(secretB32)).update(msg).digest();
+  const o = h[h.length - 1] & 15;
+  const code = ((h[o] & 127) << 24 | h[o + 1] << 16 | h[o + 2] << 8 | h[o + 3]) % 1000000;
+  return String(code).padStart(6, '0');
+}
+function totpOk(secret, code) {
+  const c = String(code || '').replace(/\s+/g, '');
+  if (!/^\d{6}$/.test(c)) return false;
+  const now = Math.floor(Date.now() / 30000);
+  return [-1, 0, 1].some(d => crypto.timingSafeEqual(Buffer.from(totp(secret, now + d)), Buffer.from(c)));
+}
+
 /* Brute-force brake: a handful of attempts per key per ten minutes, in memory. Enough
    for a pilot on one server; move to the database if there are ever several. */
 const attempts = new Map();
@@ -48,7 +80,7 @@ export async function authenticate(req) {
   const h = req.headers.authorization || '';
   const m = h.match(/^Bearer\s+(\S+)$/i);
   if (!m) throw new HttpError(401, 'sign in first');
-  const r = await query('select school_id, user_id, role, child_id from sessions where token_hash = $1 and expires_at > now()', [tokenHash(m[1])]);
+  const r = await query(`select school_id, user_id, role, child_id from sessions where token_hash = $1 and expires_at > now() and role in ('staff','student','parent')`, [tokenHash(m[1])]);
   if (!r.rows.length) throw new HttpError(401, 'your sign-in has expired — sign in again');
   const s = r.rows[0];
   return { schoolId: s.school_id, userId: s.user_id, role: s.role, childId: s.child_id, tokenHash: tokenHash(m[1]) };
@@ -123,10 +155,68 @@ export async function createStaff(user, body) {
 export async function loginStaff(body, ip) {
   const email = String(body.email || '').trim().toLowerCase();
   throttle('staff:' + ip); throttle('staff:' + email, 8);
-  const r = await query('select school_id, user_id, pass_hash from accounts where email=$1', [email]);
+  const r = await query('select school_id, user_id, pass_hash, mfa_enabled from accounts where email=$1', [email]);
   const a = r.rows[0];
   if (!a || !verifySecret(body.password, a.pass_hash)) throw new HttpError(401, 'email or password not recognised');
+  if (a.mfa_enabled) {   // password is right; now the code from their authenticator app
+    const pending = crypto.randomBytes(32).toString('base64url');
+    await query('insert into sessions (token_hash, school_id, user_id, role, expires_at) values ($1,$2,$3,$4,$5)',
+      [tokenHash(pending), a.school_id, a.user_id, 'mfa-pending', new Date(Date.now() + 5 * 60 * 1000)]);
+    return { mfa: true, pending };
+  }
   return issueToken({ schoolId: a.school_id, userId: a.user_id, role: 'staff' });
+}
+
+/* POST /auth/staff/mfa { pending, code } — second step of a staff sign-in */
+export async function loginStaffMfa(body, ip) {
+  throttle('mfa:' + ip);
+  const p = await query(`select school_id, user_id from sessions where token_hash=$1 and role='mfa-pending' and expires_at > now()`, [tokenHash(String(body.pending || ''))]);
+  if (!p.rows.length) throw new HttpError(401, 'that sign-in has timed out — start again');
+  const { school_id: schoolId, user_id: userId } = p.rows[0];
+  throttle('mfa:' + userId, 6);
+  const a = await query('select mfa_secret from accounts where school_id=$1 and user_id=$2 and mfa_enabled', [schoolId, userId]);
+  if (!a.rows.length || !totpOk(a.rows[0].mfa_secret, body.code)) throw new HttpError(401, 'that code is not right');
+  await query('delete from sessions where token_hash=$1', [tokenHash(String(body.pending))]);
+  return issueToken({ schoolId, userId, role: 'staff' });
+}
+
+/* Two-step setup for the signed-in member of staff: setup hands out a secret (shown as
+   text and as an otpauth link for authenticator apps), enable confirms with a code. */
+export async function mfaSetup(user) {
+  if (user.role !== 'staff') throw new HttpError(403, 'staff only');
+  const secret = base32(crypto.randomBytes(20));
+  await query('update accounts set mfa_secret=$3, mfa_enabled=false where school_id=$1 and user_id=$2', [user.schoolId, user.userId, secret]);
+  const acct = await query('select email from accounts where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  const label = encodeURIComponent('ClassDrop:' + (acct.rows[0]?.email || user.userId));
+  return { secret, otpauth: `otpauth://totp/${label}?secret=${secret}&issuer=ClassDrop&digits=6&period=30` };
+}
+export async function mfaEnable(user, body) {
+  if (user.role !== 'staff') throw new HttpError(403, 'staff only');
+  const a = await query('select mfa_secret from accounts where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  if (!a.rows[0]?.mfa_secret) throw new HttpError(400, 'run setup first');
+  if (!totpOk(a.rows[0].mfa_secret, body.code)) throw new HttpError(400, 'that code is not right — check the time on your phone and try the next one');
+  await query('update accounts set mfa_enabled=true where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  return { enabled: true };
+}
+export async function mfaDisable(user, body) {
+  if (user.role !== 'staff') throw new HttpError(403, 'staff only');
+  const a = await query('select pass_hash from accounts where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  // 403, not 401: the token is fine, the password typed into the form is not (a 401 would sign the device out)
+  if (!a.rows.length || !verifySecret(body.password, a.rows[0].pass_hash)) throw new HttpError(403, 'password not recognised');
+  await query('update accounts set mfa_enabled=false, mfa_secret=null where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  return { enabled: false };
+}
+/* DELETE /staff/:id/mfa — the office resets a colleague who has lost their phone */
+export async function mfaReset(user, staffId) {
+  if (user.role !== 'staff') throw new HttpError(403, 'staff only');
+  const me = await record(user.schoolId, 'users', user.userId);
+  if (!me || !(me.role === 'admin' || me.alsoAdmin)) throw new HttpError(403, 'the school office must do this');
+  await query('update accounts set mfa_enabled=false, mfa_secret=null where school_id=$1 and user_id=$2', [user.schoolId, staffId]);
+  return { enabled: false };
+}
+export async function mfaStatus(user) {
+  const a = await query('select mfa_enabled from accounts where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  return { enabled: !!a.rows[0]?.mfa_enabled };
 }
 
 /* Pupils: the class code first, which lists the names to pick from (names only), then
@@ -201,9 +291,12 @@ export async function logout(user) {
 export async function whoami(user) {
   const u = await record(user.schoolId, 'users', user.userId);
   const s = await record(user.schoolId, 'schools', user.schoolId);
-  return { userId: user.userId, role: user.role, schoolId: user.schoolId, childId: user.childId, name: u?.name || null, school: s?.name || null };
+  const mfa = user.role === 'staff' ? (await mfaStatus(user)).enabled : null;
+  return { userId: user.userId, role: user.role, schoolId: user.schoolId, childId: user.childId, name: u?.name || null, school: s?.name || null, mfa };
 }
 
 export async function sweepSessions() {
   await query('delete from sessions where expires_at < now()');
 }
+/* authenticate() only accepts real roles */
+

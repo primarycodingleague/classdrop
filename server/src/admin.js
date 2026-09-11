@@ -68,7 +68,7 @@ export async function exportPupil(user, pid) {
    25th birthday and the DSL, not the office, decides their fate. Everything else about
    the pupil becomes a tombstone, their PIN and sessions go, and any parent account that
    existed only for them goes too. */
-export async function erasePupil(user, pid) {
+export async function erasePupil(user, pid, storage) {
   if (user.role !== 'staff' || !isOffice(await meDoc(user))) throw new HttpError(403, 'the school office must do this');
   const all = await query('select collection, key, doc from records where school_id=$1 and not deleted', [user.schoolId]);
   const pupil = all.rows.find(r => r.collection === 'users' && r.key === pid)?.doc;
@@ -99,7 +99,8 @@ export async function erasePupil(user, pid) {
     await q('delete from sessions where school_id=$1 and (user_id=$2 or child_id=$2 or user_id = any($3))', [user.schoolId, pid, parentIds]);
   });
   await logAccess(user, 'erase-pupil', { pupil: pid, records: gone.length, parents: parentIds.length, safeguardingKept: true });
-  return { erased: gone.length, parentsRemoved: parentIds.length, safeguardingKept: true };
+  const media = storage ? await gcMedia(user.schoolId, storage) : 0;
+  return { erased: gone.length, parentsRemoved: parentIds.length, safeguardingKept: true, mediaRemoved: media };
 }
 
 /* DELETE /schools/me  { confirm: "<school name>" } — the whole school, including media
@@ -117,6 +118,38 @@ export async function deleteSchool(user, body, storage) {
     }
   });
   return { deleted: name, media: media.rows.length };
+}
+
+/* Media nobody references any more (an erased pupil's photos, a deleted hand-in) is
+   removed from storage. Objects younger than an hour are left alone in case their record
+   is still on its way up. */
+export async function gcMedia(schoolId, storage) {
+  const live = await query(`select doc::text as t from records where school_id=$1 and not deleted and doc::text like '%media:%'`, [schoolId]);
+  const referenced = new Set();
+  for (const r of live.rows) for (const m of r.t.matchAll(/media:([a-f0-9]{64})/g)) referenced.add(m[1]);
+  const all = await query(`select id from media where school_id=$1 and created_at < now() - interval '1 hour'`, [schoolId]);
+  let removed = 0;
+  for (const m of all.rows) {
+    if (referenced.has(m.id)) continue;
+    try { await storage.remove(`${schoolId}/${m.id}`); } catch (e) { continue; }
+    await query('delete from media where school_id=$1 and id=$2', [schoolId, m.id]);
+    removed++;
+  }
+  return removed;
+}
+/* Tombstones carry no data but they do say a key once existed; after ninety days every
+   device has long since caught up and they can go. */
+export async function purgeTombstones(days = 90) {
+  const r = await query(`delete from records where deleted and updated_at < now() - ($1 || ' days')::interval`, [String(days)]);
+  return r.rowCount || 0;
+}
+export async function maintenance(storage) {
+  await query('delete from sessions where expires_at < now()');
+  const schools = await query('select id from schools_meta');
+  let media = 0;
+  for (const s of schools.rows) media += await gcMedia(s.id, storage);
+  const tombstones = await purgeTombstones();
+  return { media, tombstones };
 }
 
 /* GET /access-log — the DSL and the office can see who read safeguarding data. */
