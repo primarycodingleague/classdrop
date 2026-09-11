@@ -31,6 +31,16 @@ function mergeArrays(c, incoming, existing) {
   return out;
 }
 
+/* A removed person is removed from the server too, not just from the register: their
+   account, PIN and every session (and, for a pupil, any parent signed in for them). A
+   tombstoned users record is also refused by authenticate(), so a token that slipped
+   through would still be useless. */
+async function revokeUser(q, schoolId, userId) {
+  await q('delete from sessions where school_id=$1 and (user_id=$2 or child_id=$2)', [schoolId, userId]);
+  await q('delete from accounts where school_id=$1 and user_id=$2', [schoolId, userId]);
+  await q('delete from pupil_pins where school_id=$1 and user_id=$2', [schoolId, userId]);
+}
+
 /* POST /sync/push  { ops: [{ c, k, doc }] }   doc === null deletes */
 export async function push(user, body) {
   const ops = Array.isArray(body.ops) ? body.ops : null;
@@ -54,8 +64,12 @@ export async function push(user, body) {
         if (!cur.rows.length) { results.push({ c, k, version: null }); continue; }
         const r = await q(`update records set doc=null, deleted=true, version=nextval('record_version'), updated_at=now(), updated_by=$4
                            where school_id=$1 and collection=$2 and key=$3 returning version`, [user.schoolId, c, k, user.userId]);
+        if (c === 'users' && existing) await revokeUser(q, user.schoolId, k);
         results.push({ c, k, version: Number(r.rows[0].version) });
       } else {
+        // a new parent code means the old one has leaked or the family has changed: whoever
+        // signed in with the old one is out
+        if (c === 'parentCodes' && existing && existing !== doc) await q(`delete from sessions where school_id=$1 and role='parent' and child_id=$2`, [user.schoolId, k]);
         const merged = mergeArrays(c, doc, existing);
         const r = await q(`insert into records (school_id, collection, key, doc, deleted, version, updated_by)
                            values ($1,$2,$3,$4,false,nextval('record_version'),$5)
