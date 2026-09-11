@@ -7,6 +7,7 @@ import { query } from './db.js';
 import { HttpError, readBody, sha256 } from './util.js';
 
 const MAX_BYTES = 60 * 1048576;   // one recorded video lesson, roughly
+const SCHOOL_CAP = (Number(process.env.MAX_SCHOOL_MB) || 5120) * 1048576;   // a school's media, all in
 const MIME_OK = /^(image|video|audio)\/[a-z0-9.+-]+$|^application\/pdf$/i;
 
 export function mediaRoutes(storage) {
@@ -20,6 +21,8 @@ export function mediaRoutes(storage) {
       const id = sha256(bytes);
       const have = await query('select 1 from media where school_id=$1 and id=$2', [user.schoolId, id]);
       if (!have.rows.length) {
+        const used = await query('select coalesce(sum(bytes),0) as b from media where school_id=$1', [user.schoolId]);
+        if (Number(used.rows[0].b) + bytes.length > SCHOOL_CAP) throw new HttpError(507, 'the school\'s media storage is full — ask the office to make room or raise the limit');
         await storage.put(objectKey(user.schoolId, id), bytes, mime);
         await query('insert into media (school_id, id, mime, bytes, owner_id) values ($1,$2,$3,$4,$5) on conflict do nothing',
           [user.schoolId, id, mime, bytes.length, user.userId]);

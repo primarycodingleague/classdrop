@@ -249,3 +249,72 @@ test('logout revokes the token', async () => {
   assert.equal((await api('POST', '/auth/logout', {}, t.body.token)).status, 200);
   assert.equal((await api('GET', '/me', undefined, t.body.token)).status, 401);
 });
+
+test('keys that would poison a prototype are refused', async () => {
+  const a = await push(teacher.token, [{ c: 'handins', k: '__proto__', doc: { polluted: true } }]);
+  assert.equal(a.status, 400);
+  const b = await push(teacher.token, [{ c: 'items', k: 'itx', doc: { id: 'itx', assignmentId: 'a1', studentId: may, authorId: may, kind: 'text', text: 'x', ts: 1, nested: JSON.parse('{"__proto__":{"evil":1}}') } }]);
+  assert.equal(b.status, 400);
+});
+
+test('security headers on every response', async () => {
+  const r = await api('GET', '/health');
+  assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(r.headers.get('x-frame-options'), 'DENY');
+  assert.equal(r.headers.get('cache-control'), 'no-store');
+});
+
+test('subject access export gathers everything about one pupil, logs it, hides safeguarding from non-DSL staff', async () => {
+  const t = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
+  const r = await api('GET', '/export/pupil/' + may, undefined, t.body.token);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.pupil.name, 'Maya Patel');
+  assert.ok(r.body.records.items.some(i => i.id === 'it1'));
+  assert.ok(r.body.records.reading.some(x => x.key === may));
+  assert.ok(r.body.records.discussions.every(d => d.posts.every(p => p.by === may)), 'only her own posts');
+  assert.equal(r.body.records.safeguarding, undefined, 'sg1 is about Leo, and Maya has none');
+  const missing = await api('GET', '/export/pupil/nobody', undefined, t.body.token);
+  assert.equal(missing.status, 404);
+  const log = await api('GET', '/access-log', undefined, office.token);
+  assert.equal(log.status, 200);
+  assert.ok(log.body.entries.some(e => e.kind === 'export-pupil' && e.detail.pupil === may));
+  assert.ok(log.body.entries.some(e => e.kind === 'safeguarding-read'), 'earlier pulls that returned safeguarding were logged');
+  const denied = await api('GET', '/access-log', undefined, t.body.token);
+  assert.equal(denied.status, 403, 'a plain teacher cannot read the access log');
+});
+
+test('erasing a pupil tombstones their records, keeps safeguarding, removes their PIN, sessions and parent', async () => {
+  const t = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
+  const denied = await api('DELETE', '/pupils/' + leo, undefined, t.body.token);
+  assert.equal(denied.status, 403, 'office only');
+  // the import test replaced the school record without a DSL; make the office DSL again
+  await push(office.token, [{ c: 'schools', k: school, doc: { id: school, name: 'Brackley Primary', adminId: office.userId, dslId: office.userId, features: {} } }]);
+  const before = (await pull(office.token, 0)).body.records;
+  assert.ok(before.some(x => x.c === 'safeguarding' && x.k === 'sg1' && x.doc));
+  const r = await api('DELETE', '/pupils/' + leo, undefined, office.token);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.safeguardingKept, true);
+  const after = (await pull(office.token, 0)).body.records;
+  assert.equal(after.find(x => x.c === 'users' && x.k === leo).doc, null, 'user record is a tombstone');
+  assert.ok(after.find(x => x.c === 'safeguarding' && x.k === 'sg1').doc, 'safeguarding record survives');
+  const klass = after.find(x => x.c === 'classes' && x.k === classId).doc;
+  assert.ok(!klass.students.includes(leo), 'removed from the register');
+  const list = await api('POST', '/auth/class', { code: 'Y5ABC' });
+  assert.ok(!list.body.pupils.some(p => p.id === leo));
+});
+
+test('a school can be deleted by the office with its name typed as confirmation, and nothing is left', async () => {
+  const other = await api('POST', '/schools', { invite: 'PCL-TEST', schoolName: 'Closing School', adminName: 'A', email: 'a@closing.sch.uk', password: 'a long password' });
+  const tok = other.body.token;
+  await push(tok, [{ c: 'users', k: 'u-x', doc: { id: 'u-x', name: 'X', role: 'student', schoolId: other.body.schoolId } }]);
+  const up = await api('POST', '/media', undefined, tok, { mime: 'image/png', bytes: Buffer.from('not really a png but bytes') });
+  assert.equal(up.status, 201);
+  const wrong = await api('DELETE', '/schools/me', { confirm: 'Wrong Name' }, tok);
+  assert.equal(wrong.status, 400);
+  const r = await api('DELETE', '/schools/me', { confirm: 'Closing School' }, tok);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.media, 1);
+  assert.equal((await api('GET', '/me', undefined, tok)).status, 401, 'sessions gone');
+  const again = await api('POST', '/auth/staff', { email: 'a@closing.sch.uk', password: 'a long password' });
+  assert.equal(again.status, 401, 'account gone');
+});

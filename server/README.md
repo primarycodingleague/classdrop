@@ -17,6 +17,13 @@ third-party calls.
   referenced from records as `media:<id>`.
 - **Import.** An office account can upload a whole device-local ClassDrop database to
   move a school that trialled on one laptop onto the service.
+- **Rights and lifecycle.** `GET /export/pupil/:id` gathers everything held about one
+  pupil (subject access requests, leavers' files). `DELETE /pupils/:id` erases a pupil:
+  every record about them becomes a tombstone, their PIN, sessions and parent account go;
+  safeguarding records are kept on purpose, since statutory retention runs to the pupil's
+  25th birthday. `DELETE /schools/me` (office, school name typed to confirm) removes the
+  school and its media outright. `GET /access-log` shows the DSL and the office who read
+  or exported safeguarding data and when.
 
 ## Run it locally
 
@@ -43,6 +50,7 @@ npm test               # node --test, in-memory PGlite, temp media dir
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT` | S3 or any S3-compatible store; credentials via the AWS SDK's usual chain |
 | `ALLOWED_ORIGINS` | comma-separated origins allowed to call the API, default `https://classdrop.co.uk` |
 | `INVITE_CODES` | comma-separated codes that may create a school (`POST /schools`). Unset → sign-up closed |
+| `MAX_SCHOOL_MB` | media storage cap per school, default 5120 |
 
 ## Deploying
 
