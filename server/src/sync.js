@@ -2,7 +2,7 @@
    records it changed (push); the server hands back everything that changed since the
    client's last version (pull), filtered to what that person may see. */
 import { query, withTx } from './db.js';
-import { SHAPES, MERGE_ARRAYS, buildScope, scopeHash, visible, canWrite } from './shapes.js';
+import { SHAPES, MERGE_ARRAYS, buildScope, scopeHash, visible, canWrite, redact } from './shapes.js';
 import { HttpError, badKey, hasBadKeys } from './util.js';
 
 const MAX_DOC = 1024 * 1024;       // 1 MB per record on the wire (media is separate)
@@ -98,7 +98,7 @@ export async function pull(user, since) {
     version = Number(row.version);
     if (!visible(user, scope, row.collection, row.key, row.doc)) continue;
     if (!row.deleted && (row.collection === 'safeguarding' || row.collection === 'sgUpdates')) sensitive.push(row.collection + '/' + row.key);
-    records.push({ c: row.collection, k: row.key, doc: row.deleted ? null : row.doc, v: version });
+    records.push({ c: row.collection, k: row.key, doc: row.deleted ? null : redact(user, scope, row.collection, row.doc), v: version });
   }
   if (sensitive.length) await query('insert into access_log (school_id, user_id, kind, detail) values ($1,$2,$3,$4)',
     [user.schoolId, user.userId, 'safeguarding-read', JSON.stringify({ records: sensitive })]);
