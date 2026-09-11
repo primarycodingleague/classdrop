@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- Browser-enforced: this page may only talk to classdrop.co.uk itself. Pupils' work never leaves. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob: https://api.classdrop.co.uk http://localhost:8787; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
 <title>ClassDrop — Primary Coding League</title>
 <meta name="description" content="ClassDrop — hand out work, hand it in, give feedback. A classroom workspace by Primary Coding League.">
 <meta name="robots" content="noindex">
@@ -115,6 +115,11 @@ h1,h2,h3,h4{letter-spacing:.005em}
 .demo-user b{display:block; font-size:.94rem}
 .demo-user small{color:var(--muted); font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700}
 .auth-reset{text-align:center; margin-top:14px}
+.auth-cloud{text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid var(--line)}
+.cl-tabs{display:flex; gap:6px; margin:6px 0 14px}
+.cl-tabs button{flex:1; border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:8px; font-weight:800; cursor:pointer; color:var(--muted)}
+.cl-tabs button.on{border-color:var(--gold); background:var(--gold-soft); color:var(--gold-dk)}
+.cl-names{display:grid; gap:8px; max-height:300px; overflow:auto; margin-bottom:6px}
 .auth-foot{text-align:center; margin:14px 0 0; font-size:.8rem; color:var(--muted)}
 .auth-foot a{color:inherit; text-decoration:underline; text-underline-offset:3px}
 .parent-join{display:flex; gap:8px; margin-top:4px}
@@ -1203,7 +1208,7 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
    Primary Coding League · demo data lives in localStorage
    ======================================================================= */
 
-const DB_KEY = 'classdrop_db_v2';
+let DB_KEY = 'classdrop_db_v2';   // switched to a per-school key when signed in to a hosted school
 const MAX_FILE = 4 * 1024 * 1024; // 4MB per upload in the demo
 const SHARED = '__shared';        // pseudo-student id for an assignment's shared folder
 
@@ -1461,6 +1466,14 @@ async function bootDB() {
     try { stored = JSON.parse(localStorage.getItem(DB_KEY)); } catch (e) {}
     if (stored && _idb) { try { await idbPut(DB_KEY, stored); localStorage.removeItem(DB_KEY); } catch (e) {} }
   }
+  if (CLOUD.on) {
+    db = stored && stored.users ? stored : cloudShell();
+    if (!(stored && stored.users)) { try { await cloudPull(true); } catch (e) { /* offline: an empty shell until it can sync */ } }
+    else cloudRebase();
+    db.session = CLOUD.userId;
+    migrateDB();
+    return;
+  }
   db = stored && stored.users ? stored : seedDemo();
   migrateDB();
 }
@@ -1475,13 +1488,13 @@ function loadDB() { // sync path, used only where IndexedDB is unavailable
 function migrateDB() {
   let changed = false;
   db.classes.forEach(c => { if (!c.teachers || !c.teachers.length) { c.teachers = [c.teacher]; changed = true; } });
-  if (!db.users.some(u => u.role === 'teacher' && u.id !== 'u-tay')) {
+  if (!CLOUD.on && !db.users.some(u => u.role === 'teacher' && u.id !== 'u-tay')) {
     db.users.push({ id: 'u-ose', name: 'Mr Osei', role: 'teacher' });
     const c2 = db.classes.find(c => c.id === 'c2');
     if (c2 && !c2.teachers.includes('u-ose')) c2.teachers.push('u-ose');
     changed = true;
   }
-  if (!db.schools || !db.schools.length) {
+  if (!CLOUD.on && (!db.schools || !db.schools.length)) {
     db.schools = [{ id: 'sch1', name: 'Oakfield Primary', adminId: 'u-hug', scales: defaultScales() }];
     if (!db.users.some(u => u.id === 'u-hug')) db.users.push({ id: 'u-hug', name: 'Mrs Hughes', role: 'admin', schoolId: 'sch1' });
     db.users.forEach(u => { if (!u.schoolId) u.schoolId = 'sch1'; });
@@ -1725,6 +1738,11 @@ function migrateDB() {
   if (changed) saveDB();
 }
 function saveDB() {
+  const ok = saveDB.quiet();
+  cloudSchedule();   // no-op unless signed in to a hosted school
+  return ok;
+}
+saveDB.quiet = function () {   // persist locally without telling the sync layer (it already knows)
   saveDB.failed = false;
   if (_idb) {
     idbPut(DB_KEY, db).catch(() => { saveDB.failed = true; toast("Couldn't save — this device's storage is full.", true); });
@@ -1732,7 +1750,7 @@ function saveDB() {
   }
   try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
   catch (e) { saveDB.failed = true; toast("Couldn't save — this device's storage is full.", true); return false; }
-}
+};
 
 /* Safari won't play <video>/<audio> from a data: URL, so serve each stored item's
    bytes through a blob: URL instead (also enables seeking); cached per object */
@@ -2114,6 +2132,7 @@ function renderAuth() {
         <button class="btn sec" id="pj-go">${ic('i-family')} Follow</button>
       </div>
       <div class="auth-reset"><button class="btn ghost small" id="btn-reset">${ic('i-trash')} Reset demo data</button></div>
+      <div class="auth-cloud" hidden><button class="btn sec" id="cloud-in">${ic('i-shield')} Sign in to your school</button></div>
       <p class="auth-foot"><a href="/privacy/">Privacy</a> · <a href="/">About ClassDrop</a></p>
     </div></main>`;
   document.querySelectorAll('[data-login]').forEach(b => b.onclick = () => {
@@ -2133,6 +2152,8 @@ function renderAuth() {
       toast(`Following ${user(sid).name} 👀`);
     });
   };
+  $('#cloud-in').onclick = openCloudSignIn;
+  cloudAvailable().then(ok => { const w = document.querySelector('.auth-cloud'); if (ok && w) w.hidden = false; });
   $('#btn-reset').onclick = async () => {
     localStorage.removeItem(DB_KEY);
     if (_idb) { try { await idbDel(DB_KEY); } catch (e) {} }
@@ -2243,7 +2264,7 @@ function renderShell() {
     go({ page: 'dash', classId: null, assignmentId: null, studentId: null, discussionId: null });
     toast(db.hat === 'office' ? 'Switched to the school office' : 'Switched to teaching');
   });
-  $('#btn-out').onclick = () => { db.session = null; saveDB(); render(); };
+  $('#btn-out').onclick = () => { if (CLOUD.on) { cloudSignOut(); return; } db.session = null; saveDB(); render(); };
   const bs = $('#btn-search'); if (bs) bs.onclick = openSearch;
   const mb = $('#btn-menu');
   if (mb) mb.onclick = () => {
@@ -2489,6 +2510,9 @@ function renderAdminFeatures(main) {
   const s = mySchool();
   main.innerHTML = `
     <div class="page-head"><h1>${ic('i-gear')} Features</h1></div>
+    ${CLOUD.on ? `<div class="card" style="margin-bottom:18px"><h3>${ic('i-archive')} Move data from this device</h3>
+      <p class="m-sub" style="margin-top:0">Used ClassDrop on this device before the school signed up? Copy everything it saved into the school's account.</p>
+      <button class="btn sec small" id="cloud-import">${ic('i-archive')} Move this device's data to the school</button></div>` : ''}
     <p class="page-sub">Turn off anything ${esc(s.name)} doesn't use and it disappears for everyone — staff, pupils and parents. Nothing is deleted: switch a module back on and its data is exactly where it was.</p>
     <div class="feat-list">
       ${FEATURES.map(([k, icn, label, blurb]) => `
@@ -2525,7 +2549,7 @@ function renderAdminStaff(main) {
       </td>
       <td>${canTeach(t) ? (owned.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>') : '<span class="muted">—</span>'}</td>
       <td>${canTeach(t) ? (co.map(c => esc(c.name)).join(', ') || '<span class="muted">—</span>') : '<span class="muted">—</span>'}</td>
-      <td style="text-align:right">${isMe ? '' : `<button class="btn ghost small" data-rmstaff="${t.id}">${ic('i-x')} Remove</button>`}</td>
+      <td style="text-align:right">${isMe ? '' : cloudStaffButton(t)}${isMe ? '' : `<button class="btn ghost small" data-rmstaff="${t.id}">${ic('i-x')} Remove</button>`}</td>
     </tr>`;
   }).join('');
   main.innerHTML = `
@@ -2614,7 +2638,7 @@ function renderAdminStudents(main) {
         <input class="att-in" data-att="${s.id}|late" type="number" min="0" placeholder="late" value="${esc(att.late != null ? att.late : '')}" style="max-width:70px"></span></td>
       <td>${joinable.length ? `<select data-addcls="${s.id}" style="width:auto;font-size:.85rem">
         <option value="">Add to class…</option>${joinable.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>` : ''}</td>
-      <td style="text-align:right"><button class="btn ghost small" data-rmpupil="${s.id}" aria-label="Remove ${esc(s.name)} from this class">${ic('i-x')}</button></td>
+      <td style="text-align:right">${cloudPinButton(s.id)}<button class="btn ghost small" data-rmpupil="${s.id}" aria-label="Remove ${esc(s.name)} from this class">${ic('i-x')}</button></td>
     </tr>`;
   }).join('');
   main.innerHTML = `
@@ -3223,7 +3247,7 @@ function renderStudents(body, c) {
       <td><code style="font-weight:800;letter-spacing:.1em;color:var(--gold-dk)">${db.parentCodes[sid]}</code>
         ${parents ? `<div class="small muted">${ic('i-family')} ${esc(parents)}</div>` : ''}</td>
       <td style="text-align:right">
-        ${feat('portfolios') ? `<button class="btn ghost small" data-portfolio="${sid}">${ic('i-star')} Portfolio</button>` : ''}
+        ${cloudPinButton(sid)}${feat('portfolios') ? `<button class="btn ghost small" data-portfolio="${sid}">${ic('i-star')} Portfolio</button>` : ''}
         <button class="btn ghost small" data-remove="${sid}">${ic('i-x')} Remove</button></td>
     </tr>`;
   }).join('');
@@ -8927,13 +8951,451 @@ async function openDocOnCanvas(data, name, type, opts) {
     if (opts.onExit) opts.onExit();
   }
 }
+/* ==========================================================================
+   Cloud sync — the hosted school. Off unless this browser holds a school sign-in,
+   in which case the app works exactly as before on a local copy and this module
+   ferries changed records to the server and merges everyone else's back.
+   The SHAPES table must match server/src/shapes.js.
+   ========================================================================== */
+const CLOUD_API_DEFAULT = 'https://api.classdrop.co.uk';
+const CLOUD_KEY = 'classdrop_cloud';
+const CLOUD_SHAPES = {
+  schools: 'id', users: 'id', classes: 'id', assignments: 'id', items: 'id', points: 'id',
+  discussions: 'id', notifications: 'id', canvases: 'id', taskLibrary: 'id', timetables: 'id',
+  safeguarding: 'id', sgUpdates: 'id', sgAudit: 'id', seating: 'id', books: 'id', loans: 'id',
+  screens: 'id', tablesRuns: 'id', modLog: 'id', tablesSettings: 'classId', tablesAccess: 'studentId',
+  handins: null, grades: null, marks: null, attendance: null, reading: null, parentCodes: null,   // null = keyed object
+};
+const CLOUD = {
+  on: false, api: CLOUD_API_DEFAULT, token: null, schoolId: null, userId: null, role: null, childId: null,
+  cursor: 0, scope: null, dirty: false,
+  base: new Map(),          // "collection\0key" -> fingerprint of the local copy last agreed with the server
+  timer: null, chain: Promise.resolve(), poll: null, offline: false, pendingRender: false, lastErr: 0,
+};
+const _mediaIdByData = new Map();   // data URL -> media id (already uploaded)
+const _mediaDataById = new Map();   // media id -> data URL (already fetched)
+
+function cloudLoad() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(CLOUD_KEY)); } catch (e) {}
+  if (!s || !s.token) return false;
+  Object.assign(CLOUD, { on: true, api: s.api || CLOUD_API_DEFAULT, token: s.token, schoolId: s.schoolId, userId: s.userId,
+    role: s.role, childId: s.childId || null, cursor: s.cursor || 0, scope: s.scope || null, dirty: !!s.dirty });
+  DB_KEY = 'classdrop_cloud_' + s.schoolId;
+  return true;
+}
+function cloudSave() {
+  if (!CLOUD.on) return;
+  localStorage.setItem(CLOUD_KEY, JSON.stringify({ api: CLOUD.api, token: CLOUD.token, schoolId: CLOUD.schoolId, userId: CLOUD.userId,
+    role: CLOUD.role, childId: CLOUD.childId, cursor: CLOUD.cursor, scope: CLOUD.scope, dirty: CLOUD.dirty }));
+}
+/* an empty school-shaped database: every collection present, every demo seed flag set
+   so migrateDB() adds defaults but never demo content */
+function cloudShell() {
+  const d = { session: null };
+  for (const [c, k] of Object.entries(CLOUD_SHAPES)) d[c] = k === null ? {} : [];
+  ['readingSeeded', 'admin2Seeded', 'pointsSeeded', 'rbSeeded', 'rbSeeded2', 'rbSeeded3', 'mbSeeded', 'ttSeeded',
+    'librarySeeded', 'sgSeeded', 'booksSeeded', 'screensSeeded', 'tablesSeeded', 'dualSeeded'].forEach(f => d[f] = true);
+  return d;
+}
+
+async function cloudFetch(path, opts = {}) {
+  const headers = Object.assign({}, opts.headers || {});
+  if (CLOUD.token && !opts.noAuth) headers.Authorization = 'Bearer ' + CLOUD.token;
+  let body = opts.body;
+  if (body !== undefined && !(body instanceof Blob) && !(body instanceof ArrayBuffer) && !(body instanceof Uint8Array)) {
+    headers['Content-Type'] = 'application/json'; body = JSON.stringify(body);
+  }
+  const r = await fetch((opts.api || CLOUD.api) + path, { method: opts.method || (body !== undefined ? 'POST' : 'GET'), headers, body });
+  const ct = r.headers.get('content-type') || '';
+  const data = ct.includes('json') ? await r.json() : null;
+  if (r.status === 401 && CLOUD.on && !opts.noAuth) { cloudExpired(); throw new Error('signed out'); }
+  if (!r.ok) throw new Error((data && data.error) || `server said ${r.status}`);
+  return data;
+}
+
+/* ---- media: data URLs travel as content-addressed refs ---- */
+const isDataURL = s => typeof s === 'string' && s.length > 256 && s.startsWith('data:');
+const isMediaRef = s => typeof s === 'string' && /^media:[a-f0-9]{64}$/.test(s);
+function dataURLBytes(u) {
+  const cut = u.indexOf(';base64,');
+  if (cut < 0) return null;
+  const mime = (u.slice(0, cut).match(/^data:([^;]*)/) || [])[1] || 'application/octet-stream';
+  const bin = atob(u.slice(cut + 8));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return { mime, bytes };
+}
+const bytesToDataURL = (bytes, mime) => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(new Blob([bytes], { type: mime })); });
+async function sha256hex(bytes) {
+  const h = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+/* walk a record; every data URL becomes media:<id>; the bytes are queued for upload */
+async function cloudToWire(v, uploads) {
+  if (isDataURL(v)) {
+    let id = _mediaIdByData.get(v);
+    if (!id) {
+      const d = dataURLBytes(v);
+      if (!d) return v;
+      id = await sha256hex(d.bytes);
+      uploads.set(id, { bytes: d.bytes, mime: d.mime, data: v });
+    }
+    return 'media:' + id;
+  }
+  if (Array.isArray(v)) { const out = []; for (const x of v) out.push(await cloudToWire(x, uploads)); return out; }
+  if (v && typeof v === 'object') { const out = {}; for (const k of Object.keys(v)) out[k] = await cloudToWire(v[k], uploads); return out; }
+  return v;
+}
+/* the reverse: media:<id> becomes the data URL the app expects, fetched once */
+async function cloudFromWire(v) {
+  if (isMediaRef(v)) {
+    const id = v.slice(6);
+    let data = _mediaDataById.get(id);
+    if (!data) {
+      const r = await fetch(CLOUD.api + '/media/' + id, { headers: { Authorization: 'Bearer ' + CLOUD.token } });
+      if (!r.ok) return '';                                   // missing media: show nothing rather than break the record
+      const mime = (r.headers.get('content-type') || 'application/octet-stream').split(';')[0];
+      data = await bytesToDataURL(new Uint8Array(await r.arrayBuffer()), mime);
+      _mediaDataById.set(id, data); _mediaIdByData.set(data, id);
+    }
+    return data;
+  }
+  if (Array.isArray(v)) { const out = []; for (const x of v) out.push(await cloudFromWire(x)); return out; }
+  if (v && typeof v === 'object') { const out = {}; for (const k of Object.keys(v)) out[k] = await cloudFromWire(v[k]); return out; }
+  return v;
+}
+
+/* ---- what changed locally? cheap fingerprints per record ---- */
+function fingerprint(doc) {
+  const s = JSON.stringify(doc);
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return s.length + ':' + (h >>> 0).toString(16);
+}
+function* cloudEntries(c) {
+  const k = CLOUD_SHAPES[c], v = db[c];
+  if (k === null) { if (v && typeof v === 'object') for (const key of Object.keys(v)) yield [key, v[key]]; }
+  else if (Array.isArray(v)) for (const rec of v) if (rec && rec[k] != null) yield [String(rec[k]), rec];
+}
+const CLOUD_PUPIL_WRITES = new Set(['items', 'discussions', 'notifications', 'reading', 'tablesRuns', 'handins', 'users']);
+function cloudDiff() {
+  const ops = [], seen = new Set();
+  for (const c of Object.keys(CLOUD_SHAPES)) {
+    if (CLOUD.role !== 'staff' && !CLOUD_PUPIL_WRITES.has(c)) continue;   // defaults migrateDB adds locally stay local
+    for (const [key, doc] of cloudEntries(c)) {
+      const id = c + '\0' + key; seen.add(id);
+      const fp = fingerprint(doc);
+      if (CLOUD.base.get(id) !== fp) ops.push({ c, k: key, doc, fp });
+    }
+  }
+  for (const id of CLOUD.base.keys()) if (!seen.has(id)) { const [c, k] = id.split('\0'); ops.push({ c, k, doc: null, fp: null }); }
+  return ops;
+}
+/* apply server records to the local db; returns true if anything changed */
+function cloudApply(records) {
+  let changed = false;
+  for (const r of records) {
+    const keyField = CLOUD_SHAPES[r.c];
+    if (keyField === undefined) continue;
+    const id = r.c + '\0' + r.k;
+    if (keyField === null) {
+      if (!db[r.c] || typeof db[r.c] !== 'object') db[r.c] = {};
+      if (r.doc === null) { if (r.k in db[r.c]) { delete db[r.c][r.k]; changed = true; } CLOUD.base.delete(id); }
+      else { const fp = fingerprint(r.doc); if (CLOUD.base.get(id) !== fp || !(r.k in db[r.c])) { db[r.c][r.k] = r.doc; changed = true; } CLOUD.base.set(id, fp); }
+    } else {
+      if (!Array.isArray(db[r.c])) db[r.c] = [];
+      const i = db[r.c].findIndex(x => x && String(x[keyField]) === r.k);
+      if (r.doc === null) { if (i >= 0) { db[r.c].splice(i, 1); changed = true; } CLOUD.base.delete(id); }
+      else {
+        const fp = fingerprint(r.doc);
+        if (i < 0) { db[r.c].push(r.doc); changed = true; }
+        else if (fingerprint(db[r.c][i]) !== fp) { db[r.c][i] = r.doc; changed = true; }
+        CLOUD.base.set(id, fp);
+      }
+    }
+  }
+  return changed;
+}
+function cloudRebase() {   // after a full pull, the local copy is the agreed copy
+  CLOUD.base = new Map();
+  for (const c of Object.keys(CLOUD_SHAPES)) for (const [key, doc] of cloudEntries(c)) CLOUD.base.set(c + '\0' + key, fingerprint(doc));
+}
+
+/* ---- push then pull, one at a time ---- */
+async function cloudPush() {
+  const ops = cloudDiff();
+  if (!ops.length) return false;
+  const uploads = new Map();
+  const wire = [];
+  for (const op of ops) wire.push({ c: op.c, k: op.k, doc: op.doc === null ? null : await cloudToWire(op.doc, uploads) });
+  if (uploads.size) {
+    const { have } = await cloudFetch('/media/exists', { body: { ids: [...uploads.keys()] } });
+    for (const [id, u] of uploads) {
+      if (!have.includes(id)) await cloudFetch('/media', { body: u.bytes, headers: { 'Content-Type': u.mime } });
+      _mediaIdByData.set(u.data, id); _mediaDataById.set(id, u.data);
+    }
+  }
+  const res = await cloudFetch('/sync/push', { body: { ops: wire } });
+  const rejected = (res.results || []).filter(r => r.rejected);
+  for (const op of ops) { const id = op.c + '\0' + op.k; if (op.doc === null) CLOUD.base.delete(id); else CLOUD.base.set(id, op.fp); }
+  if (rejected.length) {   // not mine to change: put the server's copy back
+    const undo = [];
+    for (const r of rejected) undo.push({ c: r.c, k: r.k, doc: r.current === null || r.current === undefined ? null : await cloudFromWire(r.current) });
+    CLOUD.base = new Map([...CLOUD.base].filter(([id]) => !rejected.some(r => id === r.c + '\0' + r.k)));
+    cloudApply(undo);
+  }
+  return true;
+}
+async function cloudPull(full) {
+  const since = full ? 0 : CLOUD.cursor;
+  const res = await cloudFetch('/sync/pull?since=' + since);
+  const scopeChanged = CLOUD.scope && res.scope !== CLOUD.scope;
+  CLOUD.scope = res.scope;
+  if (scopeChanged && !full) return cloudPull(true);   // I can see different things now: start again
+  const records = [];
+  for (const r of res.records) records.push({ c: r.c, k: r.k, doc: r.doc === null ? null : await cloudFromWire(r.doc) });
+  let changed = false;
+  if (full) {
+    // rebuild the synced collections from what the server says I may see
+    const before = fingerprint(Object.fromEntries(Object.keys(CLOUD_SHAPES).map(c => [c, db[c]])));
+    for (const [c, k] of Object.entries(CLOUD_SHAPES)) db[c] = k === null ? {} : [];
+    CLOUD.base = new Map();
+    cloudApply(records);
+    changed = fingerprint(Object.fromEntries(Object.keys(CLOUD_SHAPES).map(c => [c, db[c]]))) !== before;
+  } else changed = cloudApply(records);
+  CLOUD.cursor = res.version;
+  return changed;
+}
+function cloudSync() {
+  if (!CLOUD.on) return CLOUD.chain;
+  CLOUD.chain = CLOUD.chain.then(async () => {
+    try {
+      const pushed = await cloudPush();
+      const changed = await cloudPull(false);
+      CLOUD.dirty = false; CLOUD.offline = false; cloudSave();
+      if (pushed) saveDB.quiet(); // base moved; persist without re-scheduling
+      if (changed) {
+        saveDB.quiet();
+        const busy = document.querySelector('.modal-scrim, .cv-wrap, .xt-play, .rc-wrap, .cs-wrap')
+          || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '');
+        if (busy) CLOUD.pendingRender = true; else { CLOUD.pendingRender = false; if (me()) render(); }
+      } else if (CLOUD.pendingRender && !document.querySelector('.modal-scrim, .cv-wrap, .xt-play, .rc-wrap, .cs-wrap')) {
+        CLOUD.pendingRender = false; if (me()) render();
+      }
+    } catch (e) {
+      if (e.message === 'signed out') return;
+      CLOUD.dirty = true; cloudSave();
+      if (!CLOUD.offline) { CLOUD.offline = true; toast("Can't reach the school server — your work is saved here and will sync when it can.", true); }
+    }
+  });
+  return CLOUD.chain;
+}
+function cloudSchedule() {
+  if (!CLOUD.on) return;
+  CLOUD.dirty = true;
+  clearTimeout(CLOUD.timer);
+  CLOUD.timer = setTimeout(cloudSync, 700);
+}
+function cloudStart() {
+  if (!CLOUD.on) return;
+  clearInterval(CLOUD.poll);
+  CLOUD.poll = setInterval(() => { if (document.visibilityState === 'visible') cloudSync(); }, 6000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') cloudSync(); });
+  window.addEventListener('online', cloudSync);
+  if (CLOUD.dirty) CLOUD.base = new Map();   // an unsynced edit survived a reload: compare against nothing and re-push
+  cloudSync();
+}
+function cloudExpired() {
+  localStorage.removeItem(CLOUD_KEY);
+  toast('Your sign-in has expired — sign in again.', true);
+  setTimeout(() => location.reload(), 1200);
+}
+async function cloudSignOut() {
+  try { await cloudFetch('/auth/logout', { body: {} }); } catch (e) {}
+  localStorage.removeItem(CLOUD_KEY);
+  if (_idb) { try { await idbDel(DB_KEY); } catch (e) {} }   // the school's copy is on the server; this device keeps nothing
+  location.reload();
+}
+/* first sign-in on this device: remember the session, fetch the school, start */
+async function cloudEnter(sess, api) {
+  Object.assign(CLOUD, { on: true, api, token: sess.token, schoolId: sess.schoolId, userId: sess.userId, role: sess.role,
+    childId: sess.childId || null, cursor: 0, scope: null, dirty: false, base: new Map() });
+  DB_KEY = 'classdrop_cloud_' + sess.schoolId;
+  db = cloudShell();
+  await cloudPull(true);
+  db.session = sess.userId;
+  migrateDB();
+  cloudSave();
+  saveDB.quiet();
+  cloudStart();
+  view = { page: 'dash', classId: null, tab: 'tasks', assignmentId: null, studentId: null, discussionId: null };
+  render();
+  history.replaceState({ view }, '');
+}
+
+/* is there a school server to sign in to? (checked once per page; the public demo shows
+   no sign-in button until the service exists) */
+function cloudAvailable() {
+  if (cloudAvailable.p) return cloudAvailable.p;
+  const api = localStorage.getItem('classdrop_api') || CLOUD_API_DEFAULT;
+  const ctl = new AbortController(); setTimeout(() => ctl.abort(), 3000);
+  cloudAvailable.p = fetch(api + '/health', { signal: ctl.signal }).then(r => r.ok).catch(() => false);
+  return cloudAvailable.p;
+}
+
+/* ---- sign-in screen ---- */
+function openCloudSignIn() {
+  const api = localStorage.getItem('classdrop_api') || CLOUD_API_DEFAULT;
+  const m = openModal(`
+    <h3>Sign in to your school</h3>
+    <p class="m-sub">For schools using ClassDrop for real. Trying it out? Close this and pick a demo account instead.</p>
+    <div class="cl-tabs" role="tablist">
+      <button class="on" data-ct="staff" role="tab">Staff</button><button data-ct="pupil" role="tab">Pupil</button><button data-ct="parent" role="tab">Parent</button>
+    </div>
+    <div id="cl-pane"></div>`);
+  const pane = m.querySelector('#cl-pane');
+  const go = async (path, body) => {
+    const btn = pane.querySelector('[data-go]'); if (btn) btn.disabled = true;
+    try {
+      const sess = await cloudFetch(path, { body, api, noAuth: true });
+      m.remove();
+      toast('Signing you in…');
+      await cloudEnter(sess, api);
+    } catch (e) { toast(e.message, true); if (btn) btn.disabled = false; }
+  };
+  const staff = () => {
+    pane.innerHTML = `
+      <label>Email</label><input id="cl-email" type="email" autocomplete="username" placeholder="you@school.sch.uk">
+      <label>Password</label><input id="cl-pass" type="password" autocomplete="current-password">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Sign in</button></div>
+      <p class="small muted" style="margin:14px 0 0">Setting up a new school? <a href="#" id="cl-new">Use your invite code</a></p>`;
+    pane.querySelector('[data-go]').onclick = () => go('/auth/staff', { email: $('#cl-email').value.trim(), password: $('#cl-pass').value });
+    pane.querySelector('#cl-pass').addEventListener('keydown', e => { if (e.key === 'Enter') pane.querySelector('[data-go]').click(); });
+    pane.querySelector('#cl-new').onclick = e => { e.preventDefault(); newSchool(); };
+  };
+  const newSchool = () => {
+    pane.innerHTML = `
+      <label>Invite code</label><input id="cl-inv" placeholder="from Primary Coding League" style="text-transform:uppercase">
+      <label>School name</label><input id="cl-school" placeholder="e.g. Oakfield Primary">
+      <label>Your name</label><input id="cl-name" placeholder="e.g. Mrs Hughes">
+      <label>Email</label><input id="cl-email" type="email" autocomplete="username">
+      <label>Password (10+ characters)</label><input id="cl-pass" type="password" autocomplete="new-password">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Create school</button></div>`;
+    pane.querySelector('[data-go]').onclick = () => go('/schools', { invite: $('#cl-inv').value.trim(), schoolName: $('#cl-school').value.trim(),
+      adminName: $('#cl-name').value.trim(), email: $('#cl-email').value.trim(), password: $('#cl-pass').value });
+  };
+  const pupil = () => {
+    pane.innerHTML = `
+      <label>Class code</label><input id="cl-code" placeholder="e.g. Y5ABC" style="text-transform:uppercase;letter-spacing:.12em;font-weight:800;text-align:center" maxlength="8">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Next</button></div>`;
+    const next = async () => {
+      const code = $('#cl-code').value.trim().toUpperCase();
+      try {
+        const r = await cloudFetch('/auth/class', { body: { code }, api, noAuth: true });
+        pane.innerHTML = `
+          <p class="m-sub" style="margin:0 0 8px"><b>${esc(r.className)}</b> — tap your name</p>
+          <div class="cl-names">${r.pupils.map(p => `<button class="demo-user" data-pupil="${p.id}"><span class="avatar">${initials(p.name)}</span><span><b>${esc(p.name)}</b></span></button>`).join('') || '<p class="muted">No pupils in this class yet.</p>'}</div>
+          <div class="m-actions"><button class="btn ghost" data-x>Cancel</button></div>`;
+        pane.querySelectorAll('[data-pupil]').forEach(b => b.onclick = () => {
+          const name = b.querySelector('b').textContent;
+          pane.innerHTML = `
+            <p class="m-sub" style="margin:0 0 8px">Hello <b>${esc(name)}</b> — type your PIN</p>
+            <input id="cl-pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" type="password" autocomplete="off" style="letter-spacing:.4em;text-align:center;font-size:1.4rem">
+            <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Sign in</button></div>`;
+          pane.querySelector('[data-go]').onclick = () => go('/auth/pupil', { code, userId: b.dataset.pupil, pin: $('#cl-pin').value.trim() });
+          pane.querySelector('#cl-pin').addEventListener('keydown', e => { if (e.key === 'Enter') pane.querySelector('[data-go]').click(); });
+          pane.querySelector('[data-x]').onclick = () => m.remove();
+          $('#cl-pin').focus();
+        });
+        pane.querySelector('[data-x]').onclick = () => m.remove();
+      } catch (e) { toast(e.message, true); }
+    };
+    pane.querySelector('[data-go]').onclick = next;
+    pane.querySelector('#cl-code').addEventListener('keydown', e => { if (e.key === 'Enter') next(); });
+  };
+  const parent = () => {
+    pane.innerHTML = `
+      <label>Parent code</label><input id="cl-pcode" placeholder="e.g. PLEO42" style="text-transform:uppercase;letter-spacing:.12em;font-weight:800;text-align:center" maxlength="8">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Follow</button></div>`;
+    pane.querySelector('[data-go]').onclick = () => go('/auth/parent', { code: $('#cl-pcode').value.trim() });
+    pane.querySelector('#cl-pcode').addEventListener('keydown', e => { if (e.key === 'Enter') pane.querySelector('[data-go]').click(); });
+  };
+  const panes = { staff, pupil, parent };
+  const show = which => {
+    m.querySelectorAll('[data-ct]').forEach(b => b.classList.toggle('on', b.dataset.ct === which));
+    panes[which]();
+    pane.querySelectorAll('[data-x]').forEach(b => b.onclick = () => m.remove());
+    const first = pane.querySelector('input'); if (first) first.focus();
+  };
+  m.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => show(b.dataset.ct));
+  show('staff');
+}
+
+/* ---- staff-only extras, wired by delegation so the pages themselves stay untouched ---- */
+document.addEventListener('click', e => {
+  if (!CLOUD.on) return;
+  const pin = e.target.closest('[data-pin]');
+  if (pin) {
+    const s = user(pin.dataset.pin);
+    openPrompt(`PIN for ${s.name}`, 'Four to six digits. They type this after picking their name on the class sign-in.', 'e.g. 2468', async v => {
+      if (!/^\d{4,6}$/.test(v)) { toast('PIN must be 4 to 6 digits', true); return; }
+      try { await cloudFetch(`/pupils/${encodeURIComponent(s.id)}/pin`, { method: 'PUT', body: { pin: v } }); toast(`PIN set for ${s.name}`); }
+      catch (err) { toast(err.message, true); }
+    });
+    return;
+  }
+  const acc = e.target.closest('[data-account]');
+  if (acc) {
+    const t = user(acc.dataset.account);
+    const m = openModal(`
+      <h3>Sign-in for ${esc(t.name)}</h3><p class="m-sub">They sign in with these on any device. Choose a password together and tell them to change nothing else.</p>
+      <label>Email</label><input id="ac-email" type="email" autocomplete="off">
+      <label>Password (10+ characters)</label><input id="ac-pass" type="text" autocomplete="off">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>${ic('i-tick')} Create sign-in</button></div>`);
+    m.querySelector('[data-x]').onclick = () => m.remove();
+    m.querySelector('[data-go]').onclick = async () => {
+      try {
+        await cloudFetch('/staff', { body: { userId: t.id, name: t.name, email: m.querySelector('#ac-email').value.trim(), password: m.querySelector('#ac-pass').value } });
+        m.remove(); toast(`${t.name} can now sign in`);
+      } catch (err) { toast(err.message, true); }
+    };
+    return;
+  }
+  if (e.target.closest('#cloud-import')) {
+    openConfirm('Move this device\'s ClassDrop data to the school?',
+      'Everything saved by the demo build on this device is copied to the school\'s account. Records with the same id are replaced.', async () => {
+        try {
+          let local = null;
+          if (_idb) { try { local = await idbGet('classdrop_db_v2'); } catch (err) {} }
+          if (!local) { try { local = JSON.parse(localStorage.getItem('classdrop_db_v2')); } catch (err) {} }
+          if (!local || !local.users) { toast('Nothing from the demo build was found on this device.', true); return; }
+          toast('Moving your data…');
+          const uploads = new Map();
+          const wireDb = await cloudToWire(local, uploads);
+          if (uploads.size) {
+            const { have } = await cloudFetch('/media/exists', { body: { ids: [...uploads.keys()] } });
+            for (const [id, u] of uploads) if (!have.includes(id)) await cloudFetch('/media', { body: u.bytes, headers: { 'Content-Type': u.mime } });
+          }
+          const r = await cloudFetch('/sync/import', { body: { db: wireDb } });
+          await cloudSync(); await cloudPull(true); saveDB.quiet(); render();
+          toast(`Moved ${r.imported} records to the school`);
+        } catch (err) { toast(err.message, true); }
+      });
+  }
+});
+const cloudStaffButton = t => CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" data-account="${t.id}">${ic('i-key')} Sign-in</button> ` : '';
+const cloudPinButton = sid => CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" data-pin="${sid}">${ic('i-key')} PIN</button> ` : '';
+
 /* ---------- boot ---------- */
 (async () => {
+  cloudLoad();   // signed in to a hosted school on this device? then DB_KEY and sync are theirs
   await bootDB();
   /* restore the screen you were on across a reload (state survives in history) */
   if (history.state && history.state.view && me()) view = Object.assign({}, view, history.state.view);
   render();
   history.replaceState({ view }, '');
+  cloudStart();
 })();
 </script>
 <!-- Cloudflare Web Analytics (privacy-first, no cookies) -->

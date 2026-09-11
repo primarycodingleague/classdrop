@@ -102,7 +102,16 @@ export async function createStaff(user, body) {
   const role = body.role === 'admin' ? 'admin' : 'teacher';
   const dup = await query('select 1 from accounts where email=$1', [email]);
   if (dup.rows.length) throw new HttpError(409, 'that email already has an account');
-  const userId = 'u-' + uid();
+  let userId = body.userId ? String(body.userId) : null;
+  if (userId) {   // attach a sign-in to a staff member the school already has in its records
+    const u = await record(user.schoolId, 'users', userId);
+    if (!u || !['teacher', 'admin'].includes(u.role)) throw new HttpError(404, 'no such member of staff');
+    const has = await query('select 1 from accounts where school_id=$1 and user_id=$2', [user.schoolId, userId]);
+    if (has.rows.length) throw new HttpError(409, 'they already have a sign-in');
+    await query('insert into accounts (school_id, user_id, email, pass_hash) values ($1,$2,$3,$4)', [user.schoolId, userId, email, hashSecret(body.password)]);
+    return { userId };
+  }
+  userId = 'u-' + uid();
   await withTx(async q => {
     await q('insert into accounts (school_id, user_id, email, pass_hash) values ($1,$2,$3,$4)', [user.schoolId, userId, email, hashSecret(body.password)]);
     await putRecord(q, user.schoolId, 'users', userId, { id: userId, name, role, schoolId: user.schoolId }, user.userId);
