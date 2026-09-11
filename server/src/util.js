@@ -39,3 +39,22 @@ export function hasBadKeys(v, depth = 0) {
 }
 
 export const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+
+/* NCSC password guidance: a deny list of the most common choices beats complexity rules.
+   Ten characters is the floor; on top of that we refuse the passwords every breach list
+   starts with, anything built on "password"/"classdrop"/"school", and keyboard runs. */
+const COMMON = new Set(`password password1 password12 password123 password1234 passw0rd p@ssword p@ssw0rd 1234567890 12345678910 123456789012
+qwertyuiop qwertyuiop1 qwerty1234 qwerty12345 1q2w3e4r5t 1qaz2wsx3edc abcdefghij abcdefghijk abc123abc123 iloveyou12 iloveyou123
+letmein123 welcome123 welcome1234 administrator admin123456 changeme123 trustno1234 sunshine123 princess123 football123
+baseball123 dragon12345 monkey12345 master12345 superman123 batman12345 michael12345 jennifer123 computer123 internet123
+teacher123 teacher1234 school12345 primary123 classroom1 classroom123 september1 september2026 january2026 summer2026`.split(/\s+/));
+export function weakPassword(pw) {
+  const p = String(pw || '');
+  if (p.length < 10) return 'password must be at least 10 characters';
+  const low = p.toLowerCase();
+  const bare = low.replace(/[^a-z0-9]/g, '');
+  if (COMMON.has(low) || COMMON.has(bare)) return 'that password is on the list of most common passwords — choose something only you would think of';
+  if (/^(.)\1+$/.test(bare) || /^(..)\1+$/.test(bare)) return 'that password repeats one pattern — choose something longer and less regular';
+  if (/^(password|classdrop|school|qwerty|123456|abcdef)/.test(bare) || /^\d+$/.test(bare)) return 'that password starts with something everyone tries first — choose something only you would think of';
+  return null;
+}

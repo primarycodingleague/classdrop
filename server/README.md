@@ -81,7 +81,12 @@ Behind a reverse proxy, forward `X-Forwarded-For` so rate limiting sees real add
 - Records hold exactly what the app's `db` holds, per school, and nothing else. No
   analytics, no logging of record contents.
 - Credentials (password and PIN hashes) live in their own tables and are never part of
-  a sync response.
+  a sync response. New passwords must be ten characters or more and are checked against
+  a deny list of the most common choices (NCSC guidance), not complexity rules.
+- `access_log` also records staff sign-ins, failed attempts on real accounts (never the
+  email typed for an unknown account), and two-step changes, so the office can answer
+  "who was in, and when". The app shows it under Features → Data protection and, for
+  the DSL, on the Safeguarding page.
 - Safeguarding records are only returned to the designated safeguarding lead and the
   member of staff who reported them; pupils and parents never receive them.
 - Deleting a school is `delete from records where school_id = …`, the same for
