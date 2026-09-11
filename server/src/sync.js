@@ -48,7 +48,7 @@ export async function push(user, body) {
       if (json && json.length > MAX_DOC) throw new HttpError(413, `${c}/${k} is too large — attach photos and videos as media, not inline`);
       const cur = await q('select doc, deleted from records where school_id=$1 and collection=$2 and key=$3', [user.schoolId, c, k]);
       const existing = cur.rows[0] && !cur.rows[0].deleted ? cur.rows[0].doc : null;
-      if (!canWrite(user, scope, c, k, doc, existing)) throw new HttpError(403, `you can't change ${c}/${k}`);
+      if (!canWrite(user, scope, c, k, doc, existing)) { results.push({ c, k, rejected: true, current: existing }); continue; }
       if (doc === null) {
         if (!cur.rows.length) { results.push({ c, k, version: null }); continue; }
         const r = await q(`update records set doc=null, deleted=true, version=nextval('record_version'), updated_at=now(), updated_by=$4

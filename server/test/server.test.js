@@ -130,9 +130,14 @@ test('pupil can hand in her own work but cannot write anyone else\'s, or a class
   const ok = await push(maya.token, [{ c: 'items', k: 'it1', doc: { id: 'it1', assignmentId: 'a1', studentId: may, authorId: may, kind: 'text', text: 'My character is a fox', ts: 2 } }]);
   assert.equal(ok.status, 200, JSON.stringify(ok.body));
   const forged = await push(maya.token, [{ c: 'items', k: 'it2', doc: { id: 'it2', assignmentId: 'a1', studentId: leo, authorId: leo, kind: 'text', text: 'x', ts: 3 } }]);
-  assert.equal(forged.status, 403);
+  assert.equal(forged.status, 200);
+  assert.equal(forged.body.results[0].rejected, true);
+  assert.equal(forged.body.results[0].current, null, 'nothing to restore: the record never existed');
   const klass = await push(maya.token, [{ c: 'classes', k: classId, doc: { id: classId, name: 'Hacked' } }]);
-  assert.equal(klass.status, 403);
+  assert.equal(klass.body.results[0].rejected, true);
+  assert.equal(klass.body.results[0].current.name, 'Year 5', 'the server hands back its own copy so the device can undo');
+  const check = await pull(teacher.token, 0);
+  assert.equal(check.body.records.find(x => x.c === 'classes' && x.k === classId).doc.name, 'Year 5');
   const t = await pull(teacher.token, 0);
   assert.ok(t.body.records.some(x => x.c === 'items' && x.k === 'it1'), 'teacher receives the hand-in');
 });
@@ -194,7 +199,7 @@ test('parent code signs a parent in, scoped to the child, and creates the parent
   assert.ok(keys.includes('users/' + p1.body.userId), 'sees own user record');
   assert.ok(!keys.some(k => k.startsWith('safeguarding/')));
   const forge = await push(p1.body.token, [{ c: 'items', k: 'it9', doc: { id: 'it9', assignmentId: 'a1', studentId: may, authorId: may, kind: 'text', text: 'x', ts: 1 } }]);
-  assert.equal(forge.status, 403, 'parents cannot hand in as the child');
+  assert.equal(forge.body.results[0].rejected, true, 'parents cannot hand in as the child');
   const read = await push(p1.body.token, [{ c: 'reading', k: may, doc: [{ id: 'r1', date: '2026-09-11', book: 'Fantastic Mr Fox', by: p1.body.userId, ts: 1 }] }]);
   assert.equal(read.status, 200, 'parents can add to the reading log');
 });
