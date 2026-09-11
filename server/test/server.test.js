@@ -303,6 +303,34 @@ test('erasing a pupil tombstones their records, keeps safeguarding, removes thei
   assert.ok(!list.body.pupils.some(p => p.id === leo));
 });
 
+test('common and patterned passwords are refused when creating accounts', async () => {
+  const weak = ['password123', 'Password123!', '1234567890', 'qwertyuiop', 'aaaaaaaaaa', 'abababababab', 'classdrop2026', 'short'];
+  for (const [i, password] of weak.entries()) {
+    const r = await api('POST', '/staff', { name: 'Weak', email: `weak${i}@brackley.sch.uk`, password, role: 'teacher' }, office.token);
+    assert.equal(r.status, 400, password);
+  }
+  const ok = await api('POST', '/staff', { name: 'Mr Strong', email: 'strong@brackley.sch.uk', password: 'ottoman bicycle rain', role: 'teacher' }, office.token);
+  assert.equal(ok.status, 201);
+  const sch = await api('POST', '/schools', { invite: 'PCL-TEST', schoolName: 'Weak Primary', adminName: 'Z', email: 'weakoffice@x.sch.uk', password: 'welcome123' });
+  assert.equal(sch.status, 400);
+});
+
+test('staff sign-ins, failures and two-step changes appear in the access log (office and DSL only)', async () => {
+  await api('POST', '/auth/staff', { email: 'strong@brackley.sch.uk', password: 'nope nope nope' });
+  const t = await api('POST', '/auth/staff', { email: 'strong@brackley.sch.uk', password: 'ottoman bicycle rain' });
+  assert.equal(t.status, 200);
+  const unknown = await api('POST', '/auth/staff', { email: 'nobody@nowhere.sch.uk', password: 'nope nope nope' });
+  assert.equal(unknown.status, 401);
+  const log = await api('GET', '/access-log', undefined, office.token);
+  assert.equal(log.status, 200);
+  const mine = log.body.entries.filter(e => e.by === t.body.userId);
+  assert.ok(mine.some(e => e.kind === 'staff-signin-failed' && e.detail.step === 'password'), 'failed attempt logged');
+  assert.ok(mine.some(e => e.kind === 'staff-signin' && e.detail.mfa === false), 'sign-in logged');
+  assert.ok(!JSON.stringify(log.body).includes('nowhere.sch.uk'), 'unknown emails are not kept');
+  const denied = await api('GET', '/access-log', undefined, t.body.token);
+  assert.equal(denied.status, 403, 'a plain teacher cannot read the log');
+});
+
 test('a school can be deleted by the office with its name typed as confirmation, and nothing is left', async () => {
   const other = await api('POST', '/schools', { invite: 'PCL-TEST', schoolName: 'Closing School', adminName: 'A', email: 'a@closing.sch.uk', password: 'a long password' });
   const tok = other.body.token;
@@ -357,6 +385,11 @@ test('two-step sign-in: setup, enable with a live code, then login needs the cod
   assert.equal(reset.status, 200);
   const plain = await api('POST', '/auth/staff', { email: 'taylor@brackley.sch.uk', password: 'another long one' });
   assert.ok(plain.body.token, 'password alone works again after the reset');
+  const log = (await api('GET', '/access-log', undefined, office.token)).body.entries;
+  assert.ok(log.some(e => e.kind === 'mfa-on' && e.by === teacher.userId), 'turning it on is logged');
+  assert.ok(log.some(e => e.kind === 'mfa-reset' && e.detail.staff === teacher.userId), 'the office reset is logged');
+  assert.ok(log.some(e => e.kind === 'staff-signin' && e.detail.mfa === true && e.by === teacher.userId), 'a two-step sign-in is logged as such');
+  assert.ok(log.some(e => e.kind === 'staff-signin-failed' && e.detail.step === 'code' && e.by === teacher.userId), 'a wrong code is logged');
 });
 
 test('media garbage collection removes objects no live record references', async () => {

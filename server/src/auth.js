@@ -4,7 +4,8 @@
    random and only their SHA-256 is stored. */
 import crypto from 'node:crypto';
 import { query, withTx } from './db.js';
-import { HttpError, uid } from './util.js';
+import { HttpError, uid, weakPassword } from './util.js';
+import { logAccess } from './admin.js';
 
 const SESSION_DAYS = 30;
 const PIN_RE = /^\d{4,6}$/;
@@ -106,7 +107,7 @@ export async function createSchool(body, env = process.env, ip = '') {
   if (!invites.includes(String(body.invite || ''))) throw new HttpError(403, 'that invite code is not recognised');
   const email = String(body.email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, 'a valid email address is needed');
-  if (String(body.password || '').length < 10) throw new HttpError(400, 'password must be at least 10 characters');
+  { const weak = weakPassword(body.password); if (weak) throw new HttpError(400, weak); }
   const schoolName = String(body.schoolName || '').trim();
   const adminName = String(body.adminName || '').trim();
   if (!schoolName || !adminName) throw new HttpError(400, 'school name and your name are needed');
@@ -129,7 +130,7 @@ export async function createStaff(user, body) {
   if (user.role !== 'staff') throw new HttpError(403, 'staff only');
   const email = String(body.email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, 'a valid email address is needed');
-  if (String(body.password || '').length < 10) throw new HttpError(400, 'password must be at least 10 characters');
+  { const weak = weakPassword(body.password); if (weak) throw new HttpError(400, weak); }
   const name = String(body.name || '').trim();
   if (!name) throw new HttpError(400, 'a name is needed');
   const role = body.role === 'admin' ? 'admin' : 'teacher';
@@ -154,29 +155,40 @@ export async function createStaff(user, body) {
 
 export async function loginStaff(body, ip) {
   const email = String(body.email || '').trim().toLowerCase();
-  throttle('staff:' + ip); throttle('staff:' + email, 8);
+  // a whole school signs in from one address on a Monday morning: the per-address brake is
+  // loose and the per-account one does the real work against guessing
+  throttle('staff:' + ip, 120); throttle('staff:' + email, 8);
   const r = await query('select school_id, user_id, pass_hash, mfa_enabled from accounts where email=$1', [email]);
   const a = r.rows[0];
-  if (!a || !verifySecret(body.password, a.pass_hash)) throw new HttpError(401, 'email or password not recognised');
+  if (!a || !verifySecret(body.password, a.pass_hash)) {
+    // a failed attempt on a real account is worth the school knowing about; unknown emails are not kept
+    if (a) await logAccess({ schoolId: a.school_id, userId: a.user_id }, 'staff-signin-failed', { step: 'password' });
+    throw new HttpError(401, 'email or password not recognised');
+  }
   if (a.mfa_enabled) {   // password is right; now the code from their authenticator app
     const pending = crypto.randomBytes(32).toString('base64url');
     await query('insert into sessions (token_hash, school_id, user_id, role, expires_at) values ($1,$2,$3,$4,$5)',
       [tokenHash(pending), a.school_id, a.user_id, 'mfa-pending', new Date(Date.now() + 5 * 60 * 1000)]);
     return { mfa: true, pending };
   }
+  await logAccess({ schoolId: a.school_id, userId: a.user_id }, 'staff-signin', { mfa: false });
   return issueToken({ schoolId: a.school_id, userId: a.user_id, role: 'staff' });
 }
 
 /* POST /auth/staff/mfa { pending, code } — second step of a staff sign-in */
 export async function loginStaffMfa(body, ip) {
-  throttle('mfa:' + ip);
+  throttle('mfa:' + ip, 120);
   const p = await query(`select school_id, user_id from sessions where token_hash=$1 and role='mfa-pending' and expires_at > now()`, [tokenHash(String(body.pending || ''))]);
   if (!p.rows.length) throw new HttpError(401, 'that sign-in has timed out — start again');
   const { school_id: schoolId, user_id: userId } = p.rows[0];
   throttle('mfa:' + userId, 6);
   const a = await query('select mfa_secret from accounts where school_id=$1 and user_id=$2 and mfa_enabled', [schoolId, userId]);
-  if (!a.rows.length || !totpOk(a.rows[0].mfa_secret, body.code)) throw new HttpError(401, 'that code is not right');
+  if (!a.rows.length || !totpOk(a.rows[0].mfa_secret, body.code)) {
+    await logAccess({ schoolId, userId }, 'staff-signin-failed', { step: 'code' });
+    throw new HttpError(401, 'that code is not right');
+  }
   await query('delete from sessions where token_hash=$1', [tokenHash(String(body.pending))]);
+  await logAccess({ schoolId, userId }, 'staff-signin', { mfa: true });
   return issueToken({ schoolId, userId, role: 'staff' });
 }
 
@@ -196,6 +208,7 @@ export async function mfaEnable(user, body) {
   if (!a.rows[0]?.mfa_secret) throw new HttpError(400, 'run setup first');
   if (!totpOk(a.rows[0].mfa_secret, body.code)) throw new HttpError(400, 'that code is not right — check the time on your phone and try the next one');
   await query('update accounts set mfa_enabled=true where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  await logAccess(user, 'mfa-on', {});
   return { enabled: true };
 }
 export async function mfaDisable(user, body) {
@@ -204,6 +217,7 @@ export async function mfaDisable(user, body) {
   // 403, not 401: the token is fine, the password typed into the form is not (a 401 would sign the device out)
   if (!a.rows.length || !verifySecret(body.password, a.rows[0].pass_hash)) throw new HttpError(403, 'password not recognised');
   await query('update accounts set mfa_enabled=false, mfa_secret=null where school_id=$1 and user_id=$2', [user.schoolId, user.userId]);
+  await logAccess(user, 'mfa-off', {});
   return { enabled: false };
 }
 /* DELETE /staff/:id/mfa — the office resets a colleague who has lost their phone */
@@ -212,6 +226,7 @@ export async function mfaReset(user, staffId) {
   const me = await record(user.schoolId, 'users', user.userId);
   if (!me || !(me.role === 'admin' || me.alsoAdmin)) throw new HttpError(403, 'the school office must do this');
   await query('update accounts set mfa_enabled=false, mfa_secret=null where school_id=$1 and user_id=$2', [user.schoolId, staffId]);
+  await logAccess(user, 'mfa-reset', { staff: staffId });
   return { enabled: false };
 }
 export async function mfaStatus(user) {
@@ -241,7 +256,7 @@ export async function lookupClass(body, ip) {
 }
 
 export async function loginPupil(body, ip) {
-  throttle('pupil:' + ip); throttle('pupil:' + body.userId, 8);
+  throttle('pupil:' + ip, 600); throttle('pupil:' + body.userId, 8);   // thirty iPads, one address, small fingers
   const { schoolId, klass } = await classByCode(body.code);
   if (!(klass.students || []).includes(body.userId)) throw new HttpError(404, 'that pupil is not in this class');
   const r = await query('select pin_hash from pupil_pins where school_id=$1 and user_id=$2', [schoolId, body.userId]);
@@ -265,7 +280,7 @@ export async function setPin(user, pupilId, body) {
 /* Parents: the code the school printed for their child. First sign-in creates the
    parent's user record so the app has someone to be. */
 export async function loginParent(body, ip) {
-  throttle('parent:' + ip);
+  throttle('parent:' + ip, 60);
   const code = String(body.code || '').trim().toUpperCase();
   if (!code) throw new HttpError(400, 'parent code needed');
   const r = await query(`select school_id, key from records where collection='parentCodes' and not deleted and upper(doc #>> '{}') = $1 limit 1`, [code]);

@@ -2416,9 +2416,13 @@ function renderAdminFeatures(main) {
   const s = mySchool();
   main.innerHTML = `
     <div class="page-head"><h1>${ic('i-gear')} Features</h1></div>
-    ${CLOUD.on ? `<div class="card" style="margin-bottom:18px"><h3>${ic('i-archive')} Move data from this device</h3>
-      <p class="m-sub" style="margin-top:0">Used ClassDrop on this device before the school signed up? Copy everything it saved into the school's account.</p>
-      <button class="btn sec small" id="cloud-import">${ic('i-archive')} Move this device's data to the school</button></div>` : ''}
+    ${CLOUD.on ? `<div class="card" style="margin-bottom:18px"><h3>${ic('i-shield')} Data protection</h3>
+      <p class="m-sub" style="margin-top:0">${esc(s.name)}'s data is held on ClassDrop's UK servers. Any pupil's full record can be downloaded or erased from the Students page (subject access requests, leavers). Here: who has looked at safeguarding data and signed in, moving data in from this device, and deleting the school.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn sec small" id="cloud-log">${ic('i-eye')} Access log</button>
+        <button class="btn sec small" id="cloud-import">${ic('i-archive')} Move this device's data to the school</button>
+        <button class="btn danger small" id="cloud-delete">${ic('i-x')} Delete this school</button>
+      </div></div>` : ''}
     <p class="page-sub">Turn off anything ${esc(s.name)} doesn't use and it disappears for everyone — staff, pupils and parents. Nothing is deleted: switch a module back on and its data is exactly where it was.</p>
     <div class="feat-list">
       ${FEATURES.map(([k, icn, label, blurb]) => `
@@ -2544,7 +2548,7 @@ function renderAdminStudents(main) {
         <input class="att-in" data-att="${s.id}|late" type="number" min="0" placeholder="late" value="${esc(att.late != null ? att.late : '')}" style="max-width:70px"></span></td>
       <td>${joinable.length ? `<select data-addcls="${s.id}" style="width:auto;font-size:.85rem">
         <option value="">Add to class…</option>${joinable.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>` : ''}</td>
-      <td style="text-align:right">${cloudPinButton(s.id)}<button class="btn ghost small" data-rmpupil="${s.id}" aria-label="Remove ${esc(s.name)} from this class">${ic('i-x')}</button></td>
+      <td style="text-align:right">${cloudPinButton(s.id)}${cloudPupilButtons(s.id)}<button class="btn ghost small" data-rmpupil="${s.id}" aria-label="Remove ${esc(s.name)} from this class">${ic('i-x')}</button></td>
     </tr>`;
   }).join('');
   main.innerHTML = `
@@ -6966,6 +6970,7 @@ function renderSafeguarding(main) {
     <div class="page-head"><h1>${ic('i-shield')} Safeguarding</h1><span class="spacer"></span>
       ${isDSL() && filterSid ? `<button class="btn sec small" id="sg-print">${ic('i-print')} Print / transfer file</button>` : ''}
       ${isDSL() ? `<button class="btn ghost small" id="sg-export">${ic('i-download')} Export CSV</button>` : ''}
+      ${CLOUD.on && isDSL() ? `<button class="btn ghost small" id="cloud-log">${ic('i-eye')} Server access log</button>` : ''}
       <button class="btn" id="sg-new">${ic('i-plus')} New record</button></div>
     <div class="sg-conf">${ic('i-lock')} Confidential. ${isDSL() ? 'As DSL you see every record in the school.' : `You see records you reported; the DSL (${esc(dsl.name)}) sees everything.`} Records here are kept — they cannot be deleted.</div>
     ${students.length > 1 || filterSid ? `<div class="row" style="margin-bottom:12px"><label style="margin:0">Chronology for</label>
@@ -8981,6 +8986,66 @@ document.addEventListener('click', e => {
     return;
   }
   if (e.target.closest('#btn-mfa')) { openCloudMfa(); return; }
+  if (e.target.closest('#cloud-log')) { openCloudLog(); return; }
+  const ex = e.target.closest('[data-export]');
+  if (ex) {   // subject access request / leaver's file: everything the school holds about one pupil, as a file
+    const s = user(ex.dataset.export);
+    (async () => {
+      try {
+        toast('Gathering the record…');
+        const r = await cloudFetch('/export/pupil/' + encodeURIComponent(s.id));
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' }));
+        a.download = `${s.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-classdrop-record-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+        toast(`Record for ${s.name} downloaded${r.media && r.media.length ? ` — ${r.media.length} photo/file id${r.media.length === 1 ? '' : 's'} listed inside` : ''}`);
+      } catch (err) { toast(err.message, true); }
+    })();
+    return;
+  }
+  const er = e.target.closest('[data-erase]');
+  if (er) {   // leaver, or a request to be forgotten
+    const s = user(er.dataset.erase);
+    const m = openModal(`
+      <h3>Erase ${esc(s.name)}?</h3>
+      <p class="m-sub">For a leaver, or a request to be forgotten. Their account, work, marks, reading, times tables, attendance, parent code and any parent account go, on every device. Safeguarding records are kept on purpose: statutory retention runs to their 25th birthday and the DSL decides their fate. There is no undo.</p>
+      <label>Type their name to confirm</label><input id="er-name" autocomplete="off" placeholder="${esc(s.name)}">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn danger" data-go>${ic('i-x')} Erase</button></div>`);
+    m.querySelector('[data-x]').onclick = () => m.remove();
+    m.querySelector('[data-go]').onclick = async () => {
+      if (m.querySelector('#er-name').value.trim() !== s.name) { toast('Type the name exactly as shown', true); return; }
+      try {
+        const r = await cloudFetch('/pupils/' + encodeURIComponent(s.id), { method: 'DELETE' });
+        m.remove();
+        await cloudPull(true); saveDB.quiet(); render();
+        toast(`${s.name} erased — ${r.erased} record${r.erased === 1 ? '' : 's'} gone, safeguarding kept`);
+      } catch (err) { toast(err.message, true); }
+    };
+    m.querySelector('#er-name').focus();
+    return;
+  }
+  if (e.target.closest('#cloud-delete')) {
+    const sch = mySchool();
+    const m = openModal(`
+      <h3>Delete ${esc(sch.name)} from ClassDrop?</h3>
+      <p class="m-sub">Every record, every photo and file, every sign-in, for every member of staff, pupil and parent — gone from the server for good. Download anything you need to keep first. There is no undo.</p>
+      <label>Type the school's name to confirm</label><input id="ds-name" autocomplete="off" placeholder="${esc(sch.name)}">
+      <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn danger" data-go>${ic('i-x')} Delete the school</button></div>`);
+    m.querySelector('[data-x]').onclick = () => m.remove();
+    m.querySelector('[data-go]').onclick = async () => {
+      const typed = m.querySelector('#ds-name').value.trim();
+      if (typed !== sch.name) { toast('Type the school\'s name exactly as shown', true); return; }
+      try {
+        await cloudFetch('/schools/me', { method: 'DELETE', body: { confirm: typed } });
+        localStorage.removeItem(CLOUD_KEY);
+        if (_idb) { try { await idbDel(DB_KEY); } catch (e2) {} }
+        location.reload();
+      } catch (err) { toast(err.message, true); }
+    };
+    m.querySelector('#ds-name').focus();
+    return;
+  }
   const rst = e.target.closest('[data-mfareset]');
   if (rst) {
     const t = user(rst.dataset.mfareset);
@@ -9070,6 +9135,43 @@ async function openCloudMfa() {
   (status.mfa ? on : off)();
 }
 const cloudPinButton = sid => CLOUD.on && CLOUD.role === 'staff' ? `<button class="btn ghost small" data-pin="${sid}">${ic('i-key')} PIN</button> ` : '';
+/* office only: the pupil's whole record as a file, and erasure */
+const cloudPupilButtons = sid => CLOUD.on && CLOUD.role === 'staff' && isAdmin()
+  ? `<button class="btn ghost small" data-export="${sid}">${ic('i-download')} Record</button> <button class="btn ghost small" data-erase="${sid}">${ic('i-x')} Erase</button> ` : '';
+
+/* who read or exported safeguarding data, who signed in (and who failed to), two-step
+   changes, erasures — the server's own log, for the DSL and the office */
+const CLOUD_LOG_KINDS = {
+  'safeguarding-read': 'read safeguarding records',
+  'export-pupil': 'downloaded a pupil\'s record',
+  'erase-pupil': 'erased a pupil',
+  'staff-signin': 'signed in',
+  'staff-signin-failed': 'sign-in failed',
+  'mfa-on': 'turned two-step sign-in on',
+  'mfa-off': 'turned two-step sign-in off',
+  'mfa-reset': 'reset a colleague\'s two-step sign-in',
+};
+async function openCloudLog() {
+  let r;
+  try { r = await cloudFetch('/access-log'); } catch (e) { toast(e.message, true); return; }
+  const who = id => { const u = db.users.find(x => x.id === id); return u ? esc(u.name) : '<span class="muted">former staff</span>'; };
+  const line = e => {
+    const d = e.detail || {};
+    let what = CLOUD_LOG_KINDS[e.kind] || esc(e.kind);
+    if (e.kind === 'staff-signin-failed') what += d.step === 'code' ? ' (wrong code)' : ' (wrong password)';
+    if (e.kind === 'staff-signin' && d.mfa) what += ' with two-step';
+    if (d.pupil) { const p = db.users.find(x => x.id === d.pupil); what += ' — ' + (p ? esc(p.name) : '<span class="muted">erased pupil</span>'); }
+    if (d.staff) what += ' — ' + who(d.staff);
+    if (e.kind === 'safeguarding-read' && Array.isArray(d.ids)) what += ` (${d.ids.length})`;
+    return `<div class="small" style="padding:6px 2px;border-bottom:1px solid var(--line)"><b>${who(e.by)}</b> — ${what} <span class="muted">${fmtWhen(new Date(e.at).getTime())}</span></div>`;
+  };
+  const m = openModal(`
+    <h3>${ic('i-eye')} Access log</h3>
+    <p class="m-sub">The server's own record, newest first: nobody on a device can edit it. Reads of safeguarding data, record downloads, erasures, staff sign-ins and failed attempts.</p>
+    <div style="max-height:52vh;overflow:auto">${r.entries.map(line).join('') || '<p class="m-sub">Nothing yet.</p>'}</div>
+    <div class="m-actions"><button class="btn ghost" data-x>Close</button></div>`);
+  m.querySelector('[data-x]').onclick = () => m.remove();
+}
 
 /* ---------- boot ---------- */
 (async () => {
