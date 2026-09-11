@@ -53,6 +53,17 @@ create table if not exists records (
 );
 create index if not exists records_by_version on records (school_id, version);
 
+-- who read or exported sensitive data, for the DSL and the office
+create table if not exists access_log (
+  id          bigserial primary key,
+  school_id   text not null,
+  user_id     text not null,
+  kind        text not null,          -- safeguarding-read | export-pupil | erase-pupil
+  detail      jsonb,
+  at          timestamptz not null default now()
+);
+create index if not exists access_log_school on access_log (school_id, at);
+
 create table if not exists media (
   school_id   text not null,
   id          text not null,          -- sha256 of the bytes, hex

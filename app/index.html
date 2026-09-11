@@ -8696,11 +8696,12 @@ function cloudDiff() {
   return ops;
 }
 /* apply server records to the local db; returns true if anything changed */
+const CLOUD_BAD_KEY = /^(__proto__|constructor|prototype)$/;
 function cloudApply(records) {
   let changed = false;
   for (const r of records) {
     const keyField = CLOUD_SHAPES[r.c];
-    if (keyField === undefined) continue;
+    if (keyField === undefined || CLOUD_BAD_KEY.test(r.k)) continue;
     const id = r.c + '\0' + r.k;
     if (keyField === null) {
       if (!db[r.c] || typeof db[r.c] !== 'object') db[r.c] = {};

@@ -28,4 +28,14 @@ export async function readJSON(req, limit = 12 * 1048576) {
   catch (e) { throw new HttpError(400, 'body is not valid JSON'); }
 }
 
+const BAD_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+export const badKey = k => BAD_KEYS.has(String(k));
+/* true if any object in the tree uses a key that would alter a prototype when merged */
+export function hasBadKeys(v, depth = 0) {
+  if (depth > 64) return true;
+  if (Array.isArray(v)) return v.some(x => hasBadKeys(x, depth + 1));
+  if (v && typeof v === 'object') return Object.keys(v).some(k => badKey(k) || hasBadKeys(v[k], depth + 1));
+  return false;
+}
+
 export const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
