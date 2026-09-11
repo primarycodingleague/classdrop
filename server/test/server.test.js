@@ -430,3 +430,59 @@ test('maintenance purges access-log entries older than the retention period', as
   const after = (await query('select count(*)::int as n from access_log where school_id=$1', [school])).rows[0].n;
   assert.equal(after, before - 1);
 });
+
+test('removing a member of staff from the register revokes their sign-in and account', async () => {
+  const made = await api('POST', '/staff', { name: 'Mr Leaver', email: 'leaver@brackley.sch.uk', password: 'leaving in july', role: 'teacher' }, office.token);
+  assert.equal(made.status, 201);
+  const t = await api('POST', '/auth/staff', { email: 'leaver@brackley.sch.uk', password: 'leaving in july' });
+  assert.equal(t.status, 200);
+  assert.equal((await pull(t.body.token, 0)).status, 200, 'works while employed');
+  const rm = await push(office.token, [{ c: 'users', k: made.body.userId, doc: null }]);
+  assert.equal(rm.status, 200);
+  assert.equal((await pull(t.body.token, 0)).status, 401, 'token dead the moment the record is tombstoned');
+  const again = await api('POST', '/auth/staff', { email: 'leaver@brackley.sch.uk', password: 'leaving in july' });
+  assert.equal(again.status, 401, 'the account is gone, not just the session');
+});
+
+test('a tombstoned user record kills a session even if the sessions row survived', async () => {
+  const { query } = await import('../src/db.js');
+  const made = await api('POST', '/staff', { name: 'Ms Ghost', email: 'ghost@brackley.sch.uk', password: 'haunting the staffroom', role: 'teacher' }, office.token);
+  const t = await api('POST', '/auth/staff', { email: 'ghost@brackley.sch.uk', password: 'haunting the staffroom' });
+  await query(`update records set deleted=true, doc=null, version=nextval('record_version') where school_id=$1 and collection='users' and key=$2`, [school, made.body.userId]);
+  const r = await pull(t.body.token, 0);
+  assert.equal(r.status, 401);
+  assert.match(r.body.error, /removed/);
+});
+
+test('removing a pupil revokes their PIN, their session and any parent signed in for them', async () => {
+  const kid = 'u-rev';
+  await push(office.token, [
+    { c: 'users', k: kid, doc: { id: kid, name: 'Rev Pupil', role: 'student', schoolId: school } },
+    { c: 'classes', k: 'c-rev', doc: { id: 'c-rev', name: 'Year 6', code: 'REV01', teacher: office.userId, students: [kid], schoolId: school } },
+    { c: 'parentCodes', k: kid, doc: 'PREV77' },
+  ]);
+  await api('PUT', `/pupils/${kid}/pin`, { pin: '9753' }, office.token);
+  const l = await api('POST', '/auth/pupil', { code: 'REV01', userId: kid, pin: '9753' });
+  assert.equal(l.status, 200, JSON.stringify(l.body));
+  const par = await api('POST', '/auth/parent', { code: 'PREV77' });
+  assert.equal(par.status, 200);
+  const rm = await push(office.token, [{ c: 'users', k: kid, doc: null }]);
+  assert.equal(rm.status, 200);
+  assert.equal((await pull(l.body.token, 0)).status, 401, 'pupil token dead');
+  assert.equal((await pull(par.body.token, 0)).status, 401, 'parent token dead');
+  const { query } = await import('../src/db.js');
+  assert.equal((await query('select 1 from pupil_pins where school_id=$1 and user_id=$2', [school, kid])).rows.length, 0, 'PIN gone');
+});
+
+test('a new parent code signs out whoever used the old one, and the new one works', async () => {
+  const p1 = await api('POST', '/auth/parent', { code: 'PMAY42' });
+  assert.equal(p1.status, 200);
+  assert.equal((await pull(p1.body.token, 0)).status, 200);
+  const chg = await push(office.token, [{ c: 'parentCodes', k: may, doc: 'PMAY99' }]);
+  assert.equal(chg.status, 200);
+  assert.equal((await pull(p1.body.token, 0)).status, 401, 'old-code session gone');
+  assert.equal((await api('POST', '/auth/parent', { code: 'PMAY42' })).status, 404, 'old code no longer signs anyone in');
+  const p2 = await api('POST', '/auth/parent', { code: 'PMAY99' });
+  assert.equal(p2.status, 200);
+  assert.equal(p2.body.childId, may);
+});

@@ -2549,7 +2549,8 @@ function renderAdminStudents(main) {
     return `<tr>
       <td><span class="row"><span class="avatar">${initials(s.name)}</span><b>${esc(s.name)}</b></span></td>
       <td>${inClasses.map(c => `<span class="chip grey">${esc(c.name)}</span>`).join(' ') || '<span class="muted">none yet</span>'}</td>
-      <td><code style="font-weight:800;letter-spacing:.1em;color:var(--gold-dk)">${db.parentCodes[s.id]}</code>
+      <td><span class="row" style="gap:6px"><code style="font-weight:800;letter-spacing:.1em;color:var(--gold-dk)">${db.parentCodes[s.id]}</code>
+        <button class="btn ghost small" data-newcode="${s.id}" aria-label="New parent code for ${esc(s.name)}" title="New parent code">${ic('i-key')}</button></span>
         ${parents ? `<div class="small muted">${ic('i-family')} ${esc(parents)}</div>` : ''}</td>
       <td><span class="row" style="gap:6px"><input class="att-in" data-att="${s.id}|pct" type="number" min="0" max="100" step="0.1" placeholder="%" value="${esc(att.pct != null ? att.pct : '')}">
         <input class="att-in" data-att="${s.id}|late" type="number" min="0" placeholder="late" value="${esc(att.late != null ? att.late : '')}" style="max-width:70px"></span></td>
@@ -2566,6 +2567,14 @@ function renderAdminStudents(main) {
       <thead><tr><th>Student</th><th>Classes</th><th>Parent code</th><th>Attendance % · late</th><th></th><th></th></tr></thead>
       <tbody>${rows || `<tr><td colspan="6" class="empty">No students yet — add the cohort with one click.</td></tr>`}</tbody>
     </table></div>`;
+  main.querySelectorAll('[data-newcode]').forEach(b => b.onclick = () => {
+    const s = user(b.dataset.newcode);
+    openConfirm(`New parent code for ${s.name}?`,
+      `The old code stops working straight away${CLOUD.on ? ' and anyone signed in with it is signed out' : ''}. Do this if a code has got into the wrong hands or the family's circumstances have changed, then give the new code to the right person.`, () => {
+        db.parentCodes[s.id] = classCode();
+        saveDB(); render(); toast(`New parent code for ${s.name}: ${db.parentCodes[s.id]}`);
+      });
+  });
   main.querySelectorAll('[data-att]').forEach(el => el.onchange = () => {
     const [sid, f] = el.dataset.att.split('|');
     const a = (db.attendance = db.attendance || {})[sid] = (db.attendance[sid] || {});
