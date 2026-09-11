@@ -7,7 +7,9 @@ import { query, withTx } from './db.js';
 import { HttpError, uid, weakPassword } from './util.js';
 import { logAccess } from './admin.js';
 
-const SESSION_DAYS = 30;
+/* How long a sign-in lasts. Staff and parents are on their own devices; pupils are on
+   the class iPads, shared by the next child along, so theirs ends by the next morning. */
+const SESSION_HOURS = { staff: 30 * 24, parent: 30 * 24, student: 24 };
 const PIN_RE = /^\d{4,6}$/;
 
 export function hashSecret(secret) {
@@ -70,7 +72,7 @@ function throttle(key, limit = 10) {
 
 async function issueToken({ schoolId, userId, role, childId = null }) {
   const token = crypto.randomBytes(32).toString('base64url');
-  const expires = new Date(Date.now() + SESSION_DAYS * 86400 * 1000);
+  const expires = new Date(Date.now() + (SESSION_HOURS[role] || 24) * 3600 * 1000);
   await query('insert into sessions (token_hash, school_id, user_id, role, child_id, expires_at) values ($1,$2,$3,$4,$5,$6)',
     [tokenHash(token), schoolId, userId, role, childId, expires]);
   return { token, expires: expires.toISOString(), userId, role, schoolId, childId };
