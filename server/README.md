@@ -14,7 +14,9 @@ third-party calls.
   (`/auth/mfa/setup`, `/enable {code}`, `/disable {password}`) and the office can reset a
   colleague who has lost their phone (`DELETE /staff/:id/mfa`). Pupils: class code →
   pick your name → PIN. Parents: the parent code the school already prints. Every
-  sign-in returns a bearer token valid for 30 days; only its hash is stored.
+  sign-in returns a bearer token; only its hash is stored. Staff and parent tokens last
+  30 days, a pupil's one day, because class iPads are shared (the app also signs a pupil
+  out after twenty idle minutes and wipes the device's copy).
 - **Sync.** The app keeps working on the device and sends the records it changed
   (`POST /sync/push`); it asks for everything that changed since its last version
   (`GET /sync/pull?since=N`) and gets back only what that person may see. Rules are in
@@ -33,8 +35,8 @@ third-party calls.
 - **Housekeeping.** Every six hours the service drops expired sessions, removes media
   objects no live record references any more (an erased pupil's photos, a deleted
   hand-in; objects under an hour old are left in case their record is still on its way
-  up) and purges tombstones older than ninety days. Erasing a pupil runs the media
-  sweep straight away.
+  up), purges tombstones older than ninety days and access-log entries older than
+  `ACCESS_LOG_YEARS` (default 6). Erasing a pupil runs the media sweep straight away.
 
 ## Run it locally
 

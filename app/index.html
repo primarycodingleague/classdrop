@@ -2326,20 +2326,27 @@ function renderAdminDash(main) {
       <div class="card"><h3>${ic('i-gear')} Features</h3>
         <p class="small muted" style="margin:0 0 12px">Switch modules on and off for the whole school — points, discussions, reading, timetables, reports, safeguarding and more.</p>
         <button class="btn sec" data-goto="afeatures">${ic('i-gear')} Choose features</button></div>
-      <div class="card"><h3>${ic('i-download')} Back up &amp; export</h3>
-        <p class="small muted" style="margin:0 0 12px">Download everything as a file to keep a backup, or restore from one. (On a real server this happens automatically.)</p>
-        <button class="btn sec" id="btn-export">${ic('i-download')} Download backup</button>
-        <button class="btn ghost" id="btn-import">${ic('i-clip')} Restore…</button>
-        <input type="file" id="import-file" accept="application/json,.json" class="sr-only"></div>
+      <div class="card"><h3>${ic('i-download')} ${CLOUD.on ? 'Export everything' : 'Back up &amp; export'}</h3>
+        <p class="small muted" style="margin:0 0 12px">${CLOUD.on
+          ? 'Everything the office can see, as one file: every class, pupil, piece of work and photo. Yours to keep — take a copy before deleting the school or moving on from ClassDrop.'
+          : 'Download everything as a file to keep a backup, or restore from one. (On a real server this happens automatically.)'}</p>
+        <button class="btn sec" id="btn-export">${ic('i-download')} ${CLOUD.on ? 'Download everything' : 'Download backup'}</button>
+        ${CLOUD.on ? '' : `<button class="btn ghost" id="btn-import">${ic('i-clip')} Restore…</button>
+        <input type="file" id="import-file" accept="application/json,.json" class="sr-only">`}</div>
     </div>`;
   document.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => go({ page: b.dataset.goto }));
   $('#btn-school').onclick = () => openSchoolDetails(school);
   $('#btn-export').onclick = () => {
     const a = document.createElement('a');
-    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(db));
-    a.download = 'classdrop-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-    a.click(); toast('Backup downloaded');
+    const out = Object.assign({}, db, { session: undefined, hat: undefined });
+    if (CLOUD.on) Object.assign(out, { exportedAt: new Date().toISOString(), exportedBy: db.session, school: mySchool().name });
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: 'application/json' }));   // a blob, so a school's photos fit
+    a.download = `classdrop-${CLOUD.on ? 'export' : 'backup'}-` + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast(CLOUD.on ? 'Export downloaded' : 'Backup downloaded');
   };
+  if (CLOUD.on) return;
   $('#btn-import').onclick = () => $('#import-file').click();
   $('#import-file').onchange = e => {
     const f = e.target.files[0]; if (!f) return;
@@ -8807,10 +8814,27 @@ function cloudSchedule() {
   clearTimeout(CLOUD.timer);
   CLOUD.timer = setTimeout(cloudSync, 700);
 }
+/* A class iPad is shared by the next child along: a pupil left signed in is a pupil whose
+   work the next child can read. Twenty quiet minutes and the device signs itself out. */
+const CLOUD_IDLE_MS = 20 * 60 * 1000;
+function cloudIdleWatch() {
+  if (CLOUD.role !== 'student') return;
+  let last = Date.now();
+  const touch = () => { last = Date.now(); };
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, touch, { passive: true }));
+  clearInterval(CLOUD.idle);
+  CLOUD.idle = setInterval(() => {
+    if (Date.now() - last < (CLOUD.idleMs || CLOUD_IDLE_MS)) return;
+    clearInterval(CLOUD.idle);
+    toast('Signed out — nobody has used this for a while');
+    setTimeout(cloudSignOut, 900);
+  }, 15000);
+}
 function cloudStart() {
   if (!CLOUD.on) return;
   clearInterval(CLOUD.poll);
   CLOUD.poll = setInterval(() => { if (document.visibilityState === 'visible') cloudSync(); }, 6000);
+  cloudIdleWatch();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') cloudSync(); });
   window.addEventListener('online', cloudSync);
   if (CLOUD.dirty) CLOUD.base = new Map();   // an unsynced edit survived a reload: compare against nothing and re-push
@@ -9029,7 +9053,7 @@ document.addEventListener('click', e => {
     const sch = mySchool();
     const m = openModal(`
       <h3>Delete ${esc(sch.name)} from ClassDrop?</h3>
-      <p class="m-sub">Every record, every photo and file, every sign-in, for every member of staff, pupil and parent — gone from the server for good. Download anything you need to keep first. There is no undo.</p>
+      <p class="m-sub">Every record, every photo and file, every sign-in, for every member of staff, pupil and parent — gone from the server for good. Take a copy first: School → Export everything. There is no undo.</p>
       <label>Type the school's name to confirm</label><input id="ds-name" autocomplete="off" placeholder="${esc(sch.name)}">
       <div class="m-actions"><button class="btn ghost" data-x>Cancel</button><button class="btn danger" data-go>${ic('i-x')} Delete the school</button></div>`);
     m.querySelector('[data-x]').onclick = () => m.remove();

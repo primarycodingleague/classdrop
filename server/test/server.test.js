@@ -408,3 +408,25 @@ test('media garbage collection removes objects no live record references', async
   assert.ok(m.media >= 1, 'collected: ' + JSON.stringify(m));
   assert.equal((await api('GET', '/media/' + id, undefined, office.token)).status, 404, 'gone from storage and the table');
 });
+
+test('pupil sign-ins last a day (shared iPads); staff and parents a month', async () => {
+  const s = await api('POST', '/auth/staff', { email: 'strong@brackley.sch.uk', password: 'ottoman bicycle rain' });
+  const staffHours = (new Date(s.body.expires) - Date.now()) / 3600e3;
+  assert.ok(staffHours > 29 * 24 && staffHours <= 30 * 24, 'staff ~30 days');
+  await api('PUT', `/pupils/${may}/pin`, { pin: '1357' }, office.token);
+  const p = await api('POST', '/auth/pupil', { code: 'Y5ABC', userId: may, pin: '1357' });
+  assert.equal(p.status, 200, JSON.stringify(p.body));
+  const pupilHours = (new Date(p.body.expires) - Date.now()) / 3600e3;
+  assert.ok(pupilHours > 23 && pupilHours <= 24, 'pupil ~24 hours, got ' + pupilHours);
+});
+
+test('maintenance purges access-log entries older than the retention period', async () => {
+  const { query } = await import('../src/db.js');
+  await query(`insert into access_log (school_id, user_id, kind, detail, at) values ($1,$2,'export-pupil','{}', now() - interval '7 years')`, [school, office.userId]);
+  await query(`insert into access_log (school_id, user_id, kind, detail, at) values ($1,$2,'export-pupil','{}', now() - interval '5 years')`, [school, office.userId]);
+  const before = (await query('select count(*)::int as n from access_log where school_id=$1', [school])).rows[0].n;
+  const r = await app.maintenance();
+  assert.equal(r.log, 1, 'exactly the seven-year-old entry goes');
+  const after = (await query('select count(*)::int as n from access_log where school_id=$1', [school])).rows[0].n;
+  assert.equal(after, before - 1);
+});

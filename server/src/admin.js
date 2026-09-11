@@ -140,8 +140,14 @@ export async function gcMedia(schoolId, storage) {
 /* Tombstones carry no data but they do say a key once existed; after ninety days every
    device has long since caught up and they can go. */
 export async function purgeTombstones(days = 90) {
-  const r = await query(`delete from records where deleted and updated_at < now() - ($1 || ' days')::interval`, [String(days)]);
-  return r.rowCount || 0;
+  const r = await query(`delete from records where deleted and updated_at < now() - ($1 || ' days')::interval returning key`, [String(days)]);
+  return r.rows.length;
+}
+/* The access log is itself personal data (who did what, when). Six years covers any
+   complaint, audit or inspection a school could face; after that it goes. */
+export async function purgeAccessLog(years = Number(process.env.ACCESS_LOG_YEARS) || 6) {
+  const r = await query(`delete from access_log where at < now() - ($1 || ' years')::interval returning id`, [String(years)]);
+  return r.rows.length;
 }
 export async function maintenance(storage) {
   await query('delete from sessions where expires_at < now()');
@@ -149,7 +155,8 @@ export async function maintenance(storage) {
   let media = 0;
   for (const s of schools.rows) media += await gcMedia(s.id, storage);
   const tombstones = await purgeTombstones();
-  return { media, tombstones };
+  const log = await purgeAccessLog();
+  return { media, tombstones, log };
 }
 
 /* GET /access-log — the DSL and the office can see who read safeguarding data. */
