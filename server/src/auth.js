@@ -86,6 +86,14 @@ export async function authenticate(req) {
   const r = await query(`select school_id, user_id, role, child_id from sessions where token_hash = $1 and expires_at > now() and role in ('staff','student','parent')`, [tokenHash(m[1])]);
   if (!r.rows.length) throw new HttpError(401, 'your sign-in has expired — sign in again');
   const s = r.rows[0];
+  // removed from the school's records (a leaver, an erased pupil, a parent's child)? then
+  // the token is dead too, whatever the sessions table says
+  const gone = await query(`select 1 from records where school_id=$1 and collection='users' and key = any($2) and deleted limit 1`,
+    [s.school_id, [s.user_id, s.child_id].filter(Boolean)]);
+  if (gone.rows.length) {
+    await query('delete from sessions where token_hash=$1', [tokenHash(m[1])]);
+    throw new HttpError(401, 'this account has been removed by the school');
+  }
   return { schoolId: s.school_id, userId: s.user_id, role: s.role, childId: s.child_id, tokenHash: tokenHash(m[1]) };
 }
 

@@ -91,6 +91,11 @@ Behind a reverse proxy, forward `X-Forwarded-For` so rate limiting sees real add
   the DSL, on the Safeguarding page.
 - Safeguarding records are only returned to the designated safeguarding lead and the
   member of staff who reported them; pupils and parents never receive them.
+- Removing a person from the register removes them from the server: a tombstoned
+  `users` record deletes their account, PIN and sessions (and any parent session for
+  that child), and `authenticate()` refuses a token whose user record is tombstoned
+  even if a sessions row survived. A changed parent code signs out whoever used the old
+  one; the office issues a new one from the Students page.
 - Deleting a school is `delete from records where school_id = …`, the same for
   `accounts`, `pupil_pins`, `sessions`, `media`, plus the media objects under
   `<schoolId>/` in the bucket.
