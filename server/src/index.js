@@ -6,6 +6,7 @@ import { makeStorage } from './storage.js';
 import * as auth from './auth.js';
 import * as sync from './sync.js';
 import { mediaRoutes } from './media.js';
+import * as admin from './admin.js';
 import { HttpError, readJSON } from './util.js';
 
 export async function createApp(env = process.env) {
@@ -25,6 +26,10 @@ export async function createApp(env = process.env) {
     const m = req.method;
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
 
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    if ((req.headers['x-forwarded-proto'] || '') === 'https') res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     // CORS: the app on classdrop.co.uk (and a local dev server) talks to this origin
     const origin = req.headers.origin;
     if (origin && origins.includes(origin)) {
@@ -39,7 +44,7 @@ export async function createApp(env = process.env) {
     if (m === 'GET' && p === '/health') return send(res, 200, { ok: true, storage: storage.kind });
 
     // --- sign-in, no token needed ---
-    if (m === 'POST' && p === '/schools') return send(res, 201, await auth.createSchool(await readJSON(req), env));
+    if (m === 'POST' && p === '/schools') return send(res, 201, await auth.createSchool(await readJSON(req), env, ip));
     if (m === 'POST' && p === '/auth/staff') return send(res, 200, await auth.loginStaff(await readJSON(req), ip));
     if (m === 'POST' && p === '/auth/class') return send(res, 200, await auth.lookupClass(await readJSON(req), ip));
     if (m === 'POST' && p === '/auth/pupil') return send(res, 200, await auth.loginPupil(await readJSON(req), ip));
@@ -61,13 +66,18 @@ export async function createApp(env = process.env) {
     if (m === 'POST' && p === '/media/exists') return send(res, 200, await media.exists(user, (await readJSON(req)).ids));
     if (m === 'GET' && (mm = p.match(/^\/media\/([a-f0-9]+)$/))) return media.download(user, mm[1], res);
 
+    if (m === 'GET' && (mm = p.match(/^\/export\/pupil\/([^/]+)$/))) return send(res, 200, await admin.exportPupil(user, decodeURIComponent(mm[1])));
+    if (m === 'DELETE' && (mm = p.match(/^\/pupils\/([^/]+)$/))) return send(res, 200, await admin.erasePupil(user, decodeURIComponent(mm[1])));
+    if (m === 'DELETE' && p === '/schools/me') return send(res, 200, await admin.deleteSchool(user, await readJSON(req), storage));
+    if (m === 'GET' && p === '/access-log') return send(res, 200, await admin.accessLog(user));
+
     throw new HttpError(404, 'not found');
   }
 
   const server = http.createServer((req, res) => {
     handle(req, res).catch(e => {
       const status = e instanceof HttpError ? e.status : 500;
-      if (status === 500) console.error(e);
+      if (status === 500) console.error((e && e.stack) ? e.stack.split('\n').slice(0, 8).join('\n') : String(e));   // never the error object: driver errors carry query parameters
       if (!res.headersSent) send(res, status, { error: status === 500 ? 'something went wrong on the server' : e.message });
       else res.end();
     });

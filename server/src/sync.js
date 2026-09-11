@@ -3,7 +3,7 @@
    client's last version (pull), filtered to what that person may see. */
 import { query, withTx } from './db.js';
 import { SHAPES, MERGE_ARRAYS, buildScope, scopeHash, visible, canWrite } from './shapes.js';
-import { HttpError } from './util.js';
+import { HttpError, badKey, hasBadKeys } from './util.js';
 
 const MAX_DOC = 1024 * 1024;       // 1 MB per record on the wire (media is separate)
 const MAX_OPS = 2000;
@@ -42,8 +42,9 @@ export async function push(user, body) {
     for (const op of ops) {
       const c = String(op.c || ''), k = String(op.k || '');
       if (!(c in SHAPES)) throw new HttpError(400, `unknown collection "${c}"`);
-      if (!k || k.length > 200) throw new HttpError(400, `bad key for ${c}`);
+      if (!k || k.length > 200 || badKey(k)) throw new HttpError(400, `bad key for ${c}`);
       const doc = op.doc === null || op.doc === undefined ? null : op.doc;
+      if (doc !== null && hasBadKeys(doc)) throw new HttpError(400, `${c}/${k} contains a forbidden key`);
       const json = doc === null ? null : JSON.stringify(doc);
       if (json && json.length > MAX_DOC) throw new HttpError(413, `${c}/${k} is too large — attach photos and videos as media, not inline`);
       const cur = await q('select doc, deleted from records where school_id=$1 and collection=$2 and key=$3', [user.schoolId, c, k]);
@@ -78,11 +79,15 @@ export async function pull(user, since) {
     [user.schoolId, from]);
   const records = [];
   let version = from;
+  const sensitive = [];
   for (const row of r.rows) {
     version = Number(row.version);
     if (!visible(user, scope, row.collection, row.key, row.doc)) continue;
+    if (!row.deleted && (row.collection === 'safeguarding' || row.collection === 'sgUpdates')) sensitive.push(row.collection + '/' + row.key);
     records.push({ c: row.collection, k: row.key, doc: row.deleted ? null : row.doc, v: version });
   }
+  if (sensitive.length) await query('insert into access_log (school_id, user_id, kind, detail) values ($1,$2,$3,$4)',
+    [user.schoolId, user.userId, 'safeguarding-read', JSON.stringify({ records: sensitive })]);
   return { version, scope: scopeHash(scope), records };
 }
 
@@ -104,7 +109,7 @@ export async function importDB(user, body) {
         ? (Array.isArray(v) ? v.map(rec => [rec && rec[shape.key], rec]) : [])
         : (v && typeof v === 'object' ? Object.entries(v) : []);
       for (const [k, doc] of entries) {
-        if (k === undefined || k === null || doc === undefined) continue;
+        if (k === undefined || k === null || doc === undefined || badKey(k) || hasBadKeys(doc)) continue;
         let d = doc;
         // the imported school keeps its own id: point every record at this school
         if (c === 'schools') d = { ...doc, id: user.schoolId };

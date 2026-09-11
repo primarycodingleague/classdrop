@@ -67,7 +67,8 @@ const putRecord = (q, schoolId, c, k, doc, by) => q(
 
 /* POST /schools — a new school with its first office account. Needs the invite code
    PCL gives out, so strangers cannot create schools on the service. */
-export async function createSchool(body, env = process.env) {
+export async function createSchool(body, env = process.env, ip = '') {
+  throttle('school:' + ip, 5);
   const invites = (env.INVITE_CODES || '').split(',').map(s => s.trim()).filter(Boolean);
   if (!invites.length) throw new HttpError(503, 'school sign-up is not open on this server');
   if (!invites.includes(String(body.invite || ''))) throw new HttpError(403, 'that invite code is not recognised');
