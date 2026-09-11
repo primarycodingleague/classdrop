@@ -6,9 +6,15 @@ third-party calls.
 
 ## What it does
 
-- **Sign-in.** Staff: email + password. Pupils: class code → pick your name → PIN.
-  Parents: the parent code the school already prints. Every sign-in returns a bearer
-  token valid for 30 days; only its hash is stored.
+- **Sign-in.** Staff: email + password, plus a code from an authenticator app once they
+  turn two-step sign-in on (TOTP, RFC 6238; the DfE cyber security standards ask for
+  MFA on every staff cloud account). `POST /auth/staff` answers `{mfa:true, pending}`
+  for such an account and `POST /auth/staff/mfa {pending, code}` finishes the sign-in;
+  the pending challenge lives five minutes. Staff manage it themselves
+  (`/auth/mfa/setup`, `/enable {code}`, `/disable {password}`) and the office can reset a
+  colleague who has lost their phone (`DELETE /staff/:id/mfa`). Pupils: class code →
+  pick your name → PIN. Parents: the parent code the school already prints. Every
+  sign-in returns a bearer token valid for 30 days; only its hash is stored.
 - **Sync.** The app keeps working on the device and sends the records it changed
   (`POST /sync/push`); it asks for everything that changed since its last version
   (`GET /sync/pull?since=N`) and gets back only what that person may see. Rules are in
@@ -24,6 +30,11 @@ third-party calls.
   25th birthday. `DELETE /schools/me` (office, school name typed to confirm) removes the
   school and its media outright. `GET /access-log` shows the DSL and the office who read
   or exported safeguarding data and when.
+- **Housekeeping.** Every six hours the service drops expired sessions, removes media
+  objects no live record references any more (an erased pupil's photos, a deleted
+  hand-in; objects under an hour old are left in case their record is still on its way
+  up) and purges tombstones older than ninety days. Erasing a pupil runs the media
+  sweep straight away.
 
 ## Run it locally
 
