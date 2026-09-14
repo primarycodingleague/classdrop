@@ -523,3 +523,12 @@ test('a pupil sees classmates\' point totals but not why each point was given', 
   const t = await pull(teacher.token, 0);
   assert.equal(t.body.records.find(r => r.c === 'points' && r.k === 'pt-zed').doc.label, 'Unkind to others', 'staff see everything');
 });
+
+test('storage adapters: azure needs a connection string; unknown kinds are refused', async () => {
+  const { makeStorage } = await import('../src/storage.js');
+  assert.throws(() => makeStorage({ STORAGE: 'azure' }), /AZURE_STORAGE_CONNECTION_STRING/);
+  assert.throws(() => makeStorage({ STORAGE: 'ftp' }), /unknown STORAGE/);
+  const az = makeStorage({ STORAGE: 'azure', AZURE_STORAGE_CONNECTION_STRING: 'UseDevelopmentStorage=true' });
+  assert.equal(az.kind, 'azure');
+  assert.equal(typeof az.put, 'function');
+});

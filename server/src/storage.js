@@ -1,14 +1,49 @@
-/* Where media bytes live. `disk` for local work, `s3` for AWS S3 or any S3-compatible
-   store. The rest of the server only sees put/get/remove, so switching provider is an
-   environment variable, not a code change. */
+/* Where media bytes live. `disk` for local work, `azure` for Azure Blob Storage (the
+   hosted service, UK South), `s3` for AWS S3 or any S3-compatible store. The rest of the
+   server only sees put/get/remove, so switching provider is an environment variable, not
+   a code change. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 export function makeStorage(env = process.env) {
   const kind = env.STORAGE || 'disk';
   if (kind === 'disk') return diskStorage(env.STORAGE_DIR || './data/media');
+  if (kind === 'azure') return azureStorage(env);
   if (kind === 's3') return s3Storage(env);
-  throw new Error(`unknown STORAGE "${kind}" — use disk or s3`);
+  throw new Error(`unknown STORAGE "${kind}" — use disk, azure or s3`);
+}
+
+/* Azure Blob Storage: one private container, objects keyed `<schoolId>/<sha256>`. The
+   connection string comes from the storage account (never public access; the app
+   fetches media through the API, which checks the school). */
+function azureStorage(env) {
+  const conn = env.AZURE_STORAGE_CONNECTION_STRING;
+  if (!conn) throw new Error('AZURE_STORAGE_CONNECTION_STRING is required when STORAGE=azure');
+  const containerName = env.AZURE_CONTAINER || 'media';
+  let container = null;
+  const client = async () => {
+    if (container) return container;
+    const { BlobServiceClient } = await import('@azure/storage-blob');
+    container = BlobServiceClient.fromConnectionString(conn).getContainerClient(containerName);
+    await container.createIfNotExists();   // private by default: no public access level given
+    return container;
+  };
+  return {
+    kind: 'azure',
+    async put(key, bytes, mime) {
+      const c = await client();
+      await c.getBlockBlobClient(key).upload(bytes, bytes.length, { blobHTTPHeaders: { blobContentType: mime || 'application/octet-stream' } });
+    },
+    async get(key) {
+      const c = await client();
+      try { return await c.getBlockBlobClient(key).downloadToBuffer(); }
+      catch (e) { if (e.statusCode === 404) return null; throw e; }
+    },
+    async remove(key) {
+      const c = await client();
+      await c.getBlockBlobClient(key).deleteIfExists();
+    },
+  };
 }
 
 function diskStorage(root) {
