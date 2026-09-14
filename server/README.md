@@ -58,8 +58,9 @@ npm test               # node --test, in-memory PGlite, temp media dir
 | --- | --- |
 | `PORT` | listen port, default 8787 |
 | `DATABASE_URL` | Postgres connection string. Unset → PGlite (`PGLITE_DIR` for a file-backed one) |
-| `STORAGE` | `disk` (default) or `s3` |
+| `STORAGE` | `disk` (default), `azure` or `s3` |
 | `STORAGE_DIR` | disk storage root, default `./data/media` |
+| `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_CONTAINER` | Azure Blob Storage account and container (default `media`) |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT` | S3 or any S3-compatible store; credentials via the AWS SDK's usual chain |
 | `ALLOWED_ORIGINS` | comma-separated origins allowed to call the API, default `https://classdrop.co.uk` |
 | `INVITE_CODES` | comma-separated codes that may create a school (`POST /schools`). Unset → sign-up closed |
@@ -70,11 +71,14 @@ npm test               # node --test, in-memory PGlite, temp media dir
 The service is deliberately portable: any host that runs Node 22, a Postgres database
 and an S3-compatible bucket. UK region throughout.
 
-- **Azure (UK South):** App Service (Linux, Node 22) or Container Apps; Azure Database
-  for PostgreSQL Flexible Server; for media, either an S3-compatible gateway in front of
-  Blob Storage or an `azure` storage adapter (about fifty lines, not yet written).
-- **AWS (eu-west-2 London):** App Runner or a small ECS/Lightsail service; RDS
-  PostgreSQL; S3 bucket with public access blocked.
+- **Azure (UK South), the chosen platform:** `deploy/azure.sh` pasted into Azure Cloud
+  Shell builds the lot — PostgreSQL Flexible Server (B1ms, 35-day backups, Azure-services
+  access only), a private storage account (`STORAGE=azure`), and a Linux App Service
+  running Node 22 with `/health` as its health check, HTTPS only, TLS 1.2. It prints the
+  invite code and the DNS records for `api.classdrop.co.uk`; run it again to redeploy.
+  About £30–40 a month.
+- **AWS (eu-west-2 London), the alternative:** App Runner or a small ECS/Lightsail
+  service; RDS PostgreSQL; S3 bucket with public access blocked (`STORAGE=s3`).
 
 Behind a reverse proxy, forward `X-Forwarded-For` so rate limiting sees real addresses.
 
