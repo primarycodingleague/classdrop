@@ -30,7 +30,11 @@ of its time left.
 
 1. **Detect and record (hour 0).** Note the time you became aware, how, and what you know.
    Start a timeline in a private document; every action below gets a timestamped line.
-2. **Contain (first hour).** Stop it getting worse before working out what happened:
+2. **Tell the insurer (first hour, in parallel).** The business policy is with Simply
+   Business (policy number in the password manager; certificate in the legal folder).
+   Cyber policies require notification before you incur costs, so call them as soon as
+   containment starts, not after.
+3. **Contain (first hour).** Stop it getting worse before working out what happened:
    - compromised staff account → `DELETE /staff/:id/mfa` is not enough; reset the
      password in the database, delete the account's sessions, and tell the school office
      to re-issue sign-in details;
@@ -42,18 +46,18 @@ of its time left.
      away, stop the App Service. A school without sync for an afternoon is better than a
      leak continuing;
    - leaked backup or export → get it removed, record where it was and for how long.
-3. **Assess (hours 1 to 12).** Which schools, which records, how many children, what kind
+4. **Assess (hours 1 to 12).** Which schools, which records, how many children, what kind
    of data (safeguarding records make it high risk automatically), who could have seen it,
    for how long. Use `access_log`, the App Service logs and Azure activity log. Be
    conservative: if you cannot rule a school out, it is in.
-4. **Notify each affected school (within 24 hours).** Email the school's named contact,
+5. **Notify each affected school (within 24 hours).** Email the school's named contact,
    and telephone the office if the data is sensitive or the school is closed. Use the
    template below. Say what you know, say what you do not know yet, and say when the
    next update will come. Do not speculate about causes.
-5. **Support the school's ICO decision.** The school decides whether to notify the ICO and
+6. **Support the school's ICO decision.** The school decides whether to notify the ICO and
    data subjects; give them everything they ask for. If website or correspondence data we
    control is involved, *we* notify the ICO within 72 hours ourselves at ico.org.uk.
-6. **Remediate and review (within two weeks).** Fix the root cause, add a test that would
+7. **Remediate and review (within two weeks).** Fix the root cause, add a test that would
    have caught it, and write a one-page post-incident review: what happened, timeline,
    impact, what changed. Send the review to affected schools. Keep it for six years.
 
@@ -118,7 +122,7 @@ Record the date and result at the bottom of this file.
 | Weekly | Glance at Azure cost and the App Service log for 500s |
 | Monthly | `npm audit` in `server/`, apply updates, run `npm test`, redeploy with `deploy/azure.sh` |
 | Termly | Restore test (above); review who has Azure access; review this runbook |
-| Yearly | Rehearse the breach procedure with a tabletop scenario; renew Cyber Essentials; review retention settings |
+| Yearly | Rehearse the breach procedure with a tabletop scenario; renew Cyber Essentials; review retention settings; renew insurance (policy year runs 7 August to 6 August) and check professional indemnity and cyber limits still match what schools ask for |
 
 **Deploying a change:** merge to `main`, then run `deploy/azure.sh` in Cloud Shell. It
 redeploys from `main` and leaves the database and storage alone. Deploy outside school
