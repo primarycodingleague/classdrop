@@ -109,8 +109,24 @@ for attempt in 1 2 3; do
   az webapp restart -g "$RG" -n "$APP" -o none || true
   sleep 40
 done
+if [ -z "$deployed" ]; then
+  # Kudu would not take it: run the package straight from the storage account instead.
+  # The app then runs from a read-only mount, which is fine (it writes nothing to disk).
+  echo "    Kudu refused the upload; switching to run-from-package via the storage account"
+  az storage container create -n deploy --connection-string "$STORAGE_CONN" -o none
+  STAMP=$(date -u +%Y%m%d%H%M%S)
+  az storage blob upload --connection-string "$STORAGE_CONN" -c deploy -n "server-$STAMP.zip" -f "$WORK/server.zip" --overwrite -o none
+  EXPIRY=$(date -u -d "+10 years" +%Y-%m-%dT%H:%MZ 2>/dev/null || date -u -v+10y +%Y-%m-%dT%H:%MZ)
+  SAS=$(az storage blob generate-sas --connection-string "$STORAGE_CONN" -c deploy -n "server-$STAMP.zip" --permissions r --expiry "$EXPIRY" --https-only -o tsv)
+  PKG_URL="https://$SA.blob.core.windows.net/deploy/server-$STAMP.zip?$SAS"
+  az webapp config appsettings set -g "$RG" -n "$APP" -o none --settings WEBSITE_RUN_FROM_PACKAGE="$PKG_URL"
+  az webapp restart -g "$RG" -n "$APP" -o none
+  deployed=1
+else
+  # a zip deploy replaces any run-from-package setting, or the new upload would be ignored
+  az webapp config appsettings delete -g "$RG" -n "$APP" --setting-names WEBSITE_RUN_FROM_PACKAGE -o none 2>/dev/null || true
+fi
 rm -rf "$WORK"
-[ -n "$deployed" ] || echo "    deployment did not succeed after 3 attempts; see 'az webapp log deployment show -g $RG -n $APP'"
 
 say "6/6  Checking"
 ok=""
@@ -119,9 +135,15 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
   if curl -fsS "https://$APP.azurewebsites.net/health" 2>/dev/null; then ok=1; echo; break; fi
 done
 if [ -z "$ok" ]; then
-  echo "The site is not answering yet. Its last log lines:"
-  az webapp log tail -g "$RG" -n "$APP" --timeout 20 2>/dev/null | tail -40 || true
-  echo "If that shows a crash, paste it to Claude. Otherwise wait a minute and open https://$APP.azurewebsites.net/health"
+  echo "The site is not answering yet. What it says at the root, and its latest container log:"
+  curl -si "https://$APP.azurewebsites.net/" 2>/dev/null | head -8 || true
+  LOGS=$(mktemp -d)
+  if az webapp log download -g "$RG" -n "$APP" --log-file "$LOGS/logs.zip" -o none 2>/dev/null && unzip -o -q "$LOGS/logs.zip" -d "$LOGS" 2>/dev/null; then
+    f=$(ls -t "$LOGS"/LogFiles/*docker*.log 2>/dev/null | head -1)
+    [ -n "$f" ] && tail -60 "$f" || echo "    (no container log yet)"
+  fi
+  rm -rf "$LOGS"
+  echo "Paste the lines above to Claude."
 fi
 
 cat <<EOF
