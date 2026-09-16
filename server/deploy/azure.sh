@@ -81,6 +81,8 @@ fi
 az webapp config set -g "$RG" -n "$APP" --always-on true --min-tls-version 1.2 --ftps-state Disabled \
   --startup-file "node src/index.js" --generic-configurations '{"healthCheckPath":"/health"}' -o none
 az webapp update -g "$RG" -n "$APP" --https-only true -o none
+# keep the app's own output, so a crash has a visible reason ("az webapp log tail")
+az webapp log config -g "$RG" -n "$APP" --docker-container-logging filesystem --application-logging filesystem --level information -o none
 
 if [ -z "${INVITE_CODES:-}" ]; then
   INVITE_CODES=$(az webapp config appsettings list -g "$RG" -n "$APP" --query "[?name=='INVITE_CODES'].value | [0]" -o tsv)
@@ -100,8 +102,15 @@ git clone -q --depth 1 -b "$BRANCH" "$REPO" "$WORK/classdrop"
 # dependencies are installed here, in Cloud Shell, and shipped inside the package: no
 # build step on the server to go wrong
 ( cd "$WORK/classdrop/server" && npm ci --omit=dev --no-audit --no-fund --loglevel=error && zip -qr "$WORK/server.zip" . -x 'data/*' '*.log' )
-az webapp deploy -g "$RG" -n "$APP" --src-path "$WORK/server.zip" --type zip --timeout 600 -o none || true
+deployed=""
+for attempt in 1 2 3; do
+  if az webapp deploy -g "$RG" -n "$APP" --src-path "$WORK/server.zip" --type zip --timeout 600 -o none; then deployed=1; break; fi
+  echo "    deployment attempt $attempt failed (Kudu busy?); restarting the app and trying again in 40s"
+  az webapp restart -g "$RG" -n "$APP" -o none || true
+  sleep 40
+done
 rm -rf "$WORK"
+[ -n "$deployed" ] || echo "    deployment did not succeed after 3 attempts; see 'az webapp log deployment show -g $RG -n $APP'"
 
 say "6/6  Checking"
 ok=""
