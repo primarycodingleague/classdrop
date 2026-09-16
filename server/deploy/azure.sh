@@ -23,6 +23,13 @@ BRANCH=${BRANCH:-main}
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 
+say "0/6  Registering the Azure services this uses (once per subscription; a minute or two)"
+for ns in Microsoft.DBforPostgreSQL Microsoft.Storage Microsoft.Web Microsoft.CloudShell; do
+  if [ "$(az provider show --namespace "$ns" --query registrationState -o tsv 2>/dev/null)" != "Registered" ]; then
+    az provider register --namespace "$ns" --wait -o none
+  fi
+done
+
 say "1/6  Resource group $RG in $LOC"
 az group create -n "$RG" -l "$LOC" -o none
 
@@ -36,9 +43,18 @@ if ! az postgres flexible-server show -g "$RG" -n "$PG" -o none 2>/dev/null; the
   # --public-access 0.0.0.0 means "Azure services only", not the internet.
   az postgres flexible-server db create -g "$RG" -s "$PG" -d classdrop -o none
   echo "$PGPASS" > "$HOME/.classdrop-pg-password"; chmod 600 "$HOME/.classdrop-pg-password"
-  echo "    database password saved to ~/.classdrop-pg-password — copy it into your password manager"
+  echo "    DATABASE PASSWORD (Cloud Shell is ephemeral; copy this into your password manager now): $PGPASS"
 else
-  PGPASS=$(cat "$HOME/.classdrop-pg-password")
+  if [ -f "$HOME/.classdrop-pg-password" ]; then PGPASS=$(cat "$HOME/.classdrop-pg-password")
+  else
+    PGPASS=${PGPASS:-}
+    if [ -z "$PGPASS" ]; then   # a fresh (ephemeral) shell: set a new password so the app settings are right
+      PGPASS=$(openssl rand -base64 30 | tr -d '/+=' | cut -c1-28)
+      az postgres flexible-server update -g "$RG" -n "$PG" --admin-password "$PGPASS" -o none
+      echo "    DATABASE PASSWORD RESET (copy this into your password manager now): $PGPASS"
+    fi
+    echo "$PGPASS" > "$HOME/.classdrop-pg-password"; chmod 600 "$HOME/.classdrop-pg-password"
+  fi
   echo "    already exists"
 fi
 DATABASE_URL="postgresql://$PGUSER:$PGPASS@$PG.postgres.database.azure.com:5432/classdrop?sslmode=require"
