@@ -8,9 +8,9 @@ promise, not the step.
 
 | Role | Who | Backup |
 | --- | --- | --- |
-| Service owner and incident lead | Charlie, hello@classdrop.co.uk | _(name a second person before launch)_ |
+| Service owner and incident lead | Charlie Mackenzie, hello@classdrop.co.uk | _(name a second person before launch)_ |
 | Azure subscription owner | Charlie (Founders Hub subscription, MFA on) | — |
-| Data protection contact | hello@classdrop.co.uk | — |
+| Data protection lead | Charlie Mackenzie, hello@classdrop.co.uk | — |
 
 Production access is Charlie's Azure account only. No shared credentials. Add anyone
 else as a named Azure user with MFA, never by sharing a password. Review who has access
@@ -75,7 +75,7 @@ of its time left.
 >
 > Your school is the data controller and decides whether to notify the ICO and the
 > people affected. We will give you whatever you need for that decision. Contact:
-> Charlie, hello@classdrop.co.uk, [phone].
+> Charlie Mackenzie, hello@classdrop.co.uk, [phone].
 
 ## 2. Backups and restore
 
