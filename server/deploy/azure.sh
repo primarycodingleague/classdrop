@@ -48,6 +48,9 @@ az storage account create -g "$RG" -n "$SA" -l "$LOC" --sku Standard_LRS --kind 
   --allow-blob-public-access false --min-tls-version TLS1_2 -o none
 STORAGE_CONN=$(az storage account show-connection-string -g "$RG" -n "$SA" -o tsv)
 az storage container create -n media --connection-string "$STORAGE_CONN" -o none
+# a deleted or overwritten photo can be brought back for 35 days (the runbook's promise)
+az storage account blob-service-properties update -g "$RG" --account-name "$SA" \
+  --enable-delete-retention true --delete-retention-days 35 --enable-versioning true -o none
 
 say "4/6  App Service $APP (Linux B1, Node 22)"
 az appservice plan create -g "$RG" -n classdrop-plan -l "$LOC" --is-linux --sku B1 -o none
