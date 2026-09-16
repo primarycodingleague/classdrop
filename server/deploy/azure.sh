@@ -41,7 +41,6 @@ if ! az postgres flexible-server show -g "$RG" -n "$PG" -o none 2>/dev/null; the
     --admin-user "$PGUSER" --admin-password "$PGPASS" \
     --public-access 0.0.0.0 --backup-retention 35 --yes -o none
   # --public-access 0.0.0.0 means "Azure services only", not the internet.
-  az postgres flexible-server db create -g "$RG" -s "$PG" -d classdrop -o none
   echo "$PGPASS" > "$HOME/.classdrop-pg-password"; chmod 600 "$HOME/.classdrop-pg-password"
   echo "    DATABASE PASSWORD (Cloud Shell is ephemeral; copy this into your password manager now): $PGPASS"
 else
@@ -56,6 +55,12 @@ else
     echo "$PGPASS" > "$HOME/.classdrop-pg-password"; chmod 600 "$HOME/.classdrop-pg-password"
   fi
   echo "    already exists"
+fi
+# the database inside the server, created if missing (a separate step so a re-run always checks it)
+if ! az postgres flexible-server db show -g "$RG" -s "$PG" -d classdrop -o none 2>/dev/null; then
+  az postgres flexible-server db create -g "$RG" -s "$PG" -d classdrop -o none 2>/dev/null \
+    || az postgres flexible-server db create -g "$RG" -s "$PG" --name classdrop -o none
+  echo "    database 'classdrop' created"
 fi
 DATABASE_URL="postgresql://$PGUSER:$PGPASS@$PG.postgres.database.azure.com:5432/classdrop?sslmode=require"
 
@@ -74,7 +79,7 @@ if ! az webapp show -g "$RG" -n "$APP" -o none 2>/dev/null; then
   az webapp create -g "$RG" -n "$APP" --plan classdrop-plan --runtime "NODE:22-lts" -o none
 fi
 az webapp config set -g "$RG" -n "$APP" --always-on true --min-tls-version 1.2 --ftps-state Disabled \
-  --generic-configurations '{"healthCheckPath":"/health"}' -o none
+  --startup-file "node src/index.js" --generic-configurations '{"healthCheckPath":"/health"}' -o none
 az webapp update -g "$RG" -n "$APP" --https-only true -o none
 
 if [ -z "${INVITE_CODES:-}" ]; then
@@ -87,18 +92,28 @@ az webapp config appsettings set -g "$RG" -n "$APP" -o none --settings \
   ALLOWED_ORIGINS="https://classdrop.co.uk" \
   INVITE_CODES="$INVITE_CODES" \
   MAX_SCHOOL_MB=5120 \
-  SCM_DO_BUILD_DURING_DEPLOYMENT=true
+  SCM_DO_BUILD_DURING_DEPLOYMENT=false
 
 say "5/6  Deploying server/ from $REPO ($BRANCH)"
 WORK=$(mktemp -d)
 git clone -q --depth 1 -b "$BRANCH" "$REPO" "$WORK/classdrop"
-( cd "$WORK/classdrop/server" && zip -qr "$WORK/server.zip" . -x 'node_modules/*' 'data/*' '*.log' )
-az webapp deploy -g "$RG" -n "$APP" --src-path "$WORK/server.zip" --type zip -o none
+# dependencies are installed here, in Cloud Shell, and shipped inside the package: no
+# build step on the server to go wrong
+( cd "$WORK/classdrop/server" && npm ci --omit=dev --no-audit --no-fund --loglevel=error && zip -qr "$WORK/server.zip" . -x 'data/*' '*.log' )
+az webapp deploy -g "$RG" -n "$APP" --src-path "$WORK/server.zip" --type zip --timeout 600 -o none || true
 rm -rf "$WORK"
 
 say "6/6  Checking"
-sleep 20
-curl -fsS "https://$APP.azurewebsites.net/health" && echo
+ok=""
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  sleep 10
+  if curl -fsS "https://$APP.azurewebsites.net/health" 2>/dev/null; then ok=1; echo; break; fi
+done
+if [ -z "$ok" ]; then
+  echo "The site is not answering yet. Its last log lines:"
+  az webapp log tail -g "$RG" -n "$APP" --timeout 20 2>/dev/null | tail -40 || true
+  echo "If that shows a crash, paste it to Claude. Otherwise wait a minute and open https://$APP.azurewebsites.net/health"
+fi
 
 cat <<EOF
 
@@ -119,4 +134,5 @@ then run:
     --certificate-thumbprint \$(az webapp config ssl list -g $RG --query "[?subjectName=='api.classdrop.co.uk'].thumbprint | [0]" -o tsv)
 
 To ship a new version later, run this script again (steps 1–4 are no-ops).
+To rotate the database password, delete ~/.classdrop-pg-password and run it again.
 EOF
