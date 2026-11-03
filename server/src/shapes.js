@@ -28,6 +28,8 @@ export const SHAPES = {
   modLog:         { kind: 'array', key: 'id' },
   tablesSettings: { kind: 'array', key: 'classId' },
   tablesAccess:   { kind: 'array', key: 'studentId' },
+  kitDocs:        { kind: 'array', key: 'id' },
+  kitPins:        { kind: 'array', key: 'classId' },
   handins:        { kind: 'map' },
   grades:         { kind: 'map' },
   marks:          { kind: 'map' },
@@ -95,6 +97,8 @@ export function visible(user, scope, c, key, doc) {
     case 'notifications': return doc.userId === user.userId || doc.userId === uid;
     case 'timetables': return (doc.classIds || []).some(id => scope.classIds.includes(id));
     case 'books': return true;
+    case 'kitDocs': return true;   // the manufacturers' cards and instructions: school-wide, no personal data
+    case 'kitPins': return scope.classIds.includes(key);
     case 'loans': case 'tablesRuns': return doc.studentId === uid;
     case 'tablesSettings': return scope.classIds.includes(key);
     case 'tablesAccess': case 'attendance': case 'reading': return key === uid;

@@ -289,6 +289,40 @@ video.lib-prev{object-fit:cover; cursor:default}
 .tt-card small{color:var(--muted); font-weight:700; font-size:.72rem}
 .tt-card.now{border-color:var(--gold); background:var(--gold-soft); box-shadow:0 0 0 2px var(--gold-line)}
 /* full-screen display mode (classroom screen) + print */
+.kg-shelf{margin:0 0 26px}
+.kg-shelf h2{font-size:1.05rem; font-weight:800; margin:0 0 12px; display:flex; align-items:center; gap:8px}
+.kg-empty{display:flex; flex-direction:column; align-items:flex-start; gap:10px; text-align:left; padding:16px 18px}
+.kg-prev{height:170px; position:relative}
+.kg-prev img{object-fit:contain; background:#fbf9f4; opacity:0}
+.kg-prev.has img{opacity:1}
+.kg-prev.has .ic.big{display:none}
+.kg-go{display:flex; align-items:center; gap:6px; padding:8px 10px 4px}
+.kg-go label{margin:0; font-size:.8rem; white-space:nowrap}
+.kg-go input{width:5.2em; min-height:34px; padding:4px 8px; margin:0}
+.kg-go.dark label{color:#ddd5c6}
+.kg-pins{display:grid; gap:10px; margin:0 0 20px}
+.kg-pin{display:flex; align-items:center; gap:14px; background:var(--gold-soft); border:1.5px solid var(--gold-line); border-radius:var(--radius); padding:12px 16px}
+.kg-pin-emo{font-size:2rem; flex:none}
+.kg-pin-body{flex:1; min-width:0; display:flex; flex-direction:column}
+.kg-pin-body b{font-size:1.25rem; font-weight:800}
+.kg-pin-body small{color:var(--muted); font-size:.8rem}
+.kg-wrap{position:fixed; inset:0; z-index:150; background:#2a2826; display:flex; flex-direction:column; height:100vh; height:100dvh}
+.kg-bar{background:linear-gradient(180deg,var(--shell) 0%,#1f1d1b 100%); color:#fff; display:flex; align-items:center; gap:10px; padding:10px 14px; flex-wrap:wrap}
+.kg-bar .btn.ghost{color:#fff; border-color:rgba(255,255,255,.25)}
+.kg-emo{font-size:1.4rem}
+.kg-title{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40vw}
+.kg-bar .kg-go{padding:0}
+.kg-stage{flex:1; min-height:0; overflow:auto; display:flex; align-items:center; justify-content:center; padding:12px; -webkit-overflow-scrolling:touch}
+.kg-stage.wide{align-items:flex-start}
+.kg-sheet canvas,.kg-sheet img{display:block; background:#fff; box-shadow:0 6px 30px rgba(0,0,0,.45); border-radius:4px}
+.kg-msg{color:#ddd5c6; font-weight:700}
+.kg-foot{display:flex; align-items:center; gap:12px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#1f1d1b; color:#fff}
+.kg-flip{min-width:120px; min-height:52px; font-size:1.05rem}
+.kg-flip:disabled{opacity:.35}
+.kg-where{flex:1; text-align:center; display:flex; flex-direction:column}
+.kg-where b{font-size:1.2rem}
+.kg-where small{color:#ddd5c6; font-size:.8rem}
+@media (max-width:600px){ .kg-title{max-width:60vw} .kg-flip{min-width:84px} }
 .tt-wrap{position:fixed; inset:0; z-index:150; background:var(--paper); display:flex; flex-direction:column}
 .tt-bar{background:linear-gradient(180deg,var(--shell) 0%,#1f1d1b 100%); color:#fff; display:flex; align-items:center; gap:12px; padding:12px 16px; flex-wrap:wrap}
 .tt-bar .mark{width:30px; height:30px}
@@ -1098,6 +1132,7 @@ details.arch summary{cursor:pointer; font-weight:800; color:var(--muted); paddin
   <symbol id="i-grade" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" opacity=".4"/><path d="M7 14.5l3-6 3 6M8 12.5h4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 15.5l2 2 3.5-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-markbook" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" opacity=".4"/><path d="M3 9.5h18M9 9.5V20M3 14.75h18" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.2 6.6l1.1 1.1 2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h8l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" opacity=".4"/><path d="M14 3v5h5"/><path d="M8 12.5h8M8 16h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-kit" viewBox="0 0 24 24"><rect x="2.5" y="9" width="19" height="11.5" rx="2.2" opacity=".45"/><rect x="5" y="5" width="5.2" height="4.6" rx="1.2"/><rect x="13.8" y="5" width="5.2" height="4.6" rx="1.2"/><path d="M7 14.5h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="i-tools" viewBox="0 0 24 24"><path d="M21.6 6.1a5.4 5.4 0 01-7 6.9L7.4 20.2a2.2 2.2 0 11-3.1-3.1l7.2-7.2a5.4 5.4 0 016.9-7l-3 3 .5 2.7 2.7.5z"/></symbol>
   <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2" y="3.5" width="20" height="14" rx="2.5" opacity=".35"/><path d="M4 5.5h16v10H4z"/><path d="M8 20.5h8v1.6H8z"/><path d="M11.2 17.5h1.6v3h-1.6z"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a1.2 1.2 0 011.2 1.2v5.3l3.6 2.1a1.2 1.2 0 01-1.2 2.1l-4.2-2.4a1.2 1.2 0 01-.6-1V6.2A1.2 1.2 0 0112 5z"/></symbol>
@@ -1582,6 +1617,14 @@ function migrateDB() {
   if (!db.seating) { db.seating = []; changed = true; }
   // class screen
   if (!db.screens) { db.screens = []; changed = true; }
+  if (!db.kitDocs) { db.kitDocs = []; changed = true; }
+  if (!db.kitPins) { db.kitPins = []; changed = true; }
+  if (!db.kitsSeeded) {   // demo only (cloudShell sets the flag): ClassDrop's own sample cards, never a manufacturer's
+    if (!CLOUD.on && db.users.some(u => u.id === 'u-tay') && !db.kitDocs.length)
+      db.kitDocs.push({ id: 'kg-sample', schoolId: 'sch1', ownerId: 'u-tay', kit: 'other', title: 'Sample challenge cards', kind: 'images',
+        pages: kgSampleCards(), perCard: 1, first: 1, word: 'Card', ts: Date.now() });
+    db.kitsSeeded = true; changed = true;
+  }
   if (!db.screensSeeded) {
     if (db.users.some(u => u.id === 'u-tay') && db.classes.some(c => c.id === 'c1')) {
       db.screens.push({
@@ -1881,6 +1924,7 @@ const FEATURES = [
   ['seating', 'i-seating', 'Seating plans', 'Drag-and-drop plans built from the real class list, with keep-apart pairs.'],
   ['tables', 'i-tables', 'Times tables', 'Recall assessment: what every child knows, how fast, and who is ready for the Year 4 check. Practice included.'],
   ['classscreen', 'i-screen', 'Class screen', 'The board at the front: timer, name picker, group maker, noise meter and more, built from the real class list.'],
+  ['kits', 'i-kit', 'Kit guides', "The manufacturers' own challenge cards and building instructions for the club's robots and kits, on the iPads — no booklets to carry."],
   ['canvases', 'i-canvas', 'Canvas library', 'Standalone canvases teachers build once and reuse.'],
   ['staffshare', 'i-teacher', 'Staff sharing', 'Share tasks and canvases with colleagues.'],
   ['safeguarding', 'i-shield', 'Safeguarding records', 'Log concerns to the DSL, with case log and audit trail.'],
@@ -1981,7 +2025,7 @@ function go(patch) {
 window.addEventListener('popstate', e => {
   const drawerScrim = document.querySelector('.scrim');
   if (drawerScrim) { drawerScrim.click(); history.pushState({ view }, ''); return; }
-  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .rp-wrap, .sgp-wrap, .sp-wrap');
+  const layer = document.querySelector('.modal-scrim, .zoom-scrim, .tt-wrap, .kg-wrap, .rp-wrap, .sgp-wrap, .sp-wrap');
   if (layer) { layer.remove(); history.pushState({ view }, ''); return; }
   if (document.querySelector('.cv-wrap')) { history.pushState({ view }, ''); return; } // canvas editor may hold unsaved work — leave via its own controls
   if (e.state && e.state.view) { view = Object.assign({}, e.state.view); render(); }
@@ -2108,6 +2152,9 @@ function renderShell() {
       ${isTeacher() && (feat('canvases') || feat('timetables') || feat('staffshare') || feat('seating') || feat('classscreen')) ? `<button class="nav-item ${view.page === 'tools' || view.page === 'library' || view.page === 'timetable' ? 'active' : ''}" data-nav="tools">
         <span class="nico">${ic('i-tools')}</span>Tools
       </button>` : ''}
+      ${(isTeacher() || isStudent()) && feat('kits') ? `<button class="nav-item ${view.page === 'kits' ? 'active' : ''}" data-nav="kits">
+        <span class="nico">${ic('i-kit')}</span>Kit guides
+      </button>` : ''}
       ${isTeacher() && feat('safeguarding') ? `<button class="nav-item ${view.page === 'safeguarding' ? 'active' : ''}" data-nav="safeguarding">
         <span class="nico">${ic('i-shield')}</span>Safeguarding${sgOpenCount() ? `<span class="nav-badge">${sgOpenCount()}</span>` : ''}
       </button>` : ''}
@@ -2154,6 +2201,7 @@ function renderShell() {
     if (n === 'portfolio') go({ page: 'portfolio', classId: null, studentId: isTeacher() ? view.studentId : null });
     if (n === 'reading') go({ page: 'reading', classId: null, studentId: null });
     if (n === 'tables') go({ page: 'tables', assignmentId: null, studentId: null, discussionId: null });
+    if (n === 'kits') go({ page: 'kits', classId: null, assignmentId: null, studentId: null, discussionId: null });
     if (n === 'staff') go({ page: 'staff' });
     if (n === 'pupils') go({ page: 'pupils' });
     if (n === 'aclasses') go({ page: 'aclasses' });
@@ -2194,6 +2242,7 @@ function renderShell() {
   else if (view.page === 'portfolio' && feat('portfolios')) renderPortfolioPage(main);
   else if (view.page === 'reading' && feat('reading')) renderReadingPage(main);
   else if (view.page === 'tables' && (isStudent() || isParent()) && feat('tables')) renderTables(main);
+  else if (view.page === 'kits' && (isTeacher() || isStudent()) && feat('kits')) renderKits(main);
   else if (view.page === 'staff' && isAdmin()) renderAdminStaff(main);
   else if (view.page === 'pupils' && isAdmin()) renderAdminStudents(main);
   else if (view.page === 'aclasses' && isAdmin()) renderAdminClasses(main);
@@ -2255,6 +2304,7 @@ function renderDash(main) {
         <div class="stat green"><div class="n">${tasks.filter(t => t.h.status !== 'none').length}</div><div class="l">Handed in</div></div>
       </div>
       ${feat('timetables') ? (tt => tt ? ttStripHTML(tt) : '')(ttForStudent(u.id)) : ''}
+      ${feat('kits') ? kgDashHTML(u.id) : ''}
       ${feat('tables') ? xtDashHTML(u.id) : ''}
       <h3 style="margin:6px 0 12px">My tasks</h3>
       ${rows || `<div class="card empty">${ic('i-task', 'big')}No tasks yet — join a class to get started.</div>`}
@@ -2264,6 +2314,7 @@ function renderDash(main) {
     wireTaskRows(u.id);
     wireTTStrip();
     wireXtDash();
+    wireKgDash();
   }
   document.querySelectorAll('[data-open-assign]').forEach(b => b.onclick = () => {
     const a = assignment(b.dataset.openAssign);
@@ -8376,6 +8427,431 @@ function annotateImageToCanvas(data, name, onSave, extraOpts) {
 }
 
 /* ==========================================================================
+   Kit guides (feature key `kits`, code prefixed `kg`) — the manufacturers' own
+   challenge cards and building instructions for the club's robots and kits, on the
+   iPads the children already code with, so nobody carries the booklets.
+   Staff upload the official files once (PDF, or photos/scans of printed cards); they
+   are shown exactly as published — PDF.js draws the original pages, nothing is
+   retyped or redrawn — and stay inside the school. No manufacturer material ships
+   with ClassDrop. "Card 14" maps to a page through each guide's own layout
+   (cover pages to skip, one or two pages per card), so a leader can say "go to
+   card 14" and every child lands on the same page; a class pin does it for them.
+   ========================================================================== */
+const KG_KITS = [
+  // key, emoji, name, what usually goes on the shelf, what one numbered thing is called
+  ['indi', '🚗', 'Sphero indi', 'Challenge cards', 'Card'],
+  ['bolt', '⚽', 'Sphero BOLT+', 'Activity and challenge cards', 'Card'],
+  ['legocs', '🧱', 'LEGO® Education Computer Science & AI', 'Building instructions and lesson materials', 'Page'],
+  ['intelino', '🚂', 'intelino smart train', "Driver's licence, routes and challenge cards", 'Challenge'],
+  ['other', '📦', 'Other kits', 'Anything else the club uses', 'Page'],
+];
+const KG_WORDS = ['Card', 'Challenge', 'Mission', 'Lesson', 'Step', 'Page'];
+const KG_MAX_BYTES = 50 * 1048576;   // the server takes 60MB per file; leave room for base64 overhead
+const kgKit = k => KG_KITS.find(x => x[0] === k) || KG_KITS[KG_KITS.length - 1];
+const kgDocs = () => (db.kitDocs || []).filter(d => d.schoolId === mySchool().id);
+const kgDoc = id => (db.kitDocs || []).find(d => d.id === id);
+const kgPages = d => d.kind === 'images' ? (d.pages || []).length : (d.n || 0);
+const kgCards = d => Math.max(0, Math.floor((kgPages(d) - (d.first || 1) + 1) / (d.perCard || 1)));
+const kgPageOf = (d, card) => (d.first || 1) + (card - 1) * (d.perCard || 1);
+const kgCardOf = (d, page) => page < (d.first || 1) ? 0 : Math.floor((page - (d.first || 1)) / (d.perCard || 1)) + 1;
+function kgWhere(d, page) {   // "Card 14 (back)" / "Cover"
+  const card = kgCardOf(d, page);
+  if (!card || card > kgCards(d)) return page < (d.first || 1) ? 'Front pages' : 'End pages';
+  const back = (d.perCard || 1) === 2 && (page - (d.first || 1)) % 2 === 1;
+  return `${esc(d.word || 'Card')} ${card}${back ? ' (back)' : ''}`;
+}
+/* the pins a person's classes are showing: one per class, newest first */
+function kgPinsFor(classIds) {
+  return (db.kitPins || []).filter(p => classIds.includes(p.classId) && kgDoc(p.docId))
+    .sort((a, b) => b.ts - a.ts);
+}
+
+/* ---- PDF access: one parsed document at a time per caller, plus cached thumbnails ---- */
+async function kgOpenPdf(d) {
+  const pdfjsLib = await loadPdfjs();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+  return pdfjsLib.getDocument({ data: dataToBuf(d.data), isEvalSupported: false }).promise;
+}
+/* PDF.js 6 frees a document through its loading task */
+const kgClosePdf = pdf => { try { const t = pdf && (pdf.loadingTask || pdf); if (t && t.destroy) t.destroy(); } catch (e) {} };
+const _kgThumbs = new Map();   // doc id + page -> data URL (memory only)
+let _kgThumbChain = Promise.resolve();
+function kgThumb(d) {
+  const key = d.id + ':' + (d.updated || d.ts);
+  if (_kgThumbs.has(key)) return Promise.resolve(_kgThumbs.get(key));
+  if (d.kind === 'images') return Promise.resolve((d.pages || [])[(d.first || 1) - 1] || (d.pages || [])[0] || '');
+  // one at a time: parsing several large PDFs at once would starve an iPad
+  return (_kgThumbChain = _kgThumbChain.then(async () => {
+    if (_kgThumbs.has(key)) return _kgThumbs.get(key);
+    let url = '';
+    try {
+      const pdf = await kgOpenPdf(d);
+      const page = await pdf.getPage(Math.min(d.first || 1, pdf.numPages));
+      const vp0 = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: 360 / vp0.width });
+      const c = document.createElement('canvas');
+      c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvas: c, viewport: vp, intent: 'print' }).promise;
+      url = c.toDataURL('image/jpeg', .8);
+      kgClosePdf(pdf);
+    } catch (e) { url = ''; }
+    _kgThumbs.set(key, url);
+    return url;
+  }));
+}
+
+/* ---- the page: one shelf per kit ---- */
+function renderKits(main) {
+  const teach = isTeacher();
+  const docs = kgDocs().sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+  const classes = myClasses();
+  const pins = kgPinsFor(classes.map(c => c.id));
+  const pinRow = p => {
+    const d = kgDoc(p.docId), c = klass(p.classId), [, emo] = kgKit(d.kit);
+    return `
+    <div class="kg-pin">
+      <span class="kg-pin-emo" aria-hidden="true">${emo}</span>
+      <span class="kg-pin-body"><small>${teach ? esc(c.name) + ' is on' : 'Your teacher says go to'}</small>
+        <b>${kgWhere(d, p.page)}</b><small>${esc(d.title)}</small></span>
+      <button class="btn" data-kg-pin="${p.classId}">${ic('i-eye')} Open</button>
+      ${teach ? `<button class="btn ghost small" data-kg-unpin="${p.classId}" aria-label="Stop showing this to ${esc(c.name)}">${ic('i-x')}</button>` : ''}
+    </div>`;
+  };
+  const docCard = d => {
+    const cards = kgCards(d);
+    return `
+    <div class="lib-card kg-card">
+      <button class="lib-prev kg-prev" data-kg-open="${d.id}" aria-label="Open ${esc(d.title)}">
+        <img data-kg-thumb="${d.id}" alt="">${ic('i-kit', 'big')}</button>
+      <div class="lib-body"><b>${esc(d.title)}</b>
+        <small>${cards} ${esc((d.word || 'Card').toLowerCase())}${cards === 1 ? '' : 's'}${d.perCard === 2 ? ' · front and back' : ''} · ${kgPages(d)} page${kgPages(d) === 1 ? '' : 's'}</small></div>
+      <form class="kg-go" data-kg-go="${d.id}">
+        <label for="kg-n-${d.id}">${esc(d.word || 'Card')}</label>
+        <input id="kg-n-${d.id}" type="number" inputmode="numeric" min="1" max="${cards}" placeholder="1–${cards}" enterkeyhint="go">
+        <button class="btn small" type="submit">Go</button>
+      </form>
+      ${teach ? `<div class="lib-actions">
+        <button class="btn ghost small" data-kg-edit="${d.id}">${ic('i-pencil')} Settings</button>
+        <button class="btn ghost small" data-kg-del="${d.id}" aria-label="Delete ${esc(d.title)}">${ic('i-trash')}</button>
+      </div>` : ''}
+    </div>`;
+  };
+  const shelves = KG_KITS.map(([k, emo, name, blurb]) => {
+    const mine = docs.filter(d => kgKit(d.kit)[0] === k);
+    if (!mine.length && (!teach || k === 'other')) return '';
+    return `
+    <section class="kg-shelf">
+      <h2><span aria-hidden="true">${emo}</span> ${esc(name)}</h2>
+      ${mine.length ? `<div class="lib-grid">${mine.map(docCard).join('')}</div>`
+        : `<div class="card empty kg-empty">${esc(blurb)} — upload the official files from the manufacturer and they'll appear here for every class.
+            <button class="btn sec small" data-kg-add="${k}">${ic('i-plus')} Add ${esc(name.replace('®', ''))} guide</button></div>`}
+    </section>`;
+  }).join('');
+  main.innerHTML = `
+    <div class="page-head"><h1>${ic('i-kit')} Kit guides</h1><span class="spacer"></span>
+      ${teach ? `<button class="btn" id="kg-add">${ic('i-plus')} Add a guide</button>` : ''}</div>
+    <p class="page-sub">${teach
+      ? `The challenge cards and building instructions for the club's robots and kits — the manufacturers' own files, page for page, on every iPad. Upload once for ${esc(mySchool().name)}; send a class to a card with one tap.`
+      : 'Challenge cards and building instructions for the robots and kits. Pick a guide, or type the card number your teacher says.'}</p>
+    ${pins.length ? `<div class="kg-pins">${pins.map(pinRow).join('')}</div>` : ''}
+    ${shelves || `<div class="card empty">${ic('i-kit', 'big')}No guides yet — your teacher will add the challenge cards and instructions here.</div>`}`;
+
+  main.querySelectorAll('img[data-kg-thumb]').forEach(img => {
+    const d = kgDoc(img.dataset.kgThumb);
+    kgThumb(d).then(u => { if (u) { img.src = u; img.parentNode.classList.add('has'); } });
+  });
+  main.querySelectorAll('[data-kg-open]').forEach(b => b.onclick = () => openKgReader(kgDoc(b.dataset.kgOpen)));
+  main.querySelectorAll('[data-kg-go]').forEach(f => f.onsubmit = e => {
+    e.preventDefault();
+    const d = kgDoc(f.dataset.kgGo), n = parseInt(f.querySelector('input').value, 10);
+    if (!(n >= 1 && n <= kgCards(d))) { toast(`Pick a number from 1 to ${kgCards(d)}`, true); return; }
+    openKgReader(d, kgPageOf(d, n));
+  });
+  main.querySelectorAll('[data-kg-pin]').forEach(b => b.onclick = () => {
+    const p = db.kitPins.find(x => x.classId === b.dataset.kgPin);
+    openKgReader(kgDoc(p.docId), p.page);
+  });
+  main.querySelectorAll('[data-kg-unpin]').forEach(b => b.onclick = () => {
+    db.kitPins = db.kitPins.filter(x => x.classId !== b.dataset.kgUnpin); saveDB(); render(); toast('No longer showing that card');
+  });
+  const add = $('#kg-add'); if (add) add.onclick = () => openKgUpload(null);
+  main.querySelectorAll('[data-kg-add]').forEach(b => b.onclick = () => openKgUpload(null, b.dataset.kgAdd));
+  main.querySelectorAll('[data-kg-edit]').forEach(b => b.onclick = () => openKgUpload(kgDoc(b.dataset.kgEdit)));
+  main.querySelectorAll('[data-kg-del]').forEach(b => b.onclick = () => {
+    const d = kgDoc(b.dataset.kgDel);
+    openConfirm(`Delete “${d.title}”?`, 'It disappears from every class. You can upload it again at any time.', () => {
+      db.kitDocs = db.kitDocs.filter(x => x.id !== d.id);
+      db.kitPins = db.kitPins.filter(x => x.docId !== d.id);
+      saveDB(); render(); toast('Deleted');
+    });
+  });
+}
+
+/* the pupil's Home: whatever their teacher has sent the class to */
+function kgDashHTML(sid) {
+  const cids = db.classes.filter(c => c.students.includes(sid) && !c.archived).map(c => c.id);
+  const p = kgPinsFor(cids)[0];
+  if (!p) return '';
+  const d = kgDoc(p.docId), [, emo] = kgKit(d.kit);
+  return `
+    <div class="kg-pins"><div class="kg-pin">
+      <span class="kg-pin-emo" aria-hidden="true">${emo}</span>
+      <span class="kg-pin-body"><small>Your teacher says go to</small><b>${kgWhere(d, p.page)}</b><small>${esc(d.title)}</small></span>
+      <button class="btn" data-kg-pin="${p.classId}">${ic('i-eye')} Open</button>
+    </div></div>`;
+}
+function wireKgDash() {
+  document.querySelectorAll('[data-kg-pin]').forEach(b => b.onclick = () => {
+    const p = db.kitPins.find(x => x.classId === b.dataset.kgPin);
+    if (p && kgDoc(p.docId)) openKgReader(kgDoc(p.docId), p.page);
+  });
+}
+
+/* ---- upload / settings ---- */
+function openKgUpload(d, kitKey) {
+  const isNew = !d;
+  const cur = d || { kit: kitKey || 'indi', title: '', perCard: 1, first: 1, word: kgKit(kitKey || 'indi')[4] };
+  const m = openModal(`
+    <h3>${ic('i-kit')} ${isNew ? 'Add a kit guide' : 'Guide settings'}</h3>
+    <p class="m-sub">${isNew ? "Upload the manufacturer's own file — a PDF of the challenge cards or building instructions, or photos of printed cards (one per page). It's shown exactly as published, to your school only." : 'How the pages are numbered, so “card 14” opens the right page.'}</p>
+    <label for="kg-kit">Kit</label>
+    <select id="kg-kit">${KG_KITS.map(([k, emo, name]) => `<option value="${k}" ${k === cur.kit ? 'selected' : ''}>${emo} ${esc(name)}</option>`).join('')}</select>
+    <label for="kg-title">Name</label>
+    <input id="kg-title" maxlength="80" value="${esc(cur.title)}" placeholder="e.g. Challenge cards, or Lesson 3 build">
+    ${isNew ? `<label for="kg-file">File</label>
+    <input id="kg-file" type="file" accept="application/pdf,.pdf,image/*" multiple>
+    <p class="muted small" style="margin:4px 0 0">One PDF, or several photos in order. Up to 50MB.</p>` : ''}
+    <label for="kg-word">Each numbered thing is a…</label>
+    <select id="kg-word">${KG_WORDS.map(w => `<option ${w === cur.word ? 'selected' : ''}>${w}</option>`).join('')}</select>
+    <div class="kg-two">
+      <div><label for="kg-per">Pages each</label>
+        <select id="kg-per"><option value="1" ${cur.perCard !== 2 ? 'selected' : ''}>1 page</option><option value="2" ${cur.perCard === 2 ? 'selected' : ''}>2 pages (front and back)</option></select></div>
+      <div><label for="kg-first">Number 1 starts on page</label>
+        <input id="kg-first" type="number" inputmode="numeric" min="1" value="${cur.first || 1}"></div>
+    </div>
+    <p class="muted small" style="margin:6px 0 0">Skip a cover or contents page by starting on page 2 or 3. Card PDFs with the back of each card on the next page use “2 pages”.</p>
+    <div class="m-actions">
+      <button class="btn ghost" data-x>Cancel</button>
+      <button class="btn" data-go>${ic('i-tick')} ${isNew ? 'Upload' : 'Save'}</button>
+    </div>`);
+  const $m = s => m.querySelector(s);
+  $m('#kg-kit').onchange = () => { if (isNew) $m('#kg-word').value = kgKit($m('#kg-kit').value)[4]; };
+  if (isNew) $m('#kg-file').onchange = () => {
+    const f = $m('#kg-file').files[0];
+    if (f && !$m('#kg-title').value.trim()) $m('#kg-title').value = f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').slice(0, 80);
+  };
+  $m('[data-x]').onclick = () => m.remove();
+  $m('[data-go]').onclick = async () => {
+    const title = $m('#kg-title').value.trim();
+    if (!title) { toast('Give the guide a name', true); return; }
+    const settings = { kit: $m('#kg-kit').value, title, word: $m('#kg-word').value,
+      perCard: $m('#kg-per').value === '2' ? 2 : 1, first: Math.max(1, parseInt($m('#kg-first').value, 10) || 1) };
+    if (!isNew) {
+      Object.assign(d, settings, { updated: Date.now() });
+      saveDB(); m.remove(); render(); toast('Saved'); return;
+    }
+    const files = [...$m('#kg-file').files];
+    if (!files.length) { toast('Choose the PDF or photos to upload', true); return; }
+    const total = files.reduce((s, f) => s + f.size, 0);
+    if (total > KG_MAX_BYTES) { toast('That is over 50MB — split the PDF into smaller parts and upload each one', true); return; }
+    const pdfs = files.filter(f => docKind(f.name, f.type) === 'pdf'), imgs = files.filter(f => /^image\//.test(f.type));
+    if (!(pdfs.length === 1 && files.length === 1) && imgs.length !== files.length) { toast('Upload one PDF, or photos only', true); return; }
+    const go = $m('[data-go]'); go.disabled = true; go.textContent = 'Reading the file…';
+    const read = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); });
+    try {
+      const rec = Object.assign({ id: 'kg' + uid(), schoolId: mySchool().id, ownerId: db.session, ts: Date.now() }, settings);
+      if (pdfs.length) {
+        rec.kind = 'pdf';
+        rec.data = await read(pdfs[0]);
+        const pdf = await kgOpenPdf(rec);
+        rec.n = pdf.numPages; kgClosePdf(pdf);
+      } else {
+        rec.kind = 'images';
+        rec.pages = [];
+        for (const f of imgs) rec.pages.push(await read(f));
+      }
+      if (rec.first > kgPages(rec)) rec.first = 1;
+      db.kitDocs.push(rec);
+      saveDB(); m.remove(); render();
+      toast(`Added — ${kgCards(rec)} ${rec.word.toLowerCase()}${kgCards(rec) === 1 ? '' : 's'}`);
+    } catch (e) {
+      go.disabled = false; go.innerHTML = `${ic('i-tick')} Upload`;
+      toast("Couldn't read that file — " + (e && e.message ? e.message : 'is it a PDF?'), true);
+    }
+  };
+}
+
+/* ---- the reader: full screen, one exact page at a time ---- */
+function openKgReader(d, startPage) {
+  if (!d) return;
+  const total = kgPages(d);
+  let page = Math.min(Math.max(1, startPage || d.first || 1), total || 1);
+  let fit = 'page';      // 'page' = whole page on screen, 'width' = fill the width and scroll
+  let pdf = null, task = null, seq = 0;
+  const wrap = document.createElement('div');
+  wrap.className = 'kg-wrap';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-label', d.title);
+  const [, emo] = kgKit(d.kit);
+  const cards = kgCards(d);
+  wrap.innerHTML = `
+    <div class="kg-bar">
+      <span class="kg-emo" aria-hidden="true">${emo}</span>
+      <b class="kg-title">${esc(d.title)}</b>
+      <span class="spacer"></span>
+      ${cards ? `<form class="kg-go dark" id="kgr-go">
+        <label for="kgr-n">${esc(d.word || 'Card')}</label>
+        <input id="kgr-n" type="number" inputmode="numeric" min="1" max="${cards}" placeholder="1–${cards}" enterkeyhint="go">
+        <button class="btn small" type="submit">Go</button></form>` : ''}
+      <button class="btn ghost small" id="kgr-fit"></button>
+      ${isTeacher() && myClasses().length ? `<button class="btn sec small" id="kgr-send">${ic('i-class')} Send class here</button>` : ''}
+      <button class="btn ghost small" id="kgr-close">${ic('i-x')} Close</button>
+    </div>
+    <div class="kg-stage" id="kgr-stage"><div class="kg-sheet" id="kgr-sheet"></div></div>
+    <div class="kg-foot">
+      <button class="btn kg-flip" id="kgr-prev" aria-label="Previous page">‹ Back</button>
+      <div class="kg-where" aria-live="polite"><b id="kgr-where"></b><small id="kgr-page"></small></div>
+      <button class="btn kg-flip" id="kgr-next" aria-label="Next page">Next ›</button>
+    </div>`;
+  document.body.appendChild(wrap);
+  const $w = s => wrap.querySelector(s);
+  const stage = $w('#kgr-stage'), sheet = $w('#kgr-sheet');
+
+  const label = () => {
+    $w('#kgr-where').innerHTML = kgWhere(d, page);
+    $w('#kgr-page').textContent = `Page ${page} of ${total}`;
+    $w('#kgr-prev').disabled = page <= 1;
+    $w('#kgr-next').disabled = page >= total;
+    $w('#kgr-fit').innerHTML = fit === 'page' ? `${ic('i-search')} Zoom in` : `${ic('i-search')} Whole page`;
+    stage.classList.toggle('wide', fit === 'width');
+  };
+  const draw = async () => {
+    label();
+    const my = ++seq;
+    const W = stage.clientWidth - 24, H = stage.clientHeight - 24;
+    if (d.kind === 'images') {
+      sheet.innerHTML = `<img alt="${esc(d.title)} — page ${page}" src="${(d.pages || [])[page - 1] || ''}">`;
+      const img = sheet.firstChild;
+      img.style.maxWidth = W + 'px';
+      if (fit === 'page') img.style.maxHeight = H + 'px';
+      return;
+    }
+    try {
+      if (!pdf) { sheet.innerHTML = '<p class="kg-msg">Opening…</p>'; pdf = await kgOpenPdf(d); }
+      if (my !== seq || !document.contains(wrap)) return;
+      if (task) { try { task.cancel(); } catch (e) {} }
+      const pg = await pdf.getPage(page);
+      if (my !== seq) return;
+      const vp0 = pg.getViewport({ scale: 1 });
+      const css = fit === 'page' ? Math.min(W / vp0.width, H / vp0.height) : W / vp0.width;
+      // sharp on Retina, but inside iOS's canvas memory ceiling (~16M pixels)
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const px = vp0.width * vp0.height * css * css;
+      if (px * dpr * dpr > 14e6) dpr = Math.max(1, Math.sqrt(14e6 / px));
+      const vp = pg.getViewport({ scale: css * dpr });
+      const c = document.createElement('canvas');
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      c.style.width = Math.floor(vp.width / dpr) + 'px'; c.style.height = Math.floor(vp.height / dpr) + 'px';
+      c.setAttribute('role', 'img');
+      c.setAttribute('aria-label', `${d.title} — page ${page}`);
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+      task = pg.render({ canvas: c, viewport: vp });
+      await task.promise;
+      task = null;
+      if (my !== seq) return;
+      sheet.replaceChildren(c);   // swap only when drawn: no white flash between pages
+      stage.scrollTop = 0;
+    } catch (e) {
+      if (e && e.name === 'RenderingCancelledException') return;
+      if (my === seq) sheet.innerHTML = `<p class="kg-msg">Couldn't show this page — ${esc(e && e.message ? e.message : 'unknown error')}</p>`;
+    }
+  };
+  const goPage = p => { p = Math.min(Math.max(1, p), total); if (p !== page) { page = p; draw(); } };
+  const close = () => {
+    seq++;
+    document.removeEventListener('keydown', onKey);
+    window.removeEventListener('resize', onResize);
+    kgClosePdf(pdf);
+    wrap.remove();
+  };
+  const onKey = e => {
+    if (!document.contains(wrap)) { close(); return; }   // closed by the back button
+    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goPage(page + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goPage(page - 1); }
+    else if (e.key === 'Escape' && !document.querySelector('.modal-scrim')) close();
+  };
+  let rz = null;
+  const onResize = () => { if (!document.contains(wrap)) { close(); return; } clearTimeout(rz); rz = setTimeout(draw, 150); };
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('resize', onResize);
+
+  // swipe to turn the page (only when not zoomed in, where a drag means scroll)
+  let sx = null, sy = 0;
+  stage.addEventListener('pointerdown', e => { if (e.isPrimary) { sx = e.clientX; sy = e.clientY; } });
+  stage.addEventListener('pointerup', e => {
+    if (sx === null || fit !== 'page') { sx = null; return; }
+    const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) goPage(page + (dx < 0 ? 1 : -1));
+  });
+  stage.addEventListener('pointercancel', () => { sx = null; });
+
+  $w('#kgr-prev').onclick = () => goPage(page - 1);
+  $w('#kgr-next').onclick = () => goPage(page + 1);
+  $w('#kgr-fit').onclick = () => { fit = fit === 'page' ? 'width' : 'page'; draw(); };
+  $w('#kgr-close').onclick = close;
+  const gf = $w('#kgr-go');
+  if (gf) gf.onsubmit = e => {
+    e.preventDefault();
+    const inp = $w('#kgr-n'), n = parseInt(inp.value, 10);
+    if (!(n >= 1 && n <= cards)) { toast(`Pick a number from 1 to ${cards}`, true); return; }
+    inp.value = ''; inp.blur();
+    goPage(kgPageOf(d, n));
+  };
+  const send = $w('#kgr-send');
+  if (send) send.onclick = () => {
+    const cls = myClasses();
+    const sm = openModal(`
+      <h3>${ic('i-class')} Send a class to ${kgWhere(d, page)}</h3>
+      <p class="m-sub">It appears at the top of their Kit guides page and their Home, one tap to open — no numbers to type.</p>
+      <label for="kgs-class">Class</label>
+      <select id="kgs-class">${cls.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+      <div class="m-actions">
+        <button class="btn ghost" data-x>Cancel</button>
+        <button class="btn" data-go>${ic('i-tick')} Send</button>
+      </div>`);
+    sm.querySelector('[data-x]').onclick = () => sm.remove();
+    sm.querySelector('[data-go]').onclick = () => {
+      const classId = sm.querySelector('#kgs-class').value;
+      db.kitPins = db.kitPins.filter(p => p.classId !== classId);
+      db.kitPins.push({ classId, docId: d.id, page, by: db.session, ts: Date.now() });
+      saveDB(); sm.remove();
+      toast(`${klass(classId).name} can now open ${kgWhere(d, page).replace(/&amp;/g, '&')}`);
+    };
+  };
+  draw();
+}
+
+/* demo only: three plain sample cards so the shelf isn't empty before a real upload.
+   ClassDrop's own artwork — no manufacturer content. */
+function kgSampleCards() {
+  const card = (n, title, lines) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1120" viewBox="0 0 800 1120">
+      <rect width="800" height="1120" rx="40" fill="#fff"/><rect x="20" y="20" width="760" height="1080" rx="30" fill="none" stroke="#ae853e" stroke-width="8"/>
+      <circle cx="120" cy="130" r="64" fill="#ae853e"/><text x="120" y="152" font-family="Montserrat,Arial,sans-serif" font-size="64" font-weight="800" fill="#2b2211" text-anchor="middle">${n}</text>
+      <text x="210" y="148" font-family="Montserrat,Arial,sans-serif" font-size="46" font-weight="800" fill="#33302b">${title}</text>
+      ${lines.map((l, i) => `<text x="80" y="${330 + i * 70}" font-family="Montserrat,Arial,sans-serif" font-size="34" fill="#33302b">${l}</text>`).join('')}
+      <text x="400" y="1050" font-family="Montserrat,Arial,sans-serif" font-size="24" fill="#665f55" text-anchor="middle">Sample card — upload your kit's official PDF to replace these</text>
+    </svg>`);
+  return [
+    card(1, 'Square dance', ['Make your robot drive in a square.', 'Four sides, four turns.', 'Can you make it smaller?']),
+    card(2, 'Light it up', ['Change the lights at every corner.', 'Pick a colour for each side.']),
+    card(3, 'Maze runner', ['Build a maze with books.', 'Program a route from start to finish', 'without touching the walls.']),
+  ];
+}
+
+/* ==========================================================================
    Document import — PDF / Word (.docx) / PowerPoint (.pptx) onto the canvas.
    Libraries lazy-load from a CDN on first use (needs the internet once).
    ========================================================================== */
@@ -8589,6 +9065,7 @@ const CLOUD_SHAPES = {
   discussions: 'id', notifications: 'id', canvases: 'id', taskLibrary: 'id', timetables: 'id',
   safeguarding: 'id', sgUpdates: 'id', sgAudit: 'id', seating: 'id', books: 'id', loans: 'id',
   screens: 'id', tablesRuns: 'id', modLog: 'id', tablesSettings: 'classId', tablesAccess: 'studentId',
+  kitDocs: 'id', kitPins: 'classId',
   handins: null, grades: null, marks: null, attendance: null, reading: null, parentCodes: null,   // null = keyed object
 };
 const CLOUD = {
@@ -8620,7 +9097,7 @@ function cloudShell() {
   const d = { session: null };
   for (const [c, k] of Object.entries(CLOUD_SHAPES)) d[c] = k === null ? {} : [];
   ['readingSeeded', 'admin2Seeded', 'pointsSeeded', 'rbSeeded', 'rbSeeded2', 'rbSeeded3', 'mbSeeded', 'ttSeeded',
-    'librarySeeded', 'sgSeeded', 'booksSeeded', 'screensSeeded', 'tablesSeeded', 'dualSeeded'].forEach(f => d[f] = true);
+    'librarySeeded', 'sgSeeded', 'booksSeeded', 'screensSeeded', 'tablesSeeded', 'dualSeeded', 'kitsSeeded'].forEach(f => d[f] = true);
   return d;
 }
 

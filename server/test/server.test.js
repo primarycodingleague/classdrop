@@ -524,6 +524,24 @@ test('a pupil sees classmates\' point totals but not why each point was given', 
   assert.equal(t.body.records.find(r => r.c === 'points' && r.k === 'pt-zed').doc.label, 'Unkind to others', 'staff see everything');
 });
 
+test('kit guides: every pupil sees the shelf, only their own class\'s pin, and cannot change either', async () => {
+  await push(teacher.token, [
+    { c: 'kitDocs', k: 'kd1', doc: { id: 'kd1', kit: 'indi', title: 'Challenge cards', kind: 'pdf', n: 40, perCard: 2, first: 1, word: 'Card', ts: 30 } },
+    { c: 'kitPins', k: classId, doc: { classId, docId: 'kd1', page: 27, ts: 31 } },
+    { c: 'kitPins', k: 'c-other', doc: { classId: 'c-other', docId: 'kd1', page: 3, ts: 32 } },
+  ]);
+  const p = await pull(maya.token, 0);
+  const keys = p.body.records.map(x => x.c + '/' + x.k);
+  assert.ok(keys.includes('kitDocs/kd1'));
+  assert.ok(keys.includes('kitPins/' + classId));
+  assert.ok(!keys.includes('kitPins/c-other'), 'another class\'s pin stays with that class');
+  const w = await push(maya.token, [
+    { c: 'kitPins', k: classId, doc: { classId, docId: 'kd1', page: 1, ts: 33 } },
+    { c: 'kitDocs', k: 'kd1', doc: null },
+  ]);
+  assert.ok(w.body.results.every(r => r.rejected), 'pupils read guides; they do not edit them');
+});
+
 test('storage adapters: azure needs a connection string; unknown kinds are refused', async () => {
   const { makeStorage } = await import('../src/storage.js');
   assert.throws(() => makeStorage({ STORAGE: 'azure' }), /AZURE_STORAGE_CONNECTION_STRING/);
